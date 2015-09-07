@@ -66,6 +66,20 @@ Once that's done, why not try out the :doc:`tutorial <../documentation/tutorial>
 
 .. _launchpad PPA: https://launchpad.net/~libadjoint/+archive/ppa
 
+Docker container
+============
+
+A Docker container with dolfin-adjoint compiled with the latest FEniCS, PETSc and SLEPc 
+is available on `Dockerhub<https://hub.docker.com/r/fenicsproject/dolfin-adjoint>`. 
+Here are the instructions:
+
+* Download and install Docker for your platform following the instructions at https://docker.com
+* To download and run a dolfin-adjoint container:
+
+.. code-block:: bash
+
+   docker run -ti fenicsproject/dolfin-adjoint
+
 From source
 ===========
 
