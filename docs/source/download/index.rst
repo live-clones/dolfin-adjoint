@@ -69,7 +69,7 @@ Once that's done, why not try out the :doc:`tutorial <../documentation/tutorial>
 Docker container
 ============
 
-A Docker container with dolfin-adjoint compiled with the latest FEniCS, PETSc and SLEPc 
+A Docker container with dolfin-adjoint compiled against the latest FEniCS, PETSc and SLEPc 
 is available on `Dockerhub<https://hub.docker.com/r/fenicsproject/dolfin-adjoint>`. 
 Here are the instructions:
 
@@ -79,6 +79,8 @@ Here are the instructions:
 .. code-block:: bash
 
    docker run -ti fenicsproject/dolfin-adjoint
+   
+You will be presented with a bash prompt where you can run dolfin-adjoint.
 
 From source
 ===========
