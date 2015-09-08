@@ -255,7 +255,7 @@ class TAOSolver(OptimizationSolver):
         self.tao.setInitial(self.initial_vec)
 
         if self.riesz_map is not None:
-            self.tao.setGradientNormMat(self.riesz_map)
+            self.tao.setGradientNorm(self.riesz_map)
             if self.tao.getType() in ["lmvm", "blmvm"]:
                 self.tao.setLMVMH0(self.riesz_map)
 
