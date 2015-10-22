@@ -36,6 +36,7 @@ from optimization.riesz_maps import *
 if backend.__name__ == "dolfin":
     from newton_solver import NewtonSolver
     from krylov_solver import KrylovSolver
+    from petsc_krylov_solver import PETScKrylovSolver
     from linear_solver import LinearSolver
     from lusolver import LUSolver
     from localsolver import LocalSolver

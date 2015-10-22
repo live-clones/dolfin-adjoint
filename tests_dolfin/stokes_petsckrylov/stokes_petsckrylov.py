@@ -89,7 +89,7 @@ def main(ic, annotate=False):
     # Assemble flow operator
     A_flow = assemble(flow_eq[0])
     [bc.apply(A_flow) for bc in flow_bcs]
-    ksp_flow = KrylovSolver("gmres", "none")
+    ksp_flow = PETScKrylovSolver("gmres", "none")
     ksp_flow.set_operator(A_flow)
     ksp_flow.parameters.relative_tolerance = 1.0e-9
 

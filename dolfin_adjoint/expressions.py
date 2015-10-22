@@ -30,7 +30,8 @@ if backend.__name__ == "dolfin":
     expression_setattr = backend.Expression.__setattr__
     def __setattr__(self, k, v):
         expression_setattr(self, k, v)
-        if k not in ["_ufl_element", "_count", "_countedclass", "_repr", "_element", "this", "_value_shape", "user_parameters", "_hash"]: # <-- you may need to add more here as dolfin changes
+        if k not in ["_ufl_element", "_ufl_shape", "_ufl_function_space", "_count", "_countedclass", "_repr", 
+                     "_element", "this", "_value_shape", "user_parameters", "_hash"]: # <-- you may need to add more here as dolfin changes
             attr_list = expression_attrs[self]
             attr_list.add(k)
     backend.Expression.__setattr__ = __setattr__

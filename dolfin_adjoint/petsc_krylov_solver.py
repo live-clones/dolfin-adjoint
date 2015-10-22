@@ -7,14 +7,14 @@ import adjglobals
 import misc
 import utils
 
-krylov_solvers = []
-adj_krylov_solvers = []
+petsc_krylov_solvers = []
+adj_petsc_krylov_solvers = []
 
-class KrylovSolver(dolfin.KrylovSolver):
+class PETScKrylovSolver(dolfin.PETScKrylovSolver):
     '''This object is overloaded so that solves using this class are automatically annotated,
     so that libadjoint can automatically derive the adjoint and tangent linear models.'''
     def __init__(self, *args):
-        dolfin.KrylovSolver.__init__(self, *args)
+        dolfin.PETScKrylovSolver.__init__(self, *args)
         self.solver_parameters = args
         self.nsp = None
         self.tnsp = None
@@ -25,7 +25,10 @@ class KrylovSolver(dolfin.KrylovSolver):
             self.operators = (args[0], None)
 
     def set_operators(self, A, P):
-        dolfin.KrylovSolver.set_operators(self, A, P)
+        if self.operators != (None, None):
+            raise libadjoint.exceptions.LibadjointErrorInvalidInputs("Can't set an operator twice (yet)")
+
+        dolfin.PETScKrylovSolver.set_operators(self, A, P)
         self.operators = (A, P)
 
     def set_nullspace(self, nsp):
@@ -37,7 +40,9 @@ class KrylovSolver(dolfin.KrylovSolver):
         self.tnsp = tnsp
 
     def set_operator(self, A):
-        dolfin.KrylovSolver.set_operator(self, A)
+        if self.operators != (None, None):
+            raise libadjoint.exceptions.LibadjointErrorInvalidInputs("Can't set an operator twice (yet)")
+        dolfin.PETScKrylovSolver.set_operator(self, A)
         self.operators = (A, self.operators[1])
 
     def solve(self, *args, **kwargs):
@@ -87,7 +92,7 @@ class KrylovSolver(dolfin.KrylovSolver):
                 msg = """
                 The transpose nullspace is not set.
 
-                The nullspace of the KrylovSolver is set. In this case,
+                The nullspace of the PETScKrylovSolver is set. In this case,
                 the transpose nullspace must also be set, use:
 
                   solver.set_transpose_nullspace(nullspace)
@@ -95,12 +100,12 @@ class KrylovSolver(dolfin.KrylovSolver):
                 assert tnsp is not None, msg
 
             if self.__global_list_idx__ is None:
-                self.__global_list_idx__ = len(krylov_solvers)
-                krylov_solvers.append(self)
-                adj_krylov_solvers.append(None)
+                self.__global_list_idx__ = len(petsc_krylov_solvers)
+                petsc_krylov_solvers.append(self)
+                adj_petsc_krylov_solvers.append(None)
             idx = self.__global_list_idx__
 
-            class KrylovSolverMatrix(adjlinalg.Matrix):
+            class PETScKrylovSolverMatrix(adjlinalg.Matrix):
                 def __init__(self, *args, **kwargs):
                     if 'initial_guess' in kwargs:
                         self.initial_guess = kwargs['initial_guess']
@@ -130,15 +135,27 @@ class KrylovSolver(dolfin.KrylovSolver):
 
                     # Fetch/construct the solver
                     if var.type in ['ADJ_FORWARD', 'ADJ_TLM']:
-                        solver = krylov_solvers[idx]
+                        solver = petsc_krylov_solvers[idx]
                         need_to_set_operator = False
                     else:
-                        if adj_krylov_solvers[idx] is None:
+                        if adj_petsc_krylov_solvers[idx] is None:
                             need_to_set_operator = True
-                            adj_krylov_solvers[idx] = KrylovSolver(*solver_parameters)
+                            adj_petsc_krylov_solvers[idx] = PETScKrylovSolver(*solver_parameters)
+                            adj_ksp = adj_petsc_krylov_solvers[idx].ksp()
+                            fwd_ksp = petsc_krylov_solvers[idx].ksp()
+                            adj_ksp.setOptionsPrefix(fwd_ksp.getOptionsPrefix())
+                            adj_ksp.setType(fwd_ksp.getType())
+                            adj_ksp.pc.setType(fwd_ksp.pc.getType())
+                            adj_ksp.setFromOptions()
                         else:
                             need_to_set_operator = False
-                        solver = adj_krylov_solvers[idx]
+                        solver = adj_petsc_krylov_solvers[idx]
+                        # FIXME: work around DOLFIN bug #583
+                        try:
+                            solver.parameters.convergence_norm_type
+                        except:
+                            solver.parameters.convergence_norm_type = "preconditioned"
+                        # end FIXME
                     solver.parameters.update(parameters)
 
                     if self.adjoint:
@@ -203,6 +220,9 @@ class KrylovSolver(dolfin.KrylovSolver):
                                 else:
                                     solver.set_operator(A)
 
+                    if need_to_set_operator:
+                        print "|A|: %.6e" % A.norm("frobenius")
+
                     # Set the nullspace for the linear operator
                     if nsp_ is not None and need_to_set_operator:
                         dolfin.as_backend_type(A).set_nullspace(nsp_)
@@ -212,12 +232,13 @@ class KrylovSolver(dolfin.KrylovSolver):
                     if tnsp_ is not None:
                         tnsp_.orthogonalize(rhs)
 
+                    print "%s: |b|: %.6e" % (var, rhs.norm("l2"))
                     solver.solve(x.vector(), rhs)
                     return adjlinalg.Vector(x)
 
-            solving.annotate(A == b, u, bcs, matrix_class=KrylovSolverMatrix, initial_guess=parameters['nonzero_initial_guess'], replace_map=True)
+            solving.annotate(A == b, u, bcs, matrix_class=PETScKrylovSolverMatrix, initial_guess=parameters['nonzero_initial_guess'], replace_map=True)
 
-        out = dolfin.KrylovSolver.solve(self, *args, **kwargs)
+        out = dolfin.PETScKrylovSolver.solve(self, *args, **kwargs)
 
         if to_annotate and dolfin.parameters["adjoint"]["record_all"]:
             adjglobals.adjointer.record_variable(adjglobals.adj_variables[u], libadjoint.MemoryStorage(adjlinalg.Vector(u)))

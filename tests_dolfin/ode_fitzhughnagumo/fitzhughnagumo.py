@@ -232,10 +232,12 @@ def default_parameters(**values):
     """
     # Imports
     import dolfin
+    import dolfin_adjoint
 
     # Param values
     # a=0.13, b=0.013, c_1=0.26, c_2=0.1, c_3=1.0, v_peak=40.0, v_rest=-85.0
     param_values = [0.13, 0.013, 0.26, 0.1, 1.0, 40.0, -85.0]
+    param_names  = ["a",  "b",   "c", "c_1","c_2", "c_3", "v_peak", "v_rest"] 
 
     # Parameter indices and limit checker
     param_ind = dict(a=(0, Range()), b=(1, Range()), c_1=(2, Range()),\
@@ -252,9 +254,12 @@ def default_parameters(**values):
 
         # Assign value
         param_values[ind] = value
-    param_values = dolfin.Constant(tuple(param_values))
 
-    return param_values
+    params = []
+    for (val, name) in zip(param_values, param_names):
+        params.append(dolfin_adjoint.Constant(val, name=name))
+
+    return params
 
 def rhs(states, time, parameters, dy=None):
     """
@@ -271,13 +276,7 @@ def rhs(states, time, parameters, dy=None):
     s, v = dolfin.split(states)
 
     # Assign parameters
-    assert(isinstance(parameters, (dolfin.Function, dolfin.Constant)))
-    if isinstance(parameters, dolfin.Function):
-        assert(parameters.function_space().depth() == 1)
-        assert(parameters.function_space().num_sub_spaces() == 7)
-    else:
-        assert(parameters.value_size() == 7)
-    a, b, c_1, c_2, c_3, v_peak, v_rest = dolfin.split(parameters)
+    a, b, c_1, c_2, c_3, v_peak, v_rest = parameters
     v_amp = v_peak - v_rest
     v_th = v_rest + a*v_amp
 

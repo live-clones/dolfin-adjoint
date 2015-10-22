@@ -90,6 +90,7 @@ def main(f, g):
 
     # In this case, the system is symmetric, so the transpose nullspace is the same
     solver.set_transpose_nullspace(null_space);
+
     # When solving singular systems, you have to ensure that the RHS b is in the range
     # of the singular matrix. Since the range is the orthogonal complement of the
     # transpose nullspace, you have to call the orthogonalize method of the transpose
