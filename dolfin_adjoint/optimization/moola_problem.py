@@ -57,7 +57,12 @@ def MoolaOptimizationProblem(rf, memoize=True):
 
             else:
                 moola.events.increment("Derivative evaluation")
-                return moola.DolfinDualVector(rf.derivative(forget=False)[0])
+                out = [moola.DolfinDualVector(d) for d in rf.derivative(forget=False)]
+
+                if isinstance(x, moola.DolfinPrimalVector):
+                    return out[0]
+                else:
+                    return moola.DolfinDualVectorSet(out)
 
         def hessian(self, x):
             ''' Evaluates the gradient for the control values. '''
