@@ -152,13 +152,12 @@ rf = ReducedFunctional(J, control)
 # Now that all the ingredients are in place, we can perform the
 # optimisation.
 
-# The :py:class:`ReducedFunctional` class has a method
-# :py:meth:`ReducedFunctional.moola_problem`, which generates the
-# necessary interfaces for the Moola optimisation framework.  Then, we
+# Next we use :py:class:`MoolaOptimizationProblem` to generate a problem that
+# is compatible with the Moola optimisation framework.  Then, we
 # wrap the control function into a Moola object, and create a
 # :py:meth:`NewtonCG` solver for solving the optimisation problem:
 
-problem = rf.moola_problem()
+problem = MoolaOptimizationProblem(rf)
 f_moola = moola.DolfinPrimalVector(f)
 solver = moola.NewtonCG(problem, f_moola, options={'gtol': 1e-9,
                                                    'maxiter': 20,

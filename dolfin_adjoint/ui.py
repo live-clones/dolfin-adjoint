@@ -28,6 +28,7 @@ from timeforms import dt, TimeMeasure, START_TIME, FINISH_TIME
 # Expose PDE-constrained optimization utilities
 from optimization.optimization_problem import *
 from optimization.optimization_solver import *
+from optimization.moola_problem import *
 from optimization.ipopt_solver import *
 from optimization.optizelle_solver import *
 from optimization.tao_solver import TAOSolver

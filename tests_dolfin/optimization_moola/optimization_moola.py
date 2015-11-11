@@ -39,9 +39,9 @@ if __name__ == "__main__":
 
     # Run the optimisation
     rf = ReducedFunctional(J, Control(m, value=m))
-    problem = rf.moola_problem()
-    m_moola = moola.DolfinPrimalVector(m)
+    problem = MoolaOptimisationProblem(rf)
 
+    m_moola = moola.DolfinPrimalVector(m)
     solver = moola.SteepestDescent(problem, m_moola, options={'jtol': 0, 'gtol': 1e-10, 'maxiter': 1})
 
     sol = solver.solve()
