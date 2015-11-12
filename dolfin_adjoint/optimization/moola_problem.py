@@ -41,28 +41,26 @@ def MoolaOptimizationProblem(rf, memoize=True):
             ''' Evaluates the gradient for the control values. '''
 
             if memoize:
-
+                # check if the cache is still valid
                 self(x)
 
-                if self.latest_eval_deriv is None:
-                    #print "Using memoised forward solution for gradient evaluation"
-                    moola.events.increment("Derivative evaluation")
-                    self.latest_eval_deriv = moola.DolfinDualVector(rf.derivative(forget=False)[0], riesz_map=x.riesz_map)
-
-                else:
-                    #print "Using memoised gradient"
-                    pass
-
+            if memoize and self.latest_eval_deriv is not None:
+                moola.events.increment("Cached derivative evaluation")
                 return self.latest_eval_deriv
 
-            else:
-                moola.events.increment("Derivative evaluation")
-                out = [moola.DolfinDualVector(d) for d in rf.derivative(forget=False)]
+            moola.events.increment("Derivative evaluation")
+            out = [moola.DolfinDualVector(d) for d in rf.derivative(forget=False)]
 
-                if isinstance(x, moola.DolfinPrimalVector):
-                    return out[0]
-                else:
-                    return moola.DolfinDualVectorSet(out)
+            if isinstance(x, moola.DolfinPrimalVector):
+                deriv = out[0]
+            else:
+                deriv = moola.DolfinDualVectorSet(out)
+
+            if memoize:
+                self.latest_eval_deriv = deriv
+
+            return deriv
+
 
         def hessian(self, x):
             ''' Evaluates the gradient for the control values. '''
@@ -70,7 +68,8 @@ def MoolaOptimizationProblem(rf, memoize=True):
             self(x)
 
             def moola_hessian(direction):
-                assert isinstance(direction, moola.DolfinPrimalVector)
+                assert isinstance(direction, (moola.DolfinPrimalVector,
+                                              moola.DolfinPrimalVectorSet))
                 moola.events.increment("Hessian evaluation")
                 hes = rf.hessian(direction.data)[0]
                 return moola.DolfinDualVector(hes)
