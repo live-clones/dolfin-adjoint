@@ -203,34 +203,28 @@ class BasicHessian(libadjoint.Matrix):
     equations on each action. Should be the slowest, but safest, with the lowest memory requirements.'''
     def __init__(self, J, m, warn=True):
         self.J = J
-        self.m = m
+
+        self.enlisted_controls = enlist(m)
+        self.m = ListControl(self.enlisted_controls)
 
         if warn:
             backend.info_red("Warning: Hessian computation is still experimental and is known to not work for some problems. Please Taylor test thoroughly.")
 
-        if not isinstance(m, (FunctionControl, ConstantControl)):
-            error_msg = "Sorry, Hessian computation only works for FunctionControl \
-                         and ConstantControl so far."
-            raise libadjoint.exceptions.LibadjointErrorNotImplemented(error_msg)
-
-        self.update(m)
-
-    def update(self, m):
-        pass
-
     def __call__(self, m_dot, project=False):
-
         hess_action_timer = backend.Timer("Hessian action")
 
         m_p = self.m.set_perturbation(m_dot)
         last_timestep = adjglobals.adjointer.timestep_count
 
-        if hasattr(m_dot, 'function_space'):
-            Hm = backend.Function(m_dot.function_space())
-        elif isinstance(m_dot, float):
-            Hm = 0.0
-        else:
-            raise NotImplementedError("Sorry, don't know how to handle this")
+        m_dot = enlist(m_dot)
+        Hm = []
+        for m_dot_cmp in m_dot:
+            if hasattr(m_dot_cmp, 'function_space'):
+                Hm.append(backend.Function(m_dot_cmp.function_space()))
+            elif isinstance(m_dot_cmp, float):
+                Hm.append(0.0)
+            else:
+                raise NotImplementedError("Sorry, don't know how to handle this")
 
         tlm_timer = backend.Timer("Hessian action (TLM)")
         # run the tangent linear model
@@ -260,31 +254,31 @@ class BasicHessian(libadjoint.Matrix):
             soa_timer.stop()
             soa = soa_vec.data
 
+            def hess_inner(Hm, out):
+                assert len(out) == len(Hm)
+                for i in range(len(out)):
+                    if out[i] is not None:
+                        if isinstance(Hm[i], backend.Function):
+                            Hm[i].vector().axpy(1.0, out[i].vector())
+                        elif isinstance(Hm[i], float):
+                            Hm[i] += out[i]
+                        else:
+                            raise ValueError, "Do not know what to do with this"
+                return Hm
+
             func_timer = backend.Timer("Hessian action (derivative formula)")
             # now implement the Hessian action formula.
             out = self.m.equation_partial_derivative(adjglobals.adjointer, soa, i, soa_var.to_forward())
-            if out is not None:
-                if isinstance(Hm, backend.Function):
-                    Hm.vector().axpy(1.0, out.vector())
-                elif isinstance(Hm, float):
-                    Hm += out
+            Hm = hess_inner(Hm, out)
 
             out = self.m.equation_partial_second_derivative(adjglobals.adjointer, adj, i, soa_var.to_forward(), m_dot)
-            if out is not None:
-                if isinstance(Hm, backend.Function):
-                    Hm.vector().axpy(1.0, out.vector())
-                elif isinstance(Hm, float):
-                    Hm += out
+            Hm = hess_inner(Hm, out)
 
             if last_timestep > adj_var.timestep:
                 # We have hit a new timestep, and need to compute this timesteps' \partial^2 J/\partial m^2 contribution
                 last_timestep = adj_var.timestep
                 out = self.m.functional_partial_second_derivative(adjglobals.adjointer, self.J, adj_var.timestep, m_dot)
-                if out is not None:
-                    if isinstance(Hm, backend.Function):
-                        Hm.vector().axpy(1.0, out.vector())
-                    elif isinstance(Hm, float):
-                        Hm += out
+                Hm = hess_inner(Hm, out)
 
             func_timer.stop()
 
@@ -292,10 +286,11 @@ class BasicHessian(libadjoint.Matrix):
             storage.set_overwrite(True)
             adjglobals.adjointer.record_variable(soa_var, storage)
 
-        if isinstance(Hm, backend.Function):
-            Hm.rename("d^2(%s)/d(%s)^2" % (str(self.J), str(self.m)), "a Function from dolfin-adjoint")
+        for Hm_cmp in Hm:
+            if isinstance(Hm_cmp, backend.Function):
+                Hm_cmp.rename("d^2(%s)/d(%s)^2" % (str(self.J), str(self.m)), "a Function from dolfin-adjoint")
 
-        return postprocess(Hm, project, list_type=[])
+        return postprocess(Hm, project, list_type=self.enlisted_controls)
 
     def action(self, x, y):
         assert isinstance(x.data, backend.Function)
@@ -331,7 +326,9 @@ class BasicHessian(libadjoint.Matrix):
             options[key] = params[pairs[key]]
 
         # OK! Now add the model input and output vectors.
-        data = adjlinalg.Vector(self.m.data())
+        if len(self.m.controls) != 1:
+            raise ValueError, "Sorry, only support single controls at the moment."
+        data = adjlinalg.Vector(self.m.data()[0])
         options['input'] = data
         options['output'] = data
 

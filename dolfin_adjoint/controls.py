@@ -8,6 +8,7 @@ import adjglobals
 from adjrhs import adj_get_forward_equation
 import adjresidual
 from constant import get_constant
+from enlisting import enlist
 import constant
 import types
 import adjrhs
@@ -68,7 +69,7 @@ class DolfinAdjointControl(libadjoint.Parameter):
         raise NotImplementedError
 
     def set_perturbation(self, m_dot):
-        '''Return another instance of the same class, representing the Parameter perturbed in a particular
+        '''Return another instance of the same class, representing the Control perturbed in a particular
         direction m_dot.'''
         raise NotImplementedError
 
@@ -152,6 +153,8 @@ class FunctionControl(DolfinAdjointControl):
         global_eqn_list[eqn_nb] = eqn
 
     def set_perturbation(self, m_dot):
+        '''Return another instance of the same class, representing the Control perturbed in a particular
+        direction m_dot.'''
         return FunctionControl(self.coeff, perturbation=m_dot, value=self.value)
 
 class ConstantControl(DolfinAdjointControl):
@@ -506,8 +509,11 @@ class ListControl(DolfinAdjointControl):
         [c.update(v) for c, v in zip(self.controls, value)]
 
     def set_perturbation(self, m_dot):
-        '''Return another instance of the same class, representing the Parameter perturbed in a particular
+        '''Return another instance of the same class, representing the Control perturbed in a particular
         direction m_dot.'''
+        m_dot = enlist(m_dot)
+        if not len(self.controls) == len(m_dot):
+            raise ValueError, "The perturbation m_dot must be a list of the same of the control list"
         return ListControl([p.set_perturbation(m) for (p, m) in zip(self.controls, m_dot)])
 
     def __getitem__(self, i):
