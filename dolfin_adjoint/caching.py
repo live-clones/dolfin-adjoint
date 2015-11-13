@@ -20,6 +20,19 @@ class KeyedDict(dict):
     def __contains__(self, x):
         return dict.__contains__(self, self.keyfunc(x))
 
+    def clear(self):
+        """ Delete all items.
+
+            We need to be careful here and delete items in a specific order.
+            This is crucial for MPI runs where destroying objects in different
+            orders might result in MPI deadlocks.
+        """
+        for k in sorted(self.keys()):
+            dict.__delitem__(self, k)
+
+    def __del__(self):
+        self.clear()
+
 ### Stuff for LU caching
 
 soa_to_adj = re.compile(r'\[(?P<func>Functional:.*?):.*\]')
