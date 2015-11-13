@@ -326,7 +326,9 @@ class BasicHessian(libadjoint.Matrix):
             options[key] = params[pairs[key]]
 
         # OK! Now add the model input and output vectors.
-        data = adjlinalg.Vector(self.m.data())
+        if len(self.m.controls) != 1:
+            raise ValueError, "Sorry, only support single controls at the moment."
+        data = adjlinalg.Vector(self.m.data()[0])
         options['input'] = data
         options['output'] = data
 
