@@ -513,7 +513,7 @@ class ListControl(DolfinAdjointControl):
         direction m_dot.'''
         m_dot = enlist(m_dot)
         if not len(self.controls) == len(m_dot):
-            raise ValueError, "The perturbation m_dot must be a list of the same of the control list"
+            raise ValueError, "The perturbation m_dot must be a list of the same shape as the control list"
         return ListControl([p.set_perturbation(m) for (p, m) in zip(self.controls, m_dot)])
 
     def __getitem__(self, i):

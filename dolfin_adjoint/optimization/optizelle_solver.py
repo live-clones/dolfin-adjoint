@@ -412,7 +412,7 @@ try:
         @optizelle_callback
         def hessvec(self, x, dx, H_dx):
             self.eval(x)
-            H = self.rf.hessian(dx, project=True)
+            H = enlist(self.rf.hessian(dx, project=True))
             DolfinVectorSpace.scal(self.scale, H)
             DolfinVectorSpace.copy(H, H_dx)
 

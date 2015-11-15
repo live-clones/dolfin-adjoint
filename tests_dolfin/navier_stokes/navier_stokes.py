@@ -156,12 +156,14 @@ if __name__ == "__main__":
     m = Control(soln)
     Jm = assemble(inner(soln, soln)**1*dx + inner(ic, ic)*dx)
     rf = ReducedFunctional(J, m)
-    dJdm = rf.derivative(forget=None)[0]
-    HJm  = lambda m_dot: rf.hessian(m_dot)[0]
+    dJdm = rf.derivative(forget=False)[0]
+    HJm  = lambda m_dot: rf.hessian(m_dot)
 
     def J(ic):
+        print "ic", ic
         soln = main(ic)
-        return assemble(inner(soln, soln)**1*dx + inner(ic, ic)*dx)
+        return assemble(inner(soln, soln)*dx + inner(ic, ic)*dx)
 
-    minconv = taylor_test(J, m, Jm, dJdm, HJm=HJm, perturbation_direction=interpolate(Constant((1.0, 1.0)), V))
+    perturbation_direction=interpolate(Constant((1.0, 1.0)), V)
+    minconv = taylor_test(J, m, Jm, dJdm, HJm=HJm, perturbation_direction=perturbation_direction)
     assert minconv > 2.7

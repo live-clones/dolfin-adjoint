@@ -258,8 +258,6 @@ class ReducedFunctional(object):
     def hessian(self, m_dot, project=False):
         ''' Evaluates the Hessian action in direction m_dot. '''
 
-        assert(len(self.controls) == 1)
-
         # Check if we have the gradient already in the cash.
         # If so, return the cached value
         if self.cache is not None:
@@ -274,14 +272,10 @@ class ReducedFunctional(object):
                 info_red("Got a Hessian cache miss")
 
         # Compute the Hessian action by solving the second order adjoint equations
-        if isinstance(m_dot, list):
-            assert len(m_dot) == 1
-            Hm = self.H(m_dot[0], project=project)
-        else:
-            Hm = self.H(m_dot, project=project)
+        Hm = self.H(m_dot, project=project)
 
         # Apply the scaling factor
-        scaled_Hm = [utils.scale(Hm, self.scale)]
+        scaled_Hm = utils.scale(Hm, self.scale)
 
         # Call callback
         control_data = [p.data() for p in self.controls]
@@ -292,13 +286,24 @@ class ReducedFunctional(object):
 
         self.hessian_cb(current_func_value,
                         delist(control_data, list_type=self.controls),
-                        m_dot, scaled_Hm[0])
+                        m_dot, scaled_Hm)
 
         # Cache the result
         if self.cache is not None:
             self._cache["hessian_cache"][hash] = cache_store(scaled_Hm, self.cache)
 
         return scaled_Hm
+
+    def taylor_test(self, m, seed=None, perturbation_direction=None):
+        """ Check that the functional, gradient and Hessian are consistent by
+        running the Taylor test. """
+
+        Jm = self(m)
+        dJdm = self.derivative(forget=False)
+        HJm = self.H
+
+        return utils.taylor_test(self.__call__, self.controls, Jm, dJdm, HJm, seed=seed,
+                perturbation_direction=enlist(perturbation_direction))
 
 
 def value_hash(value):

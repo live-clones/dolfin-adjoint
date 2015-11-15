@@ -29,7 +29,12 @@ def scale(obj, factor):
         scaled_obj = backend.Constant(factor * constant_to_array(obj))
     else:
         # Lists, numpy arrays, ...
-        scaled_obj = factor * obj
+        try:
+            scaled_obj = factor * obj
+        except TypeError:
+            # Lists of dolfin objects?
+            scaled_obj = [scale(o, factor) for o in obj]
+
     return scaled_obj
 
 def homogenize(bc):
@@ -474,7 +479,30 @@ def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None
         if value is None:
             value = [None] * len(m.controls)
 
-        return min(taylor_test(J, m[i], Jm, dJdm[i], HJm, seed, perturbation_direction[i], value[i]) for i in range(len(m.controls)))
+        # Build a objective version restricted to the i'th control
+        def J_cmp(J, i):
+            m_values = [c.data() for c in m]
+            def out(x):
+                m_values[i] = x
+                return J(m_values)
+            return out
+
+        # A Hessian version restricted to the i'th control
+        if HJm is not None:
+            HJm_cmp = lambda i: lambda x: HJm.__class__(HJm.J, m[i])(x)
+        else:
+            HJm_cmp = lambda i: None
+
+        min_conv = 1e10
+        for i in range(len(m.controls)):
+            print "\nRunning Taylor test for control {}".format(i)
+            min_conv = min(min_conv, taylor_test(J_cmp(J, i), m[i], Jm, dJdm[i], HJm_cmp(i), seed, perturbation_direction[i], value[i]))
+        return min_conv
+
+
+    # Check inputs
+    if not isinstance(m, libadjoint.Parameter):
+        raise ValueError, "m must be a valid control instance."
 
     def get_const(val):
         if isinstance(val, str):

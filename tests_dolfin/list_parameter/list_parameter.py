@@ -50,15 +50,7 @@ if __name__ == "__main__":
     dJdm = compute_gradient(J, m, forget=False)
 
     def Jfunc(m):
-        if hasattr(m, 'vector'):
-            info_green("Perturbing initial condition!!")
-            lic = m
-            lnu = nu
-        else:
-            info_green("Perturbing diffusivity!!")
-            lic = ic
-            lnu = m
-
+        lic, lnu = m
         forward = main(lic, lnu, annotate=False)
         return assemble(forward*forward*dx + lic*lic*dx)
 

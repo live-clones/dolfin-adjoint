@@ -34,28 +34,12 @@ if __name__ == "__main__":
     dJdm = compute_gradient(J, controls, forget=None)
     HJm  = hessian(J, controls, warn=False)
 
-    def Jhat(m, n):
+    def Jhat(mn):
+        m, n = mn
         u = main(m, n)
         return assemble(inner(u, u)**3*dx + inner(m+n, m+n)*dx)
 
-    # Argh: Taylor test does not work for multi controls yet ...
-    # We need to test both components seperately
-
-    # Second component
-    dJdm0 = dJdm[0]
-    HJm0 = lambda d: HJm([d, interpolate(Constant(0.0), V)])[0]
-    Jhat0 = lambda m: Jhat(m, n)
-
-    direction = interpolate(Constant(0.1), V)
-    minconv = taylor_test(Jhat0, controls[0], Jm, dJdm0, HJm=HJm0,
-                          perturbation_direction=direction)
-    assert minconv > 2.9
-
-    # Second component
-    dJdm1 = dJdm[1]
-    HJm1 = lambda d: HJm([interpolate(Constant(0.0), V), d])[1]
-    Jhat1 = lambda n: Jhat(m, n)
-
-    minconv = taylor_test(Jhat1, controls[1], Jm, dJdm1, HJm=HJm1,
+    direction = [interpolate(Constant(0.1), V), interpolate(Constant(0.1), V)]
+    minconv = taylor_test(Jhat, controls, Jm, dJdm, HJm=HJm,
                           perturbation_direction=direction)
     assert minconv > 2.9

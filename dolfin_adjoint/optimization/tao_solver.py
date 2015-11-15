@@ -142,7 +142,7 @@ class TAOSolver(OptimizationSolver):
             def mult(self, mat, x, y):
                 # TODO: Add multiple control support to Hessian stack and check for ConstantControl
                 x_wrap = Function(rf.controls[0].data().function_space(), PETScVector(x))
-                hes = rf.hessian(x_wrap)[0]
+                hes = rf.hessian(x_wrap)
                 hes_vec = as_backend_type(hes.vector()).vec()
 
                 y.set(0.0)
