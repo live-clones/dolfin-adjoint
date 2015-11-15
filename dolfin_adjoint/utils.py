@@ -12,6 +12,7 @@ import functional
 import drivers
 import math
 import compatibility
+import controls
 from enlisting import enlist
 from controls import ListControl, Control
 if backend.__name__  == "dolfin":
@@ -190,7 +191,6 @@ def test_initial_condition_tlm(J, dJ, ic, seed=0.01, perturbation_direction=None
     # We will compute the gradient of the functional with respect to the initial condition,
     # and check its correctness with the Taylor remainder convergence test.
     info_blue("Running Taylor remainder convergence analysis for the tangent linear model... ")
-    import controls
 
     adj_var = adjglobals.adj_variables[ic]; adj_var.timestep = 0
     if not adjglobals.adjointer.variable_known(adj_var):
@@ -438,7 +438,6 @@ def test_gradient_array(J, dJdx, x, seed = 0.01, perturbation_direction = None):
 def taylor_remainder_with_gradient(m, Jm, dJdm, functional_value, perturbation, ic=None):
     """ Compute the Taylor remainder with the provided gradient information. Note that this
     computes the remainder for just one functional value. """
-    import controls
     if isinstance(m, controls.ConstantControl):
         remainder = abs(functional_value - Jm - float(dJdm)*perturbation)
     elif isinstance(m, controls.ConstantControls):
@@ -468,7 +467,6 @@ def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None
        is correct.'''
 
     info_blue("Running Taylor remainder convergence test ... ")
-    import controls
 
     if isinstance(m, list):
         m = ListControl(m)
@@ -476,43 +474,54 @@ def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None
     # Handle the multi-control case
     # We do this by performing a separate Taylor test for each control.
     if isinstance(m, controls.ListControl):
-        if perturbation_direction is None:
-            perturbation_direction = [None] * len(m.controls)
-        perturbation_direction = enlist(perturbation_direction)
+        return _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value)
+    else:
+        return _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value)
 
-        if value is None:
-            value = [None] * len(m.controls)
 
-        # Create a deep copy of the initial control values
-        m_cpy = []
-        for c in m:
-            if isinstance(c.data(), backend.Function):
-                m_cpy.append(backend.Function(c.data()))
-            else:
-                m_cpy.append(backend.Constant(c.data()))
+def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value):
+    if perturbation_direction is None:
+        perturbation_direction = [None] * len(m.controls)
+    perturbation_direction = enlist(perturbation_direction)
 
-        # Build a objective version restricted to the i'th control
-        def J_cmp(J, i):
-            m_values = list(m_cpy)
-            def out(x):
-                m_values[i] = x
-                return J(m_values)
-            return out
+    if value is None:
+        value = [None] * len(m.controls)
+    value = enlist(value)
 
-        # A Hessian version restricted to the i'th control
-        if HJm is not None:
-            HJm_cmp = lambda i: lambda x: HJm.__class__(HJm.J, m[i])(x)
+    # Create a deep copy of the initial control values
+    m_cpy = []
+    for c in m:
+        if isinstance(c.data(), backend.Function):
+            m_cpy.append(backend.Function(c.data()))
         else:
-            HJm_cmp = lambda i: None
+            m_cpy.append(backend.Constant(c.data()))
 
-        # Perform the Taylor tests for each control
-        min_conv = 1e10
-        for i in range(len(m.controls)):
-            print "\nRunning Taylor test for control {}".format(i)
-            min_conv = min(min_conv, taylor_test(J_cmp(J, i), m[i], Jm, dJdm[i], HJm_cmp(i), seed, perturbation_direction[i], value[i]))
-        return min_conv
+    # Build a objective version restricted to the i'th control
+    def J_cmp(J, i):
+        m_values = list(m_cpy)
+        def out(x):
+            m_values[i] = x
+            return J(m_values)
+        return out
+
+    # A Hessian version restricted to the i'th control
+    if HJm is not None:
+        HJm_cmp = lambda i: lambda x: HJm.__class__(HJm.J, m[i])(x)
+    else:
+        HJm_cmp = lambda i: None
+
+    # Perform the Taylor tests for each control
+    min_conv = 1e10
+    for i in range(len(m.controls)):
+        print "\nRunning Taylor test for control {}".format(i)
+        conv = _taylor_test_single_control(J_cmp(J, i), m[i], Jm, dJdm[i],
+                HJm_cmp(i), seed, perturbation_direction[i], value[i])
+        min_conv = min(min_conv, conv)
+
+    return min_conv
 
 
+def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value):
     # Check inputs
     if not isinstance(m, libadjoint.Parameter):
         raise ValueError, "m must be a valid control instance."
@@ -566,6 +575,8 @@ def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None
     else:
         if isinstance(m, controls.FunctionControl):
             ic = get_value(m, value)
+        elif isinstance(m, controls.ConstantControl):
+            perturbation_direction = float(perturbation_direction)
 
     # So now compute the perturbations:
     if not isinstance(perturbation_direction, backend.Function):
