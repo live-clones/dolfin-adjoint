@@ -242,7 +242,7 @@ calculating the integral each time without re-assembling.
               self.tmpvec = Function(A)
   
           def function(self, m):
-              self.tmpvec.vector()[:] = m
+              reduced_functional_numpy.set_local(self.tmpvec.vector().array(), m)
   
 Compute the integral of the control over the domain
 
