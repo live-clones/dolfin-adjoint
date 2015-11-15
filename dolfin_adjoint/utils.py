@@ -12,6 +12,7 @@ import functional
 import drivers
 import math
 import compatibility
+from enlisting import enlist
 from controls import ListControl, Control
 if backend.__name__  == "dolfin":
     from backend import cpp
@@ -472,16 +473,27 @@ def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None
     if isinstance(m, list):
         m = ListControl(m)
 
+    # Handle the multi-control case
+    # We do this by performing a separate Taylor test for each control.
     if isinstance(m, controls.ListControl):
         if perturbation_direction is None:
             perturbation_direction = [None] * len(m.controls)
+        perturbation_direction = enlist(perturbation_direction)
 
         if value is None:
             value = [None] * len(m.controls)
 
+        # Create a deep copy of the initial control values
+        m_cpy = []
+        for c in m:
+            if isinstance(c.data(), backend.Function):
+                m_cpy.append(backend.Function(c.data()))
+            else:
+                m_cpy.append(backend.Constant(c.data()))
+
         # Build a objective version restricted to the i'th control
         def J_cmp(J, i):
-            m_values = [c.data() for c in m]
+            m_values = list(m_cpy)
             def out(x):
                 m_values[i] = x
                 return J(m_values)
@@ -493,6 +505,7 @@ def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None
         else:
             HJm_cmp = lambda i: None
 
+        # Perform the Taylor tests for each control
         min_conv = 1e10
         for i in range(len(m.controls)):
             print "\nRunning Taylor test for control {}".format(i)

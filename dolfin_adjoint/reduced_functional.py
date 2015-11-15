@@ -294,16 +294,19 @@ class ReducedFunctional(object):
 
         return scaled_Hm
 
-    def taylor_test(self, m, seed=None, perturbation_direction=None):
+    def taylor_test(self, m, test_hessian=False, seed=None, perturbation_direction=None):
         """ Check that the functional, gradient and Hessian are consistent by
         running the Taylor test. """
 
         Jm = self(m)
         dJdm = self.derivative(forget=False)
-        HJm = self.H
+        if test_hessian:
+            HJm = self.H
+        else:
+            HJm = None
 
         return utils.taylor_test(self.__call__, self.controls, Jm, dJdm, HJm, seed=seed,
-                perturbation_direction=enlist(perturbation_direction))
+                perturbation_direction=perturbation_direction)
 
 
 def value_hash(value):
