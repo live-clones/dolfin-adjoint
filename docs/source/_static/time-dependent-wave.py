@@ -157,7 +157,7 @@ def optimize(dbg=False):
     print float(dJd0[0])
 
     # Prepare the reduced functional
-    reduced_functional = ReducedFunctional(J, controls, eval_cb = eval_cb)
+    reduced_functional = ReducedFunctional(J, controls, eval_cb_post = eval_cb)
 
     # Run the optimisation
     omega_opt = minimize(reduced_functional, method = "L-BFGS-B",\
