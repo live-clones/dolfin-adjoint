@@ -56,8 +56,8 @@ def forward(excitation, c=Constant(1.), record=False, annotate=False):
     U = FunctionSpace(mesh, "Lagrange", 1)
 
     # Set up initial values
-    u0 = interpolate(Expression("0"), U, name = "u0", annotate = annotate)
-    u1 = interpolate(Expression("0"), U, name = "u1", annotate = annotate)
+    u0 = interpolate(Expression("0."), U, name = "u0", annotate = annotate)
+    u1 = interpolate(Expression("0."), U, name = "u1", annotate = annotate)
 
     # Define test and trial functions
     v = TestFunction(U)
@@ -157,7 +157,7 @@ def optimize(dbg=False):
     print float(dJd0[0])
 
     # Prepare the reduced functional
-    reduced_functional = ReducedFunctional(J, controls, eval_cb = eval_cb)
+    reduced_functional = ReducedFunctional(J, controls, eval_cb_post = eval_cb)
 
     # Run the optimisation
     omega_opt = minimize(reduced_functional, method = "L-BFGS-B",\
