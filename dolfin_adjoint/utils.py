@@ -683,13 +683,12 @@ def taylor_test_expression(exp, V):
     J = functional.Functional(Jform)
     J0 = backend.assemble(Jform)
 
-    deps = exp.dependencies()
-    controls = [Control(c) for c in deps]
+    controls = [Control(c) for c in exp.dependencies]
     dJd0 = drivers.compute_gradient(J, controls, forget=False)
 
     for i in range(len(controls)):
         def Jfunc(new_val):
-            dep = exp.dependencies()[i]
+            dep = exp.dependencies[i]
 
             # Remember the old dependency value for later
             old_val = float(dep)

@@ -1,36 +1,46 @@
 from dolfin import *
 from dolfin_adjoint import *
 
-class SourceExpression(Expression):
-    def __init__(self, c, d):
-        self.c = c
-        self.d = d
 
-    def eval(self, value, x):
-        value[0] = self.c**2
-        value[0] *= self.d
+# An expression that depends on a and b
+base_code = '''
+class MyCppExpression : public Expression
+{
+public:
+      std::shared_ptr<Constant> a;
+      std::shared_ptr<Constant> b;
+  MyCppExpression() : Expression() {}
 
-    def deval(self, value, x, derivative_coeff):
+  void eval(Array<double>& values, const Array<double>& x) const
+  {
+    double a_ = (double) *a;
+    double b_ = (double) *b;
+    values[0] = EXPRESSION;
+  }
+};'''
 
-        if self.c == derivative_coeff:
-            value[0] = 2*self.c*self.d
-
-        elif self.d == derivative_coeff:
-            value[0] = self.c**2
-
-    def dependencies(self):
-        return [self.c, self.d]
-
-    def copy(self):
-        return SourceExpression(self.c, self.d)
+cpp_code = base_code.replace("EXPRESSION", "(x[0] - a_)*b_*b_*a_")
+da_cpp_code = base_code.replace("EXPRESSION", "(x[0] - a_)*b_*b_ - b_*b_*a_")
+db_cpp_code = base_code.replace("EXPRESSION", "2*(x[0] - a_)*b_*a_")
 
 
 if __name__ == "__main__":
     mesh = UnitSquareMesh(4, 4)
     V = FunctionSpace(mesh, "CG", 1)
 
-    c = Constant(2)
-    d = Constant(3)
+    a = Constant(0.5)
+    b = Constant(0.25)
 
-    source = SourceExpression(c, d)
-    taylor_test_expression(source, V)
+    f = Expression(cpp_code)
+    f.a = a; f.b = b
+    f.dependencies = [a, b]
+
+    dfda = Expression(da_cpp_code)
+    dfda.a = a; dfda.b = b
+
+    dfdb = Expression(db_cpp_code)
+    dfdb.a = a; dfdb.b = b
+
+    f.user_defined_derivatives = {a: dfda, b: dfdb}
+
+    taylor_test_expression(f, V)
