@@ -63,68 +63,68 @@ V.dofmap().set(null_space, 1.0)
 null_space[:] = null_space/null_space.norm("l2")
 
 def main(f, g):
-  # Define variational problem
-  u = TrialFunction(V)
-  v = TestFunction(V)
-  a = inner(grad(u), grad(v))*dx
-  L = f*v*dx + g*v*ds
+    # Define variational problem
+    u = TrialFunction(V)
+    v = TestFunction(V)
+    a = inner(grad(u), grad(v))*dx
+    L = f*v*dx + g*v*ds
 
-  # Assemble system
-  A = assemble(a)
-  b = assemble(L)
+    # Assemble system
+    A = assemble(a)
+    b = assemble(L)
 
-  #bc = DirichletBC(V, 0.0, "on_boundary"); bc.apply(A); bc.apply(b)
+    #bc = DirichletBC(V, 0.0, "on_boundary"); bc.apply(A); bc.apply(b)
 
-  # Solution Function
-  u = Function(V)
+    # Solution Function
+    u = Function(V)
 
-  # Create Krylov solver
-  solver = KrylovSolver(A, "gmres")
+    # Create Krylov solver
+    solver = KrylovSolver(A, "gmres")
 
-  # Create null space basis and attach to Krylov solver
-  null_vec = Vector(u.vector())
-  V.dofmap().set(null_vec, 1.0)
-  null_vec *= 1.0/null_vec.norm("l2")
-  null_space = VectorSpaceBasis([null_vec])
-  solver.set_nullspace(null_space)
+    # Create null space basis and attach to Krylov solver
+    null_vec = Vector(u.vector())
+    V.dofmap().set(null_vec, 1.0)
+    null_vec *= 1.0/null_vec.norm("l2")
+    null_space = VectorSpaceBasis([null_vec])
+    solver.set_nullspace(null_space)
 
-  # In this case, the system is symmetric, so the transpose nullspace is the same
-  solver.set_transpose_nullspace(null_space);
-  # When solving singular systems, you have to ensure that the RHS b is in the range
-  # of the singular matrix. Since the range is the orthogonal complement of the
-  # transpose nullspace, you have to call the orthogonalize method of the transpose
-  # nullspace object on the RHS:
-  null_space.orthogonalize(b);
+    # In this case, the system is symmetric, so the transpose nullspace is the same
+    solver.set_transpose_nullspace(null_space);
 
-  solver.parameters["relative_tolerance"] = 1.0e-200
-  solver.parameters["absolute_tolerance"] = 1.0e-14
-  solver.parameters["maximum_iterations"] = 20000
+    # When solving singular systems, you have to ensure that the RHS b is in the range
+    # of the singular matrix. Since the range is the orthogonal complement of the
+    # transpose nullspace, you have to call the orthogonalize method of the transpose
+    # nullspace object on the RHS:
+    null_space.orthogonalize(b);
 
-  # Solve
-  solver.solve(u.vector(), b)
+    solver.parameters["relative_tolerance"] = 1.0e-200
+    solver.parameters["absolute_tolerance"] = 1.0e-14
+    solver.parameters["maximum_iterations"] = 20000
 
-  return u
+    # Solve
+    solver.solve(u.vector(), b)
+
+    return u
 
 if __name__ == "__main__":
-  g = interpolate(Expression("-sin(5*x[0])"), V, name="SourceG")
-  f = interpolate(Expression("10*exp(-(pow(x[0] - 0.5, 2) + pow(x[1] - 0.5, 2)) / 0.02)"), V, name="SourceF")
-  u = main(f, g)
-
-  parameters["adjoint"]["stop_annotating"] = True
-
-  assert replay_dolfin(tol=0.0, stop=True)
-
-  frm = lambda u: inner(u, u)*dx
-
-  Jm = assemble(frm(u))
-  J = Functional(frm(u))
-  m = Control(f)
-  dJdm = compute_gradient(J, m, forget=False)
-
-  def Jhat(f):
+    g = interpolate(Expression("-sin(5*x[0])"), V, name="SourceG")
+    f = interpolate(Expression("10*exp(-(pow(x[0] - 0.5, 2) + pow(x[1] - 0.5, 2)) / 0.02)"), V, name="SourceF")
     u = main(f, g)
-    return assemble(frm(u))
 
-  minconv = taylor_test(Jhat, m, Jm, dJdm, perturbation_direction=interpolate(Constant(1.0), V))
-  assert minconv > 1.8
+    parameters["adjoint"]["stop_annotating"] = True
 
+    assert replay_dolfin(tol=0.0, stop=True)
+
+    frm = lambda u: inner(u, u)*dx
+
+    Jm = assemble(frm(u))
+    J = Functional(frm(u))
+    m = Control(f)
+    dJdm = compute_gradient(J, m, forget=False)
+
+    def Jhat(f):
+        u = main(f, g)
+        return assemble(frm(u))
+
+    minconv = taylor_test(Jhat, m, Jm, dJdm, perturbation_direction=interpolate(Constant(1.0), V))
+    assert minconv > 1.8

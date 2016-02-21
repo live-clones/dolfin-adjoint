@@ -38,98 +38,98 @@ __all__ = \
     "petsc_version",
     "system_info"
   ]
-  
+
 
 def petsc_version():
-  """
-  Attempt to determine the current PETSc version, and return a Version if this
-  is successful. Otherwise, return None.
-  """
+    """
+    Attempt to determine the current PETSc version, and return a Version if this
+    is successful. Otherwise, return None.
+    """
 
-  if "PETSC_DIR" in os.environ:
-    petsc_dir = os.environ["PETSC_DIR"]
-  else:
-    paths = sorted(glob.glob("/usr/lib/petscdir/*"), reverse = True)
-    petsc_dir = "/usr"
-    for path in paths:
-      if os.path.isdir(path):
-        petsc_dir = path
-        break
-  if "PETSC_ARCH" in os.environ:
-    petsc_arch = os.environ["PETSC_ARCH"]
-  else:
-    petsc_arch = ""
+    if "PETSC_DIR" in os.environ:
+        petsc_dir = os.environ["PETSC_DIR"]
+    else:
+        paths = sorted(glob.glob("/usr/lib/petscdir/*"), reverse = True)
+        petsc_dir = "/usr"
+        for path in paths:
+            if os.path.isdir(path):
+                petsc_dir = path
+                break
+    if "PETSC_ARCH" in os.environ:
+        petsc_arch = os.environ["PETSC_ARCH"]
+    else:
+        petsc_arch = ""
 
-  version = None
-  for include_dir in [os.path.join(petsc_dir, petsc_arch, os.path.pardir, "include"),
-                      os.path.join(petsc_dir, petsc_arch, "include"),
-                      "/usr/include/petsc"]:
-    if os.path.isfile(os.path.join(include_dir, "petscversion.h")):
-      version = numpy.empty(4, dtype = numpy.int)
-      EmbeddedCpp(includes = \
-        """
-        #include "petscversion.h"
-        """,
-        code = \
-        """
-        version[0] = PETSC_VERSION_MAJOR;
-        version[1] = PETSC_VERSION_MINOR;
-        version[2] = PETSC_VERSION_SUBMINOR;
-        version[3] = PETSC_VERSION_PATCH;
-        """, include_dirs = [include_dir], version = long_arr).run(version = version)
-      break
+    version = None
+    for include_dir in [os.path.join(petsc_dir, petsc_arch, os.path.pardir, "include"),
+                        os.path.join(petsc_dir, petsc_arch, "include"),
+                        "/usr/include/petsc"]:
+        if os.path.isfile(os.path.join(include_dir, "petscversion.h")):
+            version = numpy.empty(4, dtype = numpy.int)
+            EmbeddedCpp(includes = \
+              """
+              #include "petscversion.h"
+              """,
+              code = \
+              """
+              version[0] = PETSC_VERSION_MAJOR;
+              version[1] = PETSC_VERSION_MINOR;
+              version[2] = PETSC_VERSION_SUBMINOR;
+              version[3] = PETSC_VERSION_PATCH;
+              """, include_dirs = [include_dir], version = long_arr).run(version = version)
+            break
 
-  if version is None:
-    return None
-  else:
-    return Version(version)
+    if version is None:
+        return None
+    else:
+        return Version(version)
 
 def system_info():
-  """
-  Print system information and assorted library versions.
-  """
-  
-  import platform
-  import socket
-  import time
+    """
+    Print system information and assorted library versions.
+    """
 
-  import FIAT
-  import instant
-  import ufc
+    import platform
+    import socket
+    import time
 
-  dolfin.info("Date / time    : %s" % time.ctime())
-  dolfin.info("Machine        : %s" % socket.gethostname())
-  dolfin.info("Platform       : %s" % platform.platform())
-  dolfin.info("Processor      : %s" % platform.processor())
-  dolfin.info("Python version : %s" % platform.python_version())
-  dolfin.info("NumPy version  : %s" % numpy.__version__)
-  dolfin.info("SciPy version  : %s" % scipy.__version__)
-  dolfin.info("VTK version    : %s" % vtk.vtkVersion().GetVTKVersion())
-  dolfin.info("DOLFIN version : %s" % dolfin.__version__)
-  dolfin.info("FIAT version   : %s" % FIAT.__version__)
-  try:
-    import ferari
-    dolfin.info("FErari version : %s" % ferari.VERSION)
-  except ImportError:
-    pass
-  dolfin.info("FFC version    : %s" % ffc.__version__)
-  dolfin.info("Instant version: %s" % instant.__version__)
-  try:
-    import SyFi
-    dolfin.info("SyFi version   : %i.%i" % (SyFi.version_major, SyFi.version_minor))
-  except ImportError:
-    pass
-  dolfin.info("UFC version    : %s" % ufc.__version__)
-  dolfin.info("UFL version    : %s" % ufl.__version__)
-  try:
-    import viper
-    dolfin.info("Viper version  : %s" % viper.__version__)
-  except ImportError:
-    pass
-  petsc_ver = petsc_version()
-  if petsc_ver is None:
-    dolfin.info("PETSc version  : Unknown")
-  else:
-    dolfin.info("PETSc version  : %i.%i.%ip%i" % petsc_ver.tuple())
+    import FIAT
+    import instant
+    import ufc
 
-  return
+    dolfin.info("Date / time    : %s" % time.ctime())
+    dolfin.info("Machine        : %s" % socket.gethostname())
+    dolfin.info("Platform       : %s" % platform.platform())
+    dolfin.info("Processor      : %s" % platform.processor())
+    dolfin.info("Python version : %s" % platform.python_version())
+    dolfin.info("NumPy version  : %s" % numpy.__version__)
+    dolfin.info("SciPy version  : %s" % scipy.__version__)
+    dolfin.info("VTK version    : %s" % vtk.vtkVersion().GetVTKVersion())
+    dolfin.info("DOLFIN version : %s" % dolfin.__version__)
+    dolfin.info("FIAT version   : %s" % FIAT.__version__)
+    try:
+        import ferari
+        dolfin.info("FErari version : %s" % ferari.VERSION)
+    except ImportError:
+        pass
+    dolfin.info("FFC version    : %s" % ffc.__version__)
+    dolfin.info("Instant version: %s" % instant.__version__)
+    try:
+        import SyFi
+        dolfin.info("SyFi version   : %i.%i" % (SyFi.version_major, SyFi.version_minor))
+    except ImportError:
+        pass
+    dolfin.info("UFC version    : %s" % ufc.__version__)
+    dolfin.info("UFL version    : %s" % ufl.__version__)
+    try:
+        import viper
+        dolfin.info("Viper version  : %s" % viper.__version__)
+    except ImportError:
+        pass
+    petsc_ver = petsc_version()
+    if petsc_ver is None:
+        dolfin.info("PETSc version  : Unknown")
+    else:
+        dolfin.info("PETSc version  : %i.%i.%ip%i" % petsc_ver.tuple())
+
+    return

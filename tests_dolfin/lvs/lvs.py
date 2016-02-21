@@ -10,32 +10,32 @@ v = TestFunction(V)
 f = interpolate(Expression("sin(pi*x[0])"), V, name = "initial condition")
 
 def main(f, annotate=False):
-  u = Function(V, name = "system state")
-  w = TrialFunction(V)
-  a = w*v*dx
-  L = f*v*dx
-  F = a - L
+    u = Function(V, name = "system state")
+    w = TrialFunction(V)
+    a = w*v*dx
+    L = f*v*dx
+    F = a - L
 
-  bcs = None
+    bcs = None
 
-  problem = LinearVariationalProblem(a, L, u, bcs)
-  problem = LinearVariationalProblem(a, L, u)
-  solver = LinearVariationalSolver(problem)
-  solver.solve(annotate=annotate)
+    problem = LinearVariationalProblem(a, L, u, bcs)
+    problem = LinearVariationalProblem(a, L, u)
+    solver = LinearVariationalSolver(problem)
+    solver.solve(annotate=annotate)
 
-  return u
+    return u
 
 u = main(f, annotate=True)
 replay_dolfin()
 
-grad = compute_gradient(Functional(u*u*dx*dt[FINISH_TIME]), Control(f), 
+grad = compute_gradient(Functional(u*u*dx*dt[FINISH_TIME]), Control(f),
                         forget = False)
 
 def J(f):
-  u = main(f, annotate=False)
-  return assemble(u*u*dx)
+    u = main(f, annotate=False)
+    return assemble(u*u*dx)
 
 Ju = assemble(u*u*dx)
 minconv = taylor_test(J, Control(f), Ju, grad)
 if minconv < 1.9:
-  sys.exit(1)
+    sys.exit(1)

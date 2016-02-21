@@ -14,14 +14,18 @@ class ReducedFunctionalNumPy(ReducedFunctional):
     This "NumPy version" of the dolfin_adjoint.ReducedFunctional is created from
     an existing ReducedFunctional object:
     rf_np = ReducedFunctionalNumPy(rf = rf)
-
-        '''
+    '''
 
     def __init__(self, rf):
-        super(ReducedFunctionalNumPy, self).__init__(rf.functional, rf.controls, scale=rf.scale,
-                                                     eval_cb=rf.eval_cb, derivative_cb=rf.derivative_cb,
-                                                     replay_cb=rf.replay_cb, hessian_cb=rf.hessian_cb,
-                                                     cache=rf.cache)
+        super(ReducedFunctionalNumPy, self).__init__(rf.functional,
+                rf.controls, scale=rf.scale,
+                eval_cb_pre=rf.eval_cb_pre,
+                eval_cb_post=rf.eval_cb_post,
+                derivative_cb_pre=rf.derivative_cb_pre,
+                derivative_cb_post=rf.derivative_cb_post,
+                replay_cb=rf.replay_cb,
+                hessian_cb=rf.hessian_cb,
+                cache=rf.cache)
         self.current_func_value = rf.current_func_value
 
         self.__base_call__ = rf.__call__
@@ -72,6 +76,7 @@ class ReducedFunctionalNumPy(ReducedFunctional):
             self(m_array)
 
         dJdm = self.__base_derivative__(forget=forget, project=project)
+
         if project:
             dJdm_global = self.get_global(dJdm)
         else:
@@ -110,7 +115,6 @@ class ReducedFunctionalNumPy(ReducedFunctional):
                     adjointer.forget_adjoint_values(i)
 
             self.set_local(m, m_array)
-        self.H.update(m)
 
         m_dot = [copy_data(p.data()) for p in self.controls]
         self.set_local(m_dot, m_dot_array)
@@ -132,93 +136,93 @@ class ReducedFunctionalNumPy(ReducedFunctional):
         return self.set_local(m, array)
 
     def pyopt_problem(self, constraints=None, bounds=None, name="Problem", ignore_model_errors=False):
-      '''Return a pyopt problem class that can be used with the PyOpt package,
-      http://www.pyopt.org/
-      '''
-      import pyOpt
-      import optimization.constraints
+        '''Return a pyopt problem class that can be used with the PyOpt package,
+        http://www.pyopt.org/
+        '''
+        import pyOpt
+        import optimization.constraints
 
-      constraints = optimization.constraints.canonicalise(constraints)
+        constraints = optimization.constraints.canonicalise(constraints)
 
-      def obj(x):
-          ''' Evaluates the functional for the given controls values. '''
+        def obj(x):
+            ''' Evaluates the functional for the given controls values. '''
 
-          fail = False
-          if not ignore_model_errors:
-              j = self(x)
-          else:
-              try:
-                  j = self(x)
-              except:
-                  fail = True
-
-          if constraints is not None:
-              # Not sure how to do this in parallel, FIXME
-              g = np.concatenate(constraints.function(x))
-          else:
-              g = [0]  # SNOPT fails if no constraints are given, hence add a dummy constraint
-
-          return j, g, fail
-
-      def grad(x, f, g):
-          ''' Evaluates the gradient for the control values.
-          f is the associated functional value and g are the values
-          of the constraints. '''
-
-          fail = False
-          if not ignore_model_errors:
-              dj = self.derivative(x, forget=False)
-          else:
-              try:
-                  dj = self.derivative(x, forget=False)
-              except:
-                  fail = True
-
-          if constraints is not None:
-              gJac = np.concatenate([gather(c.jacobian(x)) for c in constraints])
-          else:
-              gJac = np.zeros(len(x))  # SNOPT fails if no constraints are given, hence add a dummy constraint
-
-          info("j = %f\t\t|dJ| = %f" % (f[0], np.linalg.norm(dj)))
-          return np.array([dj]), gJac, fail
-
-
-      # Instantiate the optimization problem
-      opt_prob = pyOpt.Optimization(name, obj)
-      opt_prob.addObj('J')
-
-      # Compute bounds
-      m = self.get_controls()
-      n = len(m)
-
-      if bounds is not None:
-        bounds_arr = [None, None]
-        for i in range(2):
-            if isinstance(bounds[i], float) or isinstance(bounds[i], int):
-                bounds_arr[i] = np.ones(n) * bounds[i]
+            fail = False
+            if not ignore_model_errors:
+                j = self(x)
             else:
-                bounds_arr[i] = np.array(bounds[i])
-        lb, ub = bounds_arr
+                try:
+                    j = self(x)
+                except:
+                    fail = True
 
-      else:
-        mx = np.finfo(np.double).max
-        ub = mx * np.ones(n)
+            if constraints is not None:
+                # Not sure how to do this in parallel, FIXME
+                g = np.concatenate(constraints.function(x))
+            else:
+                g = [0]  # SNOPT fails if no constraints are given, hence add a dummy constraint
 
-        mn = np.finfo(np.double).min
-        lb = mn * np.ones(n)
+            return j, g, fail
 
-      # Add controls
-      opt_prob.addVarGroup("variables", n, type='c', value=m, lower=lb, upper=ub)
+        def grad(x, f, g):
+            ''' Evaluates the gradient for the control values.
+            f is the associated functional value and g are the values
+            of the constraints. '''
 
-      # Add constraints
-      if constraints is not None:
-          for i, c in enumerate(constraints):
-              if isinstance(c, optimization.constraints.EqualityConstraint):
-                opt_prob.addConGroup(str(i) + 'th constraint', c._get_constraint_dim(), type='e', equal=0.0)
-              elif isinstance(c, optimization.constraints.InequalityConstraint):
-                opt_prob.addConGroup(str(i) + 'th constraint', c._get_constraint_dim(), type='i', lower=0.0, upper=np.inf)
+            fail = False
+            if not ignore_model_errors:
+                dj = self.derivative(x, forget=False)
+            else:
+                try:
+                    dj = self.derivative(x, forget=False)
+                except:
+                    fail = True
 
-      return opt_prob, grad
+            if constraints is not None:
+                gJac = np.concatenate([gather(c.jacobian(x)) for c in constraints])
+            else:
+                gJac = np.zeros(len(x))  # SNOPT fails if no constraints are given, hence add a dummy constraint
+
+            info("j = %f\t\t|dJ| = %f" % (f[0], np.linalg.norm(dj)))
+            return np.array([dj]), gJac, fail
+
+
+        # Instantiate the optimization problem
+        opt_prob = pyOpt.Optimization(name, obj)
+        opt_prob.addObj('J')
+
+        # Compute bounds
+        m = self.get_controls()
+        n = len(m)
+
+        if bounds is not None:
+            bounds_arr = [None, None]
+            for i in range(2):
+                if isinstance(bounds[i], float) or isinstance(bounds[i], int):
+                    bounds_arr[i] = np.ones(n) * bounds[i]
+                else:
+                    bounds_arr[i] = np.array(bounds[i])
+            lb, ub = bounds_arr
+
+        else:
+            mx = np.finfo(np.double).max
+            ub = mx * np.ones(n)
+
+            mn = np.finfo(np.double).min
+            lb = mn * np.ones(n)
+
+        # Add controls
+        opt_prob.addVarGroup("variables", n, type='c', value=m, lower=lb, upper=ub)
+
+        # Add constraints
+        if constraints is not None:
+            for i, c in enumerate(constraints):
+                if isinstance(c, optimization.constraints.EqualityConstraint):
+                    opt_prob.addConGroup(str(i) + 'th constraint', c._get_constraint_dim(), type='e', equal=0.0)
+                elif isinstance(c, optimization.constraints.InequalityConstraint):
+                    opt_prob.addConGroup(str(i) + 'th constraint', c._get_constraint_dim(), type='i', lower=0.0, upper=np.inf)
+
+        return opt_prob, grad
 
 
 def copy_data(m):

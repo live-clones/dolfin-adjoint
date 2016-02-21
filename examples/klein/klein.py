@@ -36,13 +36,13 @@
 # The partial differential equation for this example is the time-dependent heat-equation:
 #
 # .. math::
-#            \frac{\partial u}{\partial t} - \nu \nabla^{2} u= 0 
+#            \frac{\partial u}{\partial t} - \nu \nabla^{2} u= 0
 #             \quad & \textrm{in\phantom{r} } \Omega \times (0, T), \\
 #            u = g  \quad & \textrm{for } \Omega \times \{0\}.
 #
 #
-# where :math:`\Omega` is the spatial domain, :math:`T` is the final time, :math:`u` 
-# is the unkown temperature variation, :math:`\nu` is the thermal diffusivity, and 
+# where :math:`\Omega` is the spatial domain, :math:`T` is the final time, :math:`u`
+# is the unkown temperature variation, :math:`\nu` is the thermal diffusivity, and
 # :math:`g` is the initial temperature.
 #
 # The objective value, the model output of interest, is the norm of the
@@ -50,7 +50,7 @@
 #
 # .. math::
 #            J(u) := \int_\Omega u(t=T)^2 \textrm{d} \Omega
-# 
+#
 # The aim of this example is to compute the sensitivity of :math:`J` with
 # respect to the initial condition :math:`g`, that is:
 #
@@ -79,7 +79,7 @@
 from dolfin import *
 from dolfin_adjoint import *
 
-# Next we load a triangulation of the Klein bottle as a mesh file. 
+# Next we load a triangulation of the Klein bottle as a mesh file.
 
 mesh = Mesh("klein.xdmf")
 
@@ -120,7 +120,7 @@ nu = 1.0
 # :math:`v \in V`:
 
 # .. math::
-#            \frac{1}{\textrm{step}} \int_\Omega \left( u - u_{\textrm{old}} \right) v \textrm{d} \Omega + \nu \int_\Omega \nabla u \cdot \nabla v \textrm{d}\Omega = 0 
+#            \frac{1}{\textrm{step}} \int_\Omega \left( u - u_{\textrm{old}} \right) v \textrm{d} \Omega + \nu \int_\Omega \nabla u \cdot \nabla v \textrm{d}\Omega = 0
 #
 
 # or in code:
@@ -177,7 +177,7 @@ while t <= T:
 # :math:`g` and the sensitivity would just be 0.  Also note the
 # :py:func:`adj_inc_timestep <dolfin_adjoint.adj_inc_timestep>` call.  This
 # function indicates the end of a time step and is only required with
-# checkpointing enabled. 
+# checkpointing enabled.
 
 # At this point, we can define the objective functional :math:`J` and compute
 # the sensitivity with respect to the initial condition :math:`g`:
@@ -193,7 +193,7 @@ adj_time = adj_timer.stop()
 # the gradient should not be returned as an operator, that is not in the dual
 # space :math:`V^*`, but instead its Riesz representation in the primal space
 # :math:`V`. This is necessary to plot the sensitivities without seeing mesh
-# dependent features. 
+# dependent features.
 
 # Next we plot the computed sensitivity and print timing statistics comparing
 # the runtime of the forward and adjoint solves.
@@ -217,7 +217,7 @@ print "Adjoint to forward runtime ratio: ", adj_time / fwd_time
 #   Adjoint to forward runtime ratio:  0.899476904879
 
 # Since the forward model is linear, the theoretical optimum of the adjoint and forward runtime ratio is 1.
-# Indeed, the observed value achieves this performances, and even slightly outperforms it. 
+# Indeed, the observed value achieves this performances, and even slightly outperforms it.
 
 # The following image on the left shows the initial temperature variation
 # :math:`u(T=0)` and the image on the right the final temperature variation
@@ -240,7 +240,7 @@ print "Adjoint to forward runtime ratio: ", adj_time / fwd_time
 # ---------------------
 
 # Checkpointing is crucial to limit the memory requirements when running
-# large-scale models with many time steps. 
+# large-scale models with many time steps.
 
 # In the following test, we investigate the additional computational cost when
 # using checkpointing over the default store-all strategy in dolfin-adjoint.
@@ -262,4 +262,3 @@ print "Adjoint to forward runtime ratio: ", adj_time / fwd_time
 # .. bibliography:: /documentation/klein/klein.bib
 #    :cited:
 #    :labelprefix: 0E-
-

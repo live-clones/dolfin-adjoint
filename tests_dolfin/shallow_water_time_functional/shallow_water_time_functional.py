@@ -28,17 +28,17 @@ replay_dolfin()
 (u,p) = split(state)
 J = Functional(dot(u, u)*dx*dt + 3.14*dot(state, state)*dx*dt[FINISH_TIME])
 for (adj_state, var) in compute_adjoint(J):
-  pass
+    pass
 
 def compute_J(ic):
-  j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, ic, divett.params, annotate=False)
-  return j + assemble(3.14*dot(state, state)*dx)
+    j, state = sw_lib.timeloop_theta(M, G, rhs_contr, ufl, ufr, ic, divett.params, annotate=False)
+    return j + assemble(3.14*dot(state, state)*dx)
 
 ic = Function(W)
 ic.interpolate(divett.InitialConditions())
 minconv = test_initial_condition_adjoint(compute_J, ic, adj_state, seed=0.001)
 if minconv < 1.9:
-  exit_code = 1
+    exit_code = 1
 else:
-  exit_code = 0
+    exit_code = 0
 sys.exit(exit_code)

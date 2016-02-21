@@ -11,7 +11,7 @@ from dolfin_adjoint import *
 dolfin.parameters["adjoint"]["cache_factorizations"] = True
 
 if dolfin.__version__ > '1.2.0':
-  dolfin.parameters["adjoint"]["symmetric_bcs"] = True
+    dolfin.parameters["adjoint"]["symmetric_bcs"] = True
 
 n = 30
 mesh = UnitIntervalMesh(n)
@@ -63,8 +63,8 @@ if __name__ == "__main__":
     dJdic = compute_gradient(J, FunctionControl("Velocity"), forget=False)
 
     def Jfunc(ic):
-      forward = main(ic, annotate=False)
-      return assemble(forward*forward*dx + ic*ic*dx)
+        forward = main(ic, annotate=False)
+        return assemble(forward*forward*dx + ic*ic*dx)
 
     HJic = hessian(J, FunctionControl("Velocity"), warn=False)
 

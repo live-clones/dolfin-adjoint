@@ -63,7 +63,7 @@ def main(ic, annotate=False):
     timestep = 0.1
 
     if annotate:
-      adj_checkpointing('multistage', int(ceil(end/float(timestep)))+1, 0, 5, verbose=True)
+        adj_checkpointing('multistage', int(ceil(end/float(timestep)))+1, 0, 5, verbose=True)
 
     # Define meshes and function spaces
     V = VectorFunctionSpace(mesh, "CG", 2)
@@ -121,11 +121,10 @@ if __name__ == "__main__":
     m = Control(ic)
 
     def Jhat(ic):
-      T = main(ic, annotate=False)
-      return assemble(T*T*dx)
-    
+        T = main(ic, annotate=False)
+        return assemble(T*T*dx)
+
     JT = assemble(T*T*dx)
     dJdic = compute_gradient(J, m)
     minconv = taylor_test(Jhat, m, JT, dJdic, value=ic)
     assert minconv > 1.9
-

@@ -14,11 +14,8 @@ def model(s):
     L = s * v * dx
 
     # Compute solution
-    aa = assemble(a)
-    LL = assemble(L)
     x = Function(V, name="State")
-    solve(aa, x.vector(), LL.dat)
-
+    solve(a == L, x)
     j = assemble(x**2 * dx)
     return j, x
 
@@ -31,10 +28,10 @@ if __name__ == '__main__':
     j, x = model(s)
 
     print "Replaying forward model"
-    assert replay_dolfin(tol=0.0, stop=True)
+    assert replay_dolfin(tol=1e-15, stop=True)
 
     J = Functional(x**2*dx*dt[FINISH_TIME])
-    m = InitialConditionParameter(s)
+    m = FunctionControl(s)
 
     print "Running the adjoint model"
     for i in compute_adjoint(J, forget=None):

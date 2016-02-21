@@ -80,4 +80,3 @@ adjointdata.write("equations = %r\n" % equations)
 adjointdata.write("n0s = %r\n" % n0s)
 adjointdata.write("n1s = %r\n" % n1s)
 adjointdata.close()
-

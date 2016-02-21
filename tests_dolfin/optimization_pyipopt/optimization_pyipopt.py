@@ -9,10 +9,10 @@ import numpy
 import libadjoint
 
 try:
-  import pyipopt
+    import pyipopt
 except ImportError:
-  info_blue("pyipopt bindings unavailable, skipping test")
-  sys.exit(0)
+    info_blue("pyipopt bindings unavailable, skipping test")
+    sys.exit(0)
 
 dolfin.set_log_level(ERROR)
 
@@ -47,7 +47,7 @@ def main(u, annotate=False):
         adj_inc_timestep(time=t, finished = t>end)
 
 def derivative_cb(j, dj, m):
-  print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(), m.vector().max())
+    print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(), m.vector().max())
 
 if __name__ == "__main__":
 
@@ -60,12 +60,12 @@ if __name__ == "__main__":
     u.assign(ic)
     main(u, annotate=True)
 
-    # Run the optimisation 
+    # Run the optimisation
     lb = interpolate(Constant(-1),  V)
     ub = interpolate(Constant(1.0e200), V)
 
     # Define the reduced funtional
-    rf = ReducedFunctional(J, Control(u, value=ic), derivative_cb = derivative_cb)
+    rf = ReducedFunctional(J, Control(u, value=ic), derivative_cb_post=derivative_cb)
 
     problem = MinimizationProblem(rf, bounds=(lb, ub))
 

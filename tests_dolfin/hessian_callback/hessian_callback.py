@@ -26,8 +26,8 @@ J = Functional(u*dx)
 test = 0
 
 def hessian_cb(j, m, mdot, h):
-  global test
-  test = 1
+    global test
+    test = 1
 
 J_hat = ReducedFunctional(J, Control(a), hessian_cb = hessian_cb)
 J_hat(a)

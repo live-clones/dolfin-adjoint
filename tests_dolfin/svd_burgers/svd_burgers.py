@@ -64,21 +64,21 @@ if __name__ == "__main__":
     perturbation = Function(ic)
     vec = perturbation.vector()
     for i in range(len(vec)):
-      vec[i] = random.random()
+        vec[i] = random.random()
 
     info_blue("Computing the TLM the direct way ... ")
     param = Control(ic, perturbation=perturbation)
     for (tlm, var) in compute_tlm(param, forget=False):
-      pass
+        pass
     final_tlm = tlm
 
     ndof = V.dim()
     info_blue("Computing the TLM the SVD way ... ")
     try:
-      svd = compute_gst("State", "State", nsv=ndof, ic_norm=None, final_norm=None)
+        svd = compute_gst("State", "State", nsv=ndof, ic_norm=None, final_norm=None)
     except libadjoint.exceptions.LibadjointErrorSlepcError:
-      info_red("Not testing since SLEPc unavailable.")
-      import sys; sys.exit(0)
+        info_red("Not testing since SLEPc unavailable.")
+        import sys; sys.exit(0)
 
     assert svd.ncv == ndof
 

@@ -96,7 +96,7 @@ def main(ic, annotate=False):
     end = 1.0
     while (t <= end):
 
-        solve(flow_eq[0] == flow_eq[1], w, flow_bcs, annotate=annotate)        
+        solve(flow_eq[0] == flow_eq[1], w, flow_bcs, annotate=annotate)
 
         solve(temp_eq[0] == temp_eq[1], T, temp_bcs, annotate=annotate)
         T_.assign(T, annotate=annotate)

@@ -309,27 +309,27 @@ if __name__ == "__main__":
     dJdparam = None
 
     for i in range(adjointer.equation_count)[::-1]:
-      (adj_var, output) = adjointer.get_adjoint_solution(i, J)
+        (adj_var, output) = adjointer.get_adjoint_solution(i, J)
 
-      storage = libadjoint.MemoryStorage(output)
-      adjointer.record_variable(adj_var, storage)
-      fwd_var = libadjoint.Variable(adj_var.name, adj_var.timestep, adj_var.iteration)
+        storage = libadjoint.MemoryStorage(output)
+        adjointer.record_variable(adj_var, storage)
+        fwd_var = libadjoint.Variable(adj_var.name, adj_var.timestep, adj_var.iteration)
 
-      afile = File("%s/adjoint_%s_%d.xml" % (dirname, adj_var.name, i))
-      afile << output.data
+        afile = File("%s/adjoint_%s_%d.xml" % (dirname, adj_var.name, i))
+        afile << output.data
 
-      out = param.inner_adjoint(adjointer, output.data, i, fwd_var)
-      if dJdparam is None:
-        dJdparam = out
-      elif dJdparam is not None and out is not None:
-        dJdparam += out
+        out = param.inner_adjoint(adjointer, output.data, i, fwd_var)
+        if dJdparam is None:
+            dJdparam = out
+        elif dJdparam is not None and out is not None:
+            dJdparam += out
 
-      if adj_var.name == "w_{10}":
-        (adj_sigma0, adj_sigma1, adj_v, adj_gamma) = output.data.split()
-        norm0s += [norm(adj_sigma0)]
-        norm1s += [norm(adj_sigma1)]
+        if adj_var.name == "w_{10}":
+            (adj_sigma0, adj_sigma1, adj_v, adj_gamma) = output.data.split()
+            norm0s += [norm(adj_sigma0)]
+            norm1s += [norm(adj_sigma1)]
 
-      adjointer.forget_adjoint_equation(i)
+        adjointer.forget_adjoint_equation(i)
     dJdp = dJdparam
 #   --------------------------------------------------------------
 
@@ -338,17 +338,16 @@ if __name__ == "__main__":
     print "norm1s: ", norm1s
 
     def Jfunc(amplitude):
-      ic.vector()[:] = ic_copy.vector()
-      z = main(ic, params, amplitude, T=T, dt=dt, annotate=False)
-      (sigma0, sigma1, v, gamma) = split(z)
-      sigma = sigma0 + sigma1
-      J = assemble(inner(sigma0[2], sigma0[2])*dx)
-      print "J(.): ", J
-      return J
+        ic.vector()[:] = ic_copy.vector()
+        z = main(ic, params, amplitude, T=T, dt=dt, annotate=False)
+        (sigma0, sigma1, v, gamma) = split(z)
+        sigma = sigma0 + sigma1
+        J = assemble(inner(sigma0[2], sigma0[2])*dx)
+        print "J(.): ", J
+        return J
 
     info_blue("Checking adjoint correctness ... ")
     minconv = test_scalar_parameter_adjoint(Jfunc, amplitude, dJdp, seed=0.05)
 
     if minconv < 1.8:
-      sys.exit(1)
-
+        sys.exit(1)

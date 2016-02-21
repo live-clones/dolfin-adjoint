@@ -45,4 +45,3 @@ __all__ = \
     "dolfin_adjoint_timestepping",
     "timestepping"
   ]
-  

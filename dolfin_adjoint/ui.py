@@ -28,20 +28,25 @@ from timeforms import dt, TimeMeasure, START_TIME, FINISH_TIME
 # Expose PDE-constrained optimization utilities
 from optimization.optimization_problem import *
 from optimization.optimization_solver import *
+from optimization.moola_problem import *
 from optimization.ipopt_solver import *
-from optimization.optizelle_solver import OptizelleSolver
+from optimization.optizelle_solver import *
+from optimization.tao_solver import TAOSolver
+from optimization.riesz_maps import *
 
 if backend.__name__ == "dolfin":
-  from newton_solver import NewtonSolver
-  from krylov_solver import KrylovSolver
-  from linear_solver import LinearSolver
-  from lusolver import LUSolver
-  from nodal_functional import NodalFunctional
-  from reduced_functional import ReducedFunctional, replace_control_value, replace_tape_value
-  from reduced_functional_numpy import ReducedFunctionalNumPy, ReducedFunctionalNumpy
-  from optimization.optimization import minimize, maximize, print_optimization_methods, minimise, maximise
-  from optimization.multistage_optimization import minimize_multistage
-  from optimization.constraints import InequalityConstraint, EqualityConstraint
-  from pointintegralsolver import *
-  if hasattr(backend, 'FunctionAssigner'):
-    from functionassigner import FunctionAssigner
+    from newton_solver import NewtonSolver
+    from krylov_solver import KrylovSolver
+    from petsc_krylov_solver import PETScKrylovSolver
+    from linear_solver import LinearSolver
+    from lusolver import LUSolver
+    from localsolver import LocalSolver
+    from pointwise_functional import PointwiseFunctional
+    from reduced_functional import ReducedFunctional
+    from reduced_functional_numpy import ReducedFunctionalNumPy, ReducedFunctionalNumpy
+    from optimization.optimization import minimize, maximize, print_optimization_methods, minimise, maximise
+    from optimization.multistage_optimization import minimize_multistage
+    from optimization.constraints import InequalityConstraint, EqualityConstraint
+    from pointintegralsolver import *
+    if hasattr(backend, 'FunctionAssigner'):
+        from functionassigner import FunctionAssigner

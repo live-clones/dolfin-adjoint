@@ -50,9 +50,9 @@ if __name__ == "__main__":
     dJdic = compute_gradient_tlm(J, FunctionControl("Velocity"), forget=False)
 
     def Jfunc(ic):
-      forward = main(ic, annotate=False)
-      return assemble(forward*forward*dx + ic*ic*dx)
+        forward = main(ic, annotate=False)
+        return assemble(forward*forward*dx + ic*ic*dx)
 
-    minconv = taylor_test(Jfunc, FunctionControl("Velocity"), Jic, dJdic, 
+    minconv = taylor_test(Jfunc, FunctionControl("Velocity"), Jic, dJdic,
                           seed=1.0e-3, perturbation_direction=interpolate(Expression("cos(x[0])"), V))
     assert minconv > 1.7

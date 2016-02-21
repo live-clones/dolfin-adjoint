@@ -52,8 +52,8 @@ if __name__ == '__main__':
     print "Replaying forward model"
     assert replay_dolfin(tol=1e-13, stop=True)
 
-    J = Functional(inner(x-f, x-f)*dx*dt[FINISH_TIME]) 
-    m = InitialConditionParameter(s)
+    J = Functional(inner(x-f, x-f)*dx*dt[FINISH_TIME])
+    m = FunctionControl(s)
 
     print "Running adjoint model"
     dJdm = compute_gradient(J, m, forget=None)

@@ -19,16 +19,16 @@ parser.add_option("--timings", dest="timings", default=False, action="store_true
 (options, args) = parser.parse_args(sys.argv)
 
 if options.num_procs <= 0:
-  options.num_procs = None
+    options.num_procs = None
 
 basedir = os.path.dirname(os.path.abspath(sys.argv[0]))
 subdirs = [x for x in os.listdir(basedir) if os.path.isdir(os.path.join(basedir, x))]
 if options.test_name:
-  if not options.test_name in subdirs:
-    print "Specified test not found."
-    sys.exit(1)
-  else:
-    subdirs = [options.test_name]
+    if not options.test_name in subdirs:
+        print "Specified test not found."
+        sys.exit(1)
+    else:
+        subdirs = [options.test_name]
 
 long_tests = [] # special case the very long tests for speed
 
@@ -40,29 +40,29 @@ os.putenv('PYTHONPATH', pythonpath)
 timings = {}
 
 def f(subdir):
-  test_cmd = test_cmds.get(subdir, 'python %s.py' % subdir)
-  if test_cmd is not None:
+    test_cmd = test_cmds.get(subdir, 'python %s.py' % subdir)
+    if test_cmd is not None:
 
-    print "--------------------------------------------------------"
-    print "Running %s " % subdir
-    print "--------------------------------------------------------"
+        print "--------------------------------------------------------"
+        print "Running %s " % subdir
+        print "--------------------------------------------------------"
 
-    start_time = time.time()
-    handle = subprocess.Popen(test_cmd, shell=True, cwd=os.path.join(basedir, subdir))
-    exit = handle.wait()
-    end_time   = time.time()
-    timings[subdir] = end_time - start_time
-    if exit != 0:
-      print "subdir: ", subdir
-      print "exit: ", exit
-      return subdir
-    else:
-      return None
+        start_time = time.time()
+        handle = subprocess.Popen(test_cmd, shell=True, cwd=os.path.join(basedir, subdir))
+        exit = handle.wait()
+        end_time   = time.time()
+        timings[subdir] = end_time - start_time
+        if exit != 0:
+            print "subdir: ", subdir
+            print "exit: ", exit
+            return subdir
+        else:
+            return None
 
 subdirs = list(set(subdirs) - set(exclude_list))
 tests = sorted(subdirs)
 if not options.short_only:
-  tests = long_tests + tests
+    tests = long_tests + tests
 
 pool = multiprocessing.Pool(options.num_procs)
 
@@ -71,9 +71,9 @@ fails = pool.map(f, tests)
 fails = [fail for fail in fails if fail is not None]
 
 if options.timings:
-  for subdir in sorted(timings, key=timings.get, reverse=True):
-    print "%s : %s s" % (subdir, timings[subdir])
+    for subdir in sorted(timings, key=timings.get, reverse=True):
+        print "%s : %s s" % (subdir, timings[subdir])
 
 if len(fails) > 0:
-  print "Failures: ", set(fails)
-  sys.exit(1)
+    print "Failures: ", set(fails)
+    sys.exit(1)

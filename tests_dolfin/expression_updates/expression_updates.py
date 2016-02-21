@@ -12,7 +12,8 @@ u =  Function(V, name = "solution")
 
 bc = DirichletBC(V, 0, "on_boundary")
 
-source = Expression("t*sin(x[0])*sin(x[1])", t = 0.0)
+source = Expression("t*sin(x[0])*sin(x[1])", t = 0.0, element=V.ufl_element())
+
 f = source*v*dx
 
 t = 0.0

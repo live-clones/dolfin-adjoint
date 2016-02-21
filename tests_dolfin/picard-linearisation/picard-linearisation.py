@@ -36,46 +36,46 @@ picard = True
 bc = DirichletBC(V, 0.0, "on_boundary")
 
 def problem(u_trial, u_guess, v, f, p):
-  F = inner(grad(v), gamma(u_guess, p) * grad(u_trial))*dx - inner(f*f, v)*dx
+    F = inner(grad(v), gamma(u_guess, p) * grad(u_trial))*dx - inner(f*f, v)*dx
 
-  return F
+    return F
 
 def gamma(u, p):
-  return (epsilon**2 + 0.5 * inner(grad(u), grad(u)))**((p-2)/2)
+    return (epsilon**2 + 0.5 * inner(grad(u), grad(u)))**((p-2)/2)
 
 def main(f):
-  u = Function(V, name="Solution")
-  trial = TrialFunction(V)
-  test = TestFunction(V)
+    u = Function(V, name="Solution")
+    trial = TrialFunction(V)
+    test = TestFunction(V)
 
-  nF = problem(u, u, TestFunction(V), f, p=p) # suitable for Newton iteration
-  F = problem(trial, u, test, f, p=p)     # suitable for Picard iteration
-  a = lhs(F)
+    nF = problem(u, u, TestFunction(V), f, p=p) # suitable for Newton iteration
+    F = problem(trial, u, test, f, p=p)     # suitable for Picard iteration
+    a = lhs(F)
 
-  if picard:
-    J = a
-    damping = 0.5
-  else:
-    J = derivative(nF, u)
-    damping = 1.0
+    if picard:
+        J = a
+        damping = 0.5
+    else:
+        J = derivative(nF, u)
+        damping = 1.0
 
-  solve(nF == 0, u, J=J, bcs=bc, solver_parameters={"newton_solver": {"maximum_iterations": 200, "relaxation_parameter": damping}})
+    solve(nF == 0, u, J=J, bcs=bc, solver_parameters={"newton_solver": {"maximum_iterations": 200, "relaxation_parameter": damping}})
 
-  return u
+    return u
 
 if __name__ == "__main__":
-  f = interpolate(Expression("sin(x[0])*cos(x[1])"), V, name="SourceTerm")
-  u = main(f)
-
-  assert replay_dolfin(tol=0.0, stop=True)
-  J = Functional(inner(u, u)*dx)
-  m = Control(f)
-  Jm = assemble(inner(u, u)*dx)
-  dJdm = compute_gradient(J, m, forget=False)
-
-  def Jhat(f):
+    f = interpolate(Expression("sin(x[0])*cos(x[1])"), V, name="SourceTerm")
     u = main(f)
-    return assemble(inner(u, u)*dx)
 
-  minconv = taylor_test(Jhat, m, Jm, dJdm)
-  assert minconv > 1.8
+    assert replay_dolfin(tol=0.0, stop=True)
+    J = Functional(inner(u, u)*dx)
+    m = Control(f)
+    Jm = assemble(inner(u, u)*dx)
+    dJdm = compute_gradient(J, m, forget=False)
+
+    def Jhat(f):
+        u = main(f)
+        return assemble(inner(u, u)*dx)
+
+    minconv = taylor_test(Jhat, m, Jm, dJdm)
+    assert minconv > 1.8

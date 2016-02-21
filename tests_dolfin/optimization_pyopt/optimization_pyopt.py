@@ -2,11 +2,11 @@
 from dolfin import *
 from dolfin_adjoint import *
 try:
-  from pyOpt.pySNOPT import SNOPT
+    from pyOpt.pySNOPT import SNOPT
 except ImportError:
-  import sys
-  info_blue("pyopt bindings unavailable, skipping test")
-  sys.exit(0)
+    import sys
+    info_blue("pyopt bindings unavailable, skipping test")
+    sys.exit(0)
 
 
 dolfin.set_log_level(INFO)
@@ -14,7 +14,7 @@ parameters['std_out_all_processes'] = False
 
 def solve_pde(u, V, m):
     v = TestFunction(V)
-    F = (inner(grad(u), grad(v)) - m*v)*dx 
+    F = (inner(grad(u), grad(v)) - m*v)*dx
     bc = DirichletBC(V, 0.0, "on_boundary")
     solve(F == 0, u, bc)
 
@@ -29,14 +29,14 @@ def solve_optimal_control(n):
 
     x = SpatialCoordinate(mesh)
 
-    u_d = 1/(2*pi**2)*sin(pi*x[0])*sin(pi*x[1]) 
+    u_d = 1/(2*pi**2)*sin(pi*x[0])*sin(pi*x[1])
 
     J = Functional((inner(u-u_d, u-u_d))*dx*dt[FINISH_TIME])
 
     # Run the forward model once to create the annotation
     solve_pde(u, V, m)
 
-    # Run the optimisation 
+    # Run the optimisation
     rf = ReducedFunctional(J, Control(m, value=m))
 
     rfn = ReducedFunctionalNumPy(rf)

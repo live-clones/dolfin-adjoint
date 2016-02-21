@@ -37,7 +37,7 @@ def model(s):
     f = Function(V, name="f")
     f.interpolate(Expression("42*x[1]"))
 
-    return sqrt(assemble(dot(u - f, u - f) * dx)), u, f
+    return assemble(dot(u - f, u - f) * dx), u, f
 
 if __name__ == '__main__':
     s = Function(V, name="s")
@@ -50,11 +50,8 @@ if __name__ == '__main__':
     print "Replaying forward model"
     assert replay_dolfin(tol=0.0, stop=True)
 
-    info_red("Stopping test as homogenize is not implemented yet in firedrake adjoint")
-    import sys; sys.exit()
-
     J = Functional(inner(u - f, u - f) * dx * dt[FINISH_TIME])
-    m = InitialConditionParameter(s)
+    m = FunctionControl(s)
 
     print "Running adjoint model"
     dJdm = compute_gradient(J, m, forget=None)
@@ -62,6 +59,6 @@ if __name__ == '__main__':
     parameters["adjoint"]["stop_annotating"] = True
 
     Jhat = lambda s: model(s)[0]
-    conv_rate = taylor_test(Jhat, m, j, dJdm)
+    conv_rate = taylor_test(Jhat, m, j, dJdm, seed=1e-3)
     assert conv_rate > 1.9
     info_green("Test passed")

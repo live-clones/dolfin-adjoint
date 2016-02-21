@@ -10,7 +10,7 @@ def minimize_multistage(rf, coarse_mesh, levels):
     for l in range(levels - 1):
         meshes.append(refine(meshes[-1]))
 
-    # Create multiple approximations of the reduced functional 
+    # Create multiple approximations of the reduced functional
     rfs = [rf]
     for l in range(levels - 1):
         rfs.append()

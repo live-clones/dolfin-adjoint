@@ -59,10 +59,10 @@ if __name__ == "__main__":
     factor = 0.01
 
     try:
-      svd = compute_gst("State", "State", nsv=1, ic_norm=None, final_norm=None)
+        svd = compute_gst("State", "State", nsv=1, ic_norm=None, final_norm=None)
     except libadjoint.exceptions.LibadjointErrorSlepcError:
-      info_red("Not testing since SLEPc unavailable.")
-      import sys; sys.exit(0)
+        info_red("Not testing since SLEPc unavailable.")
+        import sys; sys.exit(0)
 
     (sigma, u, v) = svd.get_gst(0, return_vectors=True)
 
@@ -84,10 +84,10 @@ if __name__ == "__main__":
     assert prediction_error < 2
 
     try:
-      svd = compute_gst("State", "State", nsv=1, ic_norm="mass", final_norm="mass")
+        svd = compute_gst("State", "State", nsv=1, ic_norm="mass", final_norm="mass")
     except libadjoint.exceptions.LibadjointErrorSlepcError:
-      info_red("Not testing since SLEPc unavailable.")
-      import sys; sys.exit(0)
+        info_red("Not testing since SLEPc unavailable.")
+        import sys; sys.exit(0)
 
     (sigma, u, v) = svd.get_gst(0, return_vectors=True)
 

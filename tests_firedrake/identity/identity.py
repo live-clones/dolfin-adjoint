@@ -32,7 +32,7 @@ if __name__ == '__main__':
     assert replay_dolfin(tol=1e-12, stop=True)
 
     J = Functional(x**2*dx*dt[FINISH_TIME])
-    m = InitialConditionParameter(s)
+    m = FunctionControl(s)
 
     print "Running the adjoint model"
     for i in compute_adjoint(J, forget=None):

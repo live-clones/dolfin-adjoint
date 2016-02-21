@@ -1,9 +1,9 @@
 from optimization_solver import OptimizationSolver
-from optimization_problem import MaximizationProblem, MinimizationProblem
+from optimization_problem import MaximizationProblem
 from ..reduced_functional_numpy import ReducedFunctionalNumPy
 import constraints
 from ..misc import rank
-from ..enlisting import enlist, delist
+from ..enlisting import delist
 from ..utils import gather
 
 import backend
@@ -169,7 +169,7 @@ class IPOPTSolver(OptimizationSolver):
                     cols = range(ncontrols) * nconstraints
                     return (numpy.array(rows), numpy.array(cols))
                 else:
-                  return numpy.array(gather(constraint.jacobian(x)))
+                    return numpy.array(gather(constraint.jacobian(x)))
 
             # The bounds for the constraint: by the definition of our
             # constraint type, the lower bound is always zero,
@@ -225,9 +225,6 @@ class IPOPTSolver(OptimizationSolver):
         results = self.pyipopt_problem.solve(guess)
         new_params = [self.__copy_data(p.data()) for p in self.rfn.controls]
         self.rfn.set_local(new_params, results[0])
-
-        if results[-1] != 0:
-            raise ValueError("IPOPT did not converge")
 
         return delist(new_params,
                 list_type=self.problem.reduced_functional.controls)

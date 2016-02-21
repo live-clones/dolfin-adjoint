@@ -7,6 +7,8 @@ from ..enlisting import enlist, delist
 
 from backend import *
 
+__all__ = ['OptizelleSolver', 'OptizelleBoundConstraint']
+
 def optizelle_callback(fun):
     """Optizelle swallows exceptions. Very useful for debugging! Let's work around this."""
     def safe_fun(*args, **kwargs):
@@ -25,7 +27,7 @@ def safe_log(x):
     except ValueError:
         return -numpy.inf
 
-class BoundConstraint(constraints.InequalityConstraint):
+class OptizelleBoundConstraint(constraints.InequalityConstraint):
     """A class that enforces the bound constraint l <= m or m >= u."""
 
     def __init__(self, m, bound, type):
@@ -70,12 +72,16 @@ class BoundConstraint(constraints.InequalityConstraint):
         if isinstance(self.m, Constant):
             result[0] = self.scale*dm[0]
         elif isinstance(self.m, Function):
+            # Make sure dm is in the right PETSc state (why would it not be?)
+            as_backend_type(dm.vector()).apply("")
             result.assign(self.scale*dm)
 
     def jacobian_adjoint_action(self, m, dp, result):
         if isinstance(self.m, Constant):
             result[0] = self.scale*dp[0]
         elif isinstance(self.m, Function):
+            # Make sure dm is in the right PETSc state (why would it not be?)
+            as_backend_type(dp.vector()).apply("")
             result.assign(self.scale*dp)
 
     def hessian_action(self, m, dm, dp, result):
@@ -86,12 +92,16 @@ class BoundConstraint(constraints.InequalityConstraint):
 
 class DolfinVectorSpace(object):
     """Optizelle wants a VectorSpace object that tells it how to do the linear algebra."""
+
+    inner_product = None
+
     def __init__(self, parameters):
         self.parameters = parameters
 
     @staticmethod
     def __deep_copy_obj(x):
         if isinstance(x, GenericFunction):
+            x.vector().apply("")
             return Function(x)
         elif isinstance(x, Constant):
             return Constant(float(x))
@@ -103,10 +113,13 @@ class DolfinVectorSpace(object):
     @staticmethod
     def __assign_obj(x, y):
         if isinstance(x, GenericFunction):
+            assert isinstance(y, GenericFunction)
+            x.vector().apply("")
             y.assign(x)
         elif isinstance(x, Constant):
             y.assign(float(x))
         elif isinstance(x, numpy.ndarray):
+            assert isinstance(y, numpy.ndarray)
             y[:] = x
         else:
             raise NotImplementedError
@@ -134,12 +147,26 @@ class DolfinVectorSpace(object):
             raise NotImplementedError
 
     @staticmethod
+    def __rand(x):
+        if isinstance(x, GenericFunction):
+            xvec = x.vector()
+            xvec.set_local( numpy.random.random(xvec.local_size()) )
+        elif isinstance(x, Constant):
+            raise NotImplementedError
+        elif isinstance(x, numpy.ndarray):
+            x[:] = numpy.random.random(x.shape)
+        else:
+            raise NotImplementedError
+
+    @staticmethod
     def __axpy_obj(alpha, x, y):
         if isinstance(x, GenericFunction):
+            assert isinstance(y, GenericFunction)
             y.vector().axpy(alpha, x.vector())
         elif isinstance(x, Constant):
             y.assign(alpha * float(x) + float(y))
         elif isinstance(x, numpy.ndarray):
+            assert isinstance(y, numpy.ndarray)
             y.__iadd__(alpha*x)
         else:
             raise NotImplementedError
@@ -147,10 +174,21 @@ class DolfinVectorSpace(object):
     @staticmethod
     def __inner_obj(x, y):
         if isinstance(x, GenericFunction):
-            return assemble(inner(x, y)*dx)
+            assert isinstance(y, GenericFunction)
+
+            if DolfinVectorSpace.inner_product == "H1":
+                return assemble((inner(x, y) + inner(grad(x), grad(y)))*dx)
+            elif DolfinVectorSpace.inner_product == "L2":
+                return assemble(inner(x, y)*dx)
+            elif DolfinVectorSpace.inner_product == "l2":
+                return x.vector().inner(y.vector())
+            else:
+                raise ValueError, "No inner product specified for DolfinVectorSpace"
+
         elif isinstance(x, Constant):
             return float(x)*float(y)
         elif isinstance(x, numpy.ndarray):
+            assert isinstance(y, numpy.ndarray)
             return numpy.inner(x, y)
         else:
             raise NotImplementedError
@@ -158,10 +196,14 @@ class DolfinVectorSpace(object):
     @staticmethod
     def __prod_obj(x, y, z):
         if isinstance(x, GenericFunction):
+            assert isinstance(y, GenericFunction)
+            assert isinstance(z, GenericFunction)
             z.vector()[:] = x.vector() * y.vector()
         elif isinstance(x, Constant):
             z.assign(float(x)*float(y))
         elif isinstance(x, numpy.ndarray):
+            assert isinstance(y, numpy.ndarray)
+            assert isinstance(z, numpy.ndarray)
             z[:] = x*y
         else:
             raise NotImplementedError
@@ -180,11 +222,15 @@ class DolfinVectorSpace(object):
     @staticmethod
     def __linv_obj(x, y, z):
         if isinstance(x, GenericFunction):
+            assert isinstance(y, GenericFunction)
+            assert isinstance(z, GenericFunction)
             z.vector().set_local( y.vector().array() / x.vector().array() )
             z.vector().apply("insert")
         elif isinstance(x, Constant):
             z.assign(float(y) / float(x))
         elif isinstance(x, numpy.ndarray):
+            assert isinstance(y, numpy.ndarray)
+            assert isinstance(z, numpy.ndarray)
             z[:] = numpy.divide(y, x)
         else:
             raise NotImplementedError
@@ -203,6 +249,7 @@ class DolfinVectorSpace(object):
     @staticmethod
     def __srch_obj(x, y):
         if isinstance(x, GenericFunction):
+            assert isinstance(y, GenericFunction)
             if any(x.vector() < 0):
                 my_min = min(-yy/xx for (xx, yy) in zip(x.vector().get_local(), y.vector().get_local()) if xx < 0)
             else:
@@ -217,6 +264,7 @@ class DolfinVectorSpace(object):
                 return numpy.inf
 
         elif isinstance(x, numpy.ndarray):
+            assert isinstance(y, numpy.ndarray)
             if any(x < 0):
                 return min(-yy/xx for (xx, yy) in zip(x, y) if xx < 0)
             else:
@@ -226,8 +274,13 @@ class DolfinVectorSpace(object):
             raise NotImplementedError
 
     @staticmethod
+    def __symm_obj(x):
+        pass
+
+    @staticmethod
     @optizelle_callback
     def init(x):
+
         return [DolfinVectorSpace.__deep_copy_obj(xx) for xx in x]
 
     @staticmethod
@@ -258,7 +311,7 @@ class DolfinVectorSpace(object):
     @staticmethod
     @optizelle_callback
     def rand(x):
-        raise NotImplementedError
+        [DolfinVectorSpace.__rand(xx) for xx in x]
 
     @staticmethod
     @optizelle_callback
@@ -288,7 +341,7 @@ class DolfinVectorSpace(object):
     @staticmethod
     @optizelle_callback
     def symm(x):
-        pass
+        [DolfinVectorSpace.__symm_obj(xx) for xx in x]
 
     @staticmethod
     @optizelle_callback
@@ -328,17 +381,38 @@ try:
             self.last_J = self.scale*self.rf(x)
             return self.last_J
 
+        def riesz_projection(self, funcs, inner_product):
+            projs = []
+            for func in funcs:
+                if isinstance(func, Function) and inner_product!="l2":
+                    V = func.function_space()
+                    u = TrialFunction(V)
+                    v = TestFunction(V)
+                    if inner_product=="L2":
+                        M = assemble(inner(u, v)*dx)
+                    elif inner_product=="H1":
+                        M = assemble((inner(u, v) + inner(grad(u), grad(v)))*dx)
+                    else:
+                        raise ValueError, "Unknown inner product %s".format(inner_product)
+                    proj = Function(V)
+                    solve(M, proj.vector(), func.vector())
+                    projs.append(proj)
+                else:
+                    projs.append(func)
+            return projs
+
         @optizelle_callback
-        def grad(self, x, grad):
+        def grad(self, x, gradient):
             self.eval(x)
-            out = self.rf.derivative(forget=False, project=True)
+            out = self.rf.derivative(forget=False, project=False)
+            out = self.riesz_projection(out, DolfinVectorSpace.inner_product)
             DolfinVectorSpace.scal(self.scale, out)
-            DolfinVectorSpace.copy(out, grad)
+            DolfinVectorSpace.copy(out, gradient)
 
         @optizelle_callback
         def hessvec(self, x, dx, H_dx):
             self.eval(x)
-            H = self.rf.hessian(dx, project=True)
+            H = enlist(self.rf.hessian(dx, project=True))
             DolfinVectorSpace.scal(self.scale, H)
             DolfinVectorSpace.copy(H, H_dx)
 
@@ -425,9 +499,12 @@ class OptizelleSolver(OptimizationSolver):
     See dir(solver.state) for the parameters that can be set,
     and the optizelle manual for details.
     """
-    def __init__(self, problem, parameters=None):
+    def __init__(self, problem, inner_product="L2", parameters=None):
         """
         Create a new OptizelleSolver.
+
+        The argument inner_product specifies the inner product to be used for
+        the control space.
 
         To set optizelle-specific options, do e.g.
 
@@ -452,6 +529,8 @@ class OptizelleSolver(OptimizationSolver):
             print("Could not import Optizelle.")
             raise
 
+        DolfinVectorSpace.inner_product = inner_product
+
         OptimizationSolver.__init__(self, problem, parameters)
 
         self.__build_optizelle_state()
@@ -472,10 +551,10 @@ class OptizelleSolver(OptimizationSolver):
                 (lb, ub) = bound
 
                 if lb is not None:
-                    bound_inequality_constraints.append(BoundConstraint(control.data(), lb, 'lower'))
+                    bound_inequality_constraints.append(OptizelleBoundConstraint(control.data(), lb, 'lower'))
 
                 if ub is not None:
-                    bound_inequality_constraints.append(BoundConstraint(control.data(), ub, 'upper'))
+                    bound_inequality_constraints.append(OptizelleBoundConstraint(control.data(), ub, 'upper'))
 
         self.bound_inequality_constraints = bound_inequality_constraints
 
@@ -494,7 +573,8 @@ class OptizelleSolver(OptimizationSolver):
         if num_equality_constraints == 0 and num_inequality_constraints == 0:
             self.state = Optizelle.Unconstrained.State.t(DolfinVectorSpace, Optizelle.Messaging(), x)
             self.fns = Optizelle.Unconstrained.Functions.t()
-            self.fns.f = OptizelleObjective(self.problem.reduced_functional, scale=scale)
+            self.fns.f = OptizelleObjective(self.problem.reduced_functional,
+                    scale=scale)
 
             log(INFO, "Found no constraints.")
 
@@ -508,7 +588,8 @@ class OptizelleSolver(OptimizationSolver):
             self.state = Optizelle.EqualityConstrained.State.t(DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), x, y)
             self.fns = Optizelle.Constrained.Functions.t()
 
-            self.fns.f = OptizelleObjective(self.problem.reduced_functional, scale=scale)
+            self.fns.f = OptizelleObjective(self.problem.reduced_functional,
+                    scale=scale)
             self.fns.g = OptizelleConstraints(self.problem, equality_constraints)
 
             log(INFO, "Found no equality and %i inequality constraints." % equality_constraints._get_constraint_dim())
@@ -527,7 +608,8 @@ class OptizelleSolver(OptimizationSolver):
             self.state = Optizelle.InequalityConstrained.State.t(DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), x, z)
             self.fns = Optizelle.InequalityConstrained.Functions.t()
 
-            self.fns.f = OptizelleObjective(self.problem.reduced_functional, scale=scale)
+            self.fns.f = OptizelleObjective(self.problem.reduced_functional,
+                    scale=scale)
             self.fns.h = OptizelleConstraints(self.problem, all_inequality_constraints)
 
             log(INFO, "Found no equality and %i inequality constraints." % all_inequality_constraints._get_constraint_dim())
@@ -549,7 +631,8 @@ class OptizelleSolver(OptimizationSolver):
             self.state = Optizelle.Constrained.State.t(DolfinVectorSpace, DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), x, y, z)
             self.fns = Optizelle.Constrained.Functions.t()
 
-            self.fns.f = OptizelleObjective(self.problem.reduced_functional, scale=scale)
+            self.fns.f = OptizelleObjective(self.problem.reduced_functional,
+                    scale=scale)
             self.fns.g = OptizelleConstraints(self.problem, equality_constraints)
             self.fns.h = OptizelleConstraints(self.problem, all_inequality_constraints)
 
@@ -607,7 +690,8 @@ class OptizelleSolver(OptimizationSolver):
             Optizelle.Constrained.Algorithms.getMin(DolfinVectorSpace, DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), self.fns, self.state)
 
         # Print out the reason for convergence
-        print("The algorithm converged due to: %s" % (Optizelle.StoppingCondition.to_string(self.state.opt_stop)))
+        # FIXME: Use logging
+        print("The algorithm stopped due to: %s" % (Optizelle.StoppingCondition.to_string(self.state.opt_stop)))
 
         # Return the optimal control
         list_type = self.problem.reduced_functional.controls

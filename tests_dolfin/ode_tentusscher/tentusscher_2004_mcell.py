@@ -37,19 +37,19 @@ def value_formatter(value, width=0):
 
             formatstr = "[%s]" % (", ".join(formatstr for i in range(len(value))) )
             ret = formatstr % tuple(value)
-    
+
     elif isinstance(value, float):
         if value == inf:
             ret = "\xe2\x88\x9e"
         elif value == -inf:
             ret = "-\xe2\x88\x9e"
-    
+
     elif isinstance(value, str):
         ret = repr(value)
-        
+
     if ret is None:
         ret = str(value)
-    
+
     if width == 0:
         return ret
     return VALUE_JUST(ret, width)
@@ -83,7 +83,7 @@ class Range(object):
         if ge is not None and gt is not None:
             value_error("Cannot create a 'Range' including "\
                         "both 'ge' and 'gt'")
-        
+
         # Checking valid types for 'RangeChecks'
         for op, opname in zip(ops, opnames):
             if not (op is None or isinstance(op, scalars)):
@@ -102,7 +102,7 @@ class Range(object):
         range_formats["maxop"] = "<=" if lt is None else "<"
         range_formats["minvalue"] = str(minval)
         range_formats["maxvalue"] = str(maxval)
-        
+
         # Dict for pretty print
         range_formats["minop_format"] = "[" if gt is None else "("
         range_formats["maxop_format"] = "]" if lt is None else ")"
@@ -115,13 +115,13 @@ class Range(object):
                               range_formats
 
         self._in_range = eval(self.range_eval_str)
-        
+
         # Define some string used for pretty print
         self._range_str = "%(minop_format)s%(minformat)s, "\
                           "%(maxformat)s%(maxop_format)s" % range_formats
-        
+
         self._in_str = "%%s \xe2\x88\x88 %s" % self._range_str
-        
+
         self._not_in_str = "%%s \xe2\x88\x89 %s" % self._range_str
 
         self.arg_repr_str = ", ".join("%s=%s" % (opname, op) \
@@ -164,14 +164,14 @@ class Range(object):
             A min str length value
         """
         in_range = self.__contains__(value)
-        
+
         if value in self:
             return self.format_in(value, width)
         return self.format_not_in(value, width)
-        
+
     def format_in(self, value, width=0):
         """
-        Return a formated range check 
+        Return a formated range check
 
         Arguments
         ---------
@@ -180,7 +180,7 @@ class Range(object):
         width : int
             A min str length value
         """
-        
+
         return self._in_str % value_formatter(value, width)
 
     def format_not_in(self, value, width=0):
@@ -194,7 +194,7 @@ class Range(object):
         width : int
             A min str length value
         """
-        
+
         return self._not_in_str % value_formatter(value, width)
 
 def init_values(**values):
@@ -540,4 +540,3 @@ def rhs(states, time, parameters, dy=None):
 
     # Return dy
     return dy
-

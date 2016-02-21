@@ -90,85 +90,85 @@ finish = constant_dt * 10
 
 def main(T_):
   # Define initial and end time
-  t = 0.0
+    t = 0.0
 
-  # Define boundary conditions for the velocity and pressure u
-  bottom = DirichletBC(W.sub(0), (0.0, 0.0), "x[1] == 0.0" )
-  top = DirichletBC(W.sub(0).sub(1), 0.0, "x[1] == %g" % height)
-  left = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == 0.0")
-  right = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == %g" % length)
-  bcs = [bottom, top, left, right]
+    # Define boundary conditions for the velocity and pressure u
+    bottom = DirichletBC(W.sub(0), (0.0, 0.0), "x[1] == 0.0" )
+    top = DirichletBC(W.sub(0).sub(1), 0.0, "x[1] == %g" % height)
+    left = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == 0.0")
+    right = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == %g" % length)
+    bcs = [bottom, top, left, right]
 
-  rho = interpolate(rho0, Q)
+    rho = interpolate(rho0, Q)
 
-  # Functions at previous timestep (and initial conditions)
-  (w_, P) = compute_initial_conditions(T_, W, Q, bcs)
+    # Functions at previous timestep (and initial conditions)
+    (w_, P) = compute_initial_conditions(T_, W, Q, bcs)
 
-  # Predictor functions
-  T_pr = Function(Q)      # Tentative temperature (T)
+    # Predictor functions
+    T_pr = Function(Q)      # Tentative temperature (T)
 
-  # Functions at this timestep
-  T = Function(Q)         # Temperature (T) at this time step
-  w = Function(W)
+    # Functions at this timestep
+    T = Function(Q)         # Temperature (T) at this time step
+    w = Function(W)
 
-  # Define initial CLF and time step
-  CLFnum = 0.5
-  dt = compute_timestep(w_)
-  t += dt
-  n = 1
-
-  w_pr = Function(W)
-  (u_pr, p_pr) = split(w_pr)
-  (u_, p_) = split(w_)
-
-  # Solver for the Stokes systems
-  solver = PETScKrylovSolver("gmres", "amg")
-  solver.parameters["relative_tolerance"] = 1.0e-14
-  solver.parameters["monitor_convergence"] = False
-
-  while (t <= finish):
-    message(t, dt)
-
-    # Solve for predicted temperature in terms of previous velocity
-    (a, L) = energy(Q, Constant(dt), u_, T_)
-    solve(a == L, T_pr, T_bcs, solver_parameters={"krylov_solver": {"relative_tolerance": 1.0e-14}})
-
-    # Solve for predicted flow
-    eta = viscosity(T_pr)
-    (a, L, precond) = momentum(W, eta, (Ra*T_pr)*g)
-
-    b = assemble(L); [bc.apply(b) for bc in bcs]
-    A = AdjointKrylovMatrix(a, bcs=bcs)
-
-    solver.set_operators(A, P)
-    solver.solve(w_pr.vector(), b)
-    #solve(a == L, w_pr, bcs, solver_parameters={"krylov_solver": {"relative_tolerance": 1.0e-14}}, annotate=annotate)
-
-    # Solve for corrected temperature T in terms of predicted and previous velocity
-    (a, L) = energy_correction(Q, Constant(dt), u_pr, u_, T_)
-    solve(a == L, T, T_bcs, solver_parameters={"krylov_solver": {"relative_tolerance": 1.0e-14}})
-
-    # Solve for corrected flow
-    eta = viscosity(T)
-    (a, L, precond) = momentum(W, eta, (Ra*T)*g)
-
-    b = assemble(L); [bc.apply(b) for bc in bcs]
-    A = AdjointKrylovMatrix(a, bcs=bcs)
-
-    solver.set_operators(A, P)
-    solver.solve(w.vector(), b)
-    #solve(a == L, w, bcs, solver_parameters={"krylov_solver": {"relative_tolerance": 1.0e-14}}, annotate=annotate)
-
-    # Compute time step
-    dt = compute_timestep(w)
-
-    # Move to new timestep and update functions
-    T_.assign(T)
-    w_.assign(w)
+    # Define initial CLF and time step
+    CLFnum = 0.5
+    dt = compute_timestep(w_)
     t += dt
-    n += 1
+    n = 1
 
-  return T_
+    w_pr = Function(W)
+    (u_pr, p_pr) = split(w_pr)
+    (u_, p_) = split(w_)
+
+    # Solver for the Stokes systems
+    solver = PETScKrylovSolver("gmres", "amg")
+    solver.parameters["relative_tolerance"] = 1.0e-14
+    solver.parameters["monitor_convergence"] = False
+
+    while (t <= finish):
+        message(t, dt)
+
+        # Solve for predicted temperature in terms of previous velocity
+        (a, L) = energy(Q, Constant(dt), u_, T_)
+        solve(a == L, T_pr, T_bcs, solver_parameters={"krylov_solver": {"relative_tolerance": 1.0e-14}})
+
+        # Solve for predicted flow
+        eta = viscosity(T_pr)
+        (a, L, precond) = momentum(W, eta, (Ra*T_pr)*g)
+
+        b = assemble(L); [bc.apply(b) for bc in bcs]
+        A = AdjointKrylovMatrix(a, bcs=bcs)
+
+        solver.set_operators(A, P)
+        solver.solve(w_pr.vector(), b)
+        #solve(a == L, w_pr, bcs, solver_parameters={"krylov_solver": {"relative_tolerance": 1.0e-14}}, annotate=annotate)
+
+        # Solve for corrected temperature T in terms of predicted and previous velocity
+        (a, L) = energy_correction(Q, Constant(dt), u_pr, u_, T_)
+        solve(a == L, T, T_bcs, solver_parameters={"krylov_solver": {"relative_tolerance": 1.0e-14}})
+
+        # Solve for corrected flow
+        eta = viscosity(T)
+        (a, L, precond) = momentum(W, eta, (Ra*T)*g)
+
+        b = assemble(L); [bc.apply(b) for bc in bcs]
+        A = AdjointKrylovMatrix(a, bcs=bcs)
+
+        solver.set_operators(A, P)
+        solver.solve(w.vector(), b)
+        #solve(a == L, w, bcs, solver_parameters={"krylov_solver": {"relative_tolerance": 1.0e-14}}, annotate=annotate)
+
+        # Compute time step
+        dt = compute_timestep(w)
+
+        # Move to new timestep and update functions
+        T_.assign(T)
+        w_.assign(w)
+        t += dt
+        n += 1
+
+    return T_
 
 def Nusselt():
     "Definition of Nusselt number, cf Blankenbach et al 1989"
@@ -191,5 +191,5 @@ def Nusselt():
     #return Nu
 
 if __name__ == "__main__":
-  Tic = interpolate(InitialTemperature(Ra, length), Q)
-  Tfinal = main(Tic)
+    Tic = interpolate(InitialTemperature(Ra, length), Q)
+    Tfinal = main(Tic)

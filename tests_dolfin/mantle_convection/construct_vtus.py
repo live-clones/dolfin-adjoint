@@ -34,7 +34,7 @@ rfile = File("%s/pvd/density.pvd" % dirname)
 vsfile = File("%s/pvd/viscosity.pvd" % dirname)
 
 
-eta = eta0 * exp(-abs(b_val*temperature)/deltaT + c_val*(1.0 - triangle.x[1])/height ) 
+eta = eta0 * exp(-abs(b_val*temperature)/deltaT + c_val*(1.0 - triangle.x[1])/height )
 
 times = densities.vector_times()
 
@@ -44,7 +44,7 @@ for t in times:
     densities.retrieve(density.vector(), t)
     velocities.retrieve(velocity.vector(), t)
     temperatures.retrieve(temperature.vector(), t)
-  
+
     tmp = project(eta, DG1)
     viscosity.assign(tmp)
 
