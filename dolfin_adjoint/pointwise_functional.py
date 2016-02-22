@@ -85,29 +85,27 @@ class PointwiseFunctional(functional.Functional):
         toi = _time_levels(adjointer, timestep)[0] # time of interest
 
         my   = [0.0]*self.coords.shape[0]
-        solu = [0.0]*self.coords.shape[0]
-        ref  = [None]*self.coords.shape[0]
         for i in range (self.coords.shape[0]):
             if not self.skip[i] and len(values) > 0:
                 if timestep is adjointer.timestep_count -1:
 
                     # add final contribution
                     if self.i[i] is None: solu[i] = values[0].data(self.coords[i,:])
-                    else: solu[i] = values[0].data[self.i[i]](self.coords[i,:])
-                    ref[i]  = self.refs[i][self.times.index(self.times[-1])]
-                    my[i] = (solu[i] - float(ref[i]))*(solu[i] - float(ref[i]))
+                    else: solu = values[0].data[self.i[i]](self.coords[i,:])
+                    ref  = self.refs[i][self.times.index(self.times[-1])]
+                    my[i] = (solu - float(ref))*(solu - float(ref))
 
                     # if necessary, add one but last contribution
                     if toi in self.times and len(values) > 0:
                         if self.i[i] is None: solu[i] = values[-1].data(self.coords[i,:])
-                        else: solu[i] = values[-1].data[self.i[i]](self.coords[i,:])
-                        ref[i]  = self.refs[i][self.times.index(toi)]
-                        my[i] += (solu[i] - float(ref[i]))*(solu[i] - float(ref[i]))
+                        else: solu = values[-1].data[self.i[i]](self.coords[i,:])
+                        ref  = self.refs[i][self.times.index(toi)]
+                        my[i] += (solu - float(ref))*(solu - float(ref))
                 else:
-                    if self.i[i] is None: solu[i] = values[-1].data(self.coords[i,:])
-                    else: solu[i] = values[-1].data[self.i[i]](self.coords[i,:])
-                    ref[i]  = self.refs[i][self.times.index(toi)]
-                    my[i] = (solu[i] - float(ref[i]))*(solu[i] - float(ref[i]))
+                    if self.i[i] is None: solu = values[-1].data(self.coords[i,:])
+                    else: solu = values[-1].data[self.i[i]](self.coords[i,:])
+                    ref  = self.refs[i][self.times.index(toi)]
+                    my[i] = (solu - float(ref))*(solu - float(ref))
 
             if self.verbose: print "my eval ", my[i]
             if self.verbose:print "eval ", timestep, " times ", _time_levels(adjointer, timestep)
