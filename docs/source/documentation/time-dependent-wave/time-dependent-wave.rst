@@ -108,7 +108,7 @@ Also a function is defined to assemble the objective
 Now we can have a look at the optimization procedure
 
 .. literalinclude:: ../../_static/time-dependent-wave.py
-   :lines: 119-167
+   :lines: 118-167
 
 The code can be run as follows:
 

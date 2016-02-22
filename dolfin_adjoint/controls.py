@@ -237,19 +237,16 @@ class ConstantControl(DolfinAdjointControl):
 
             # Check if the coefficient is an expression with user-defined
             # derivatives
-            if not hasattr(coeff, "deval"):
-                continue
 
             if not hasattr(coeff, "dependencies"):
-                raise ValueError, "An expression with deval() must also \
-                                   implement the dependencies() function."
-
-            if not hasattr(coeff, "copy"):
-                raise ValueError, "An expression with deval() must also \
-                                   implement the copy() function."
+                continue
+            if not hasattr(coeff, "user_defined_derivatives"):
+                raise ValueError, "An expression with dependencies must also \
+provide the user_defined_derivatives \
+dictionary."
 
             # Check that that expression depends on self.a
-            elif self.a not in coeff.dependencies():
+            elif self.a not in coeff.dependencies:
                 continue
 
             else:
@@ -264,12 +261,8 @@ class ConstantControl(DolfinAdjointControl):
         # expressions
         for c in expr_deriv_coeffs:
 
-            dc = c.copy()
-            eval_deriv_a = lambda expr, value, x: expr.deval(value, x, self.a)
-            dc.eval = types.MethodType(eval_deriv_a, dc)
-
             diff_form += ufl.algorithms.expand_derivatives(
-                backend.derivative(form, c, dc))
+                backend.derivative(form, c, c.user_defined_derivatives[self.a]))
 
         return diff_form
 

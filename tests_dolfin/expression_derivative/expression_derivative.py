@@ -2,27 +2,25 @@ from dolfin import *
 from dolfin_adjoint import *
 
 class SourceExpression(Expression):
-    def __init__(self, c, d):
+    def __init__(self, c, d, derivative=None):
         self.c = c
         self.d = d
+        self.derivative = derivative
 
     def eval(self, value, x):
-        value[0] = self.c**2
-        value[0] *= self.d
 
-    def deval(self, value, x, derivative_coeff):
+        if self.derivative is None:
+            # Evaluate functional
+            value[0] = self.c**2
+            value[0] *= self.d
 
-        if self.c == derivative_coeff:
+        elif self.derivative == self.c:
+            # Evaluate derivative of functional wrt c
             value[0] = 2*self.c*self.d
 
-        elif self.d == derivative_coeff:
+        elif self.derivative == self.d:
+            # Evaluate derivative of functional wrt d
             value[0] = self.c**2
-
-    def dependencies(self):
-        return [self.c, self.d]
-
-    def copy(self):
-        return SourceExpression(self.c, self.d)
 
 
 if __name__ == "__main__":
@@ -32,5 +30,12 @@ if __name__ == "__main__":
     c = Constant(2)
     d = Constant(3)
 
-    source = SourceExpression(c, d)
-    taylor_test_expression(source, V)
+    f = SourceExpression(c, d)
+    f.dependencies = c, d  # dolfin-adjoint needs to know on which
+                           # coefficients this expression depends on
+
+    # Provide the derivative coefficients
+    f.user_defined_derivatives = {c: SourceExpression(c, d, derivative=c),
+                                  d: SourceExpression(c, d, derivative=d)}
+
+    taylor_test_expression(f, V)
