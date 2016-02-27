@@ -137,6 +137,30 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
 
     return q10, times
 
+#------------------------------------------------------------------------------
+def optimize():
+
+    # Define the control
+    cl = interpolate(Constant(6000.), D, name="cl")
+    cl = Constant(6000.)
+    ct = Constant(3000.)
+
+    # Execute first time to annotate and record the tape
+    v, times = forward(cl, ct, Forward = True, Record = False, Annotate = True)
+
+    adj_html("forward.html", "forward")
+    adj_html("adjoint.html", "adjoint")
+
+    # Load references
+    rec = np.loadtxt("received.txt")
+    refs = [Constant(x) for x in rec[0:len(times), -1]]
+
+    # Prepare the objective function
+    J = PointwiseFunctional(v, refs[1:], R, times[1:], u_ind=1, boost=1.e20, verbose=False)
+
+    # Compute gradient
+    dJdcl = compute_gradient(J, Control(cl), forget = False)
+
 if __name__ == "__main__":
     # Record a reference solution
     if "-rec" in sys.argv:
