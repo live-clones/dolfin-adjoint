@@ -90,7 +90,10 @@ class PointwiseFunctional(functional.Functional):
 
         for i in range (self.coords.shape[0]):
             # Prepare pointwise evals for derivative
-            ps = backend.PointSource(self.func.function_space().sub(self.i[i]), backend.Point(self.coords[i,:]), 1.)
+            if self.i[i] is None:
+                ps = backend.PointSource(self.func.function_space(), backend.Point(self.coords[i,:]), 1.)
+            else:
+                ps = backend.PointSource(self.func.function_space().sub(self.i[i]), backend.Point(self.coords[i,:]), 1.)
             self.basis[i] = backend.Function(self.func.function_space()) # basis function for R
             ps.apply(self.basis[i].vector())
 
