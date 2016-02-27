@@ -48,9 +48,11 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     l2 = TestFunction(V)
 
     # Excitation
-    D = "((0.5+a*pow((t-td), 2))*exp(a*pow((t-td), 2)))"
-    apod = "exp(-0.5*pow((x[0]-xs)/w, 2))*(x[1] == ys)"
-    s = Expression(("0.0", apod+"*"+D), w=3.e-3, td=2.e-6, a=-(pi*6.e5)**2, xs =S[0], ys = S[1], t = 0.0, degree = 3)
+    D     = "((0.5+a*pow((t-td), 2))*exp(a*pow((t-td), 2)))"
+    apod  = "exp(-0.5*pow((x[0]-xs)/w, 2))*(x[1] == ys)"
+    s     = Expression(("0.0", apod+"*"+D), w=3.e-3, td=2.e-6, \
+                                            a=-(pi*6.e5)**2, xs =S[0], \
+                                            ys = S[1], t = 0.0, degree = 3)
     zero2 = Expression(("0.0", "0.0"), degree = 1)
     zero3 = Expression(("0.0", "0.0", "0.0"), degree = 1)
 
@@ -90,7 +92,6 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     # assembling
     A1 = assemble(a1)
     A2 = assemble(a2)
-
 
     # LU solvers
     A1solve = LUSolver()
