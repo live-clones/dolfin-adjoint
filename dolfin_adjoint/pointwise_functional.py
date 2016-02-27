@@ -53,11 +53,14 @@ class PointwiseFunctional(functional.Functional):
                 self.timeform = sum(u[self.index]*dx*dt[t] for t in self.times)
 
         # check compatibility inputs
-        if len(self.refs) is not len(self.times):
+        if len(self.refs) != len(self.times):
             raise RuntimeError("Number of timesteps and observations doesn't match")
 
         # Prepare pointwise evals for derivative
-        ps = backend.PointSource(self.func.function_space().sub(self.index), backend.Point(self.coords), 1.)
+        if self.index is None:
+            ps = backend.PointSource(self.func.function_space(), backend.Point(self.coords), 1.)
+        else:
+            ps = backend.PointSource(self.func.function_space().sub(self.index), backend.Point(self.coords), 1.)
         self.basis = backend.Function(self.func.function_space()) # basis function for R
         ps.apply(self.basis.vector())
 
@@ -67,7 +70,7 @@ class PointwiseFunctional(functional.Functional):
             self.skip = True
         else:
             self.skip = False
-
+        key()
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional
     def __call__(self, adjointer, timestep, dependencies, values):
