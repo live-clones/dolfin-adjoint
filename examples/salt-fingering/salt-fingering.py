@@ -72,7 +72,7 @@ from dolfin_adjoint import *
 # minutes; for production computations, this might be run at 300 x 300 or 500 x
 # 500.
 
-mesh = RectangleMesh(0, 0, 1, 2, 50, 50)
+mesh = RectangleMesh(Point(0, 0), Point(1, 2), 50, 50)
 
 # Computing the singular value decomposition of the propagator requires many
 # actions of the propagator, the operator that maps perturbations in the input
