@@ -26,7 +26,16 @@ class PointwiseFunctional(functional.Functional):
     # name: allow to set a name, which is usefull for all da obejcts
 
     #-----------------------------------------------------------------------------------------------------
-    def __init__(self, u, refs, coords, times=None, f_ind=None, timeform=False, verbose=False, name=None):
+    def __init__(self, u, refs, coords, times=None, f_ind=None, **kwargs):
+
+        # Sort out kwargs
+        timeform = kwargs.get("timeform", False)
+        verbose  = kwargs.get("verbose",  False)
+        name     = kwargs.get("name", None)
+        R        = kwargs.get("regform", None)
+        space    = kwargs.get("regform", None)
+
+        key()
         # Some conformity checks
         if times is None: # check times content
             times = ["FINISH_TIME"]
@@ -46,12 +55,24 @@ class PointwiseFunctional(functional.Functional):
               if len(ref) != len(times): # check compatibility inputs
                 raise RuntimeError("Number of timesteps and observations doesn't match %4i vs %4i" %(len(times), len(refs)))
 
-        # we prepare a ghost timeform. Only the time instant is important
+        # we prepare a timeform.
         if not timeform:
-            if f_ind is None:
-                self.timeform = sum(u*dx*dt[t] for t in times)
+            # first add the different times of interest
+
+
+            # add regularisation term
+            if R is not None:
+                print "Regularisation added"
+                if f_ind is None:
+                    self.timeform = sum((u*dx)*dt[t] for t in times)#+R*dt[0]
+                else:
+                    self.timeform = sum((u[f_ind]*dx)*dt[t] for t in times)#+R*dt[0]
             else:
-                self.timeform = sum(u[f_ind]*dx*dt[t] for t in times)
+                if f_ind is None:
+                    self.timeform = sum((u*dx)*dt[t] for t in times)
+                else:
+                    self.timeform = sum((u[f_ind]*dx)*dt[t] for t in times)
+
         else: self.timeform = timeform
 
         # Store info to object
@@ -81,6 +102,11 @@ class PointwiseFunctional(functional.Functional):
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional
     def __call__(self, adjointer, timestep, dependencies, values):
+
+#        key()
+        for dependency in dependencies:
+            print "%s\r\n" %(dependency.name)
+
         if self.verbose: print "eval ", len(values)
         toi = _time_levels(adjointer, timestep)[0] # time of interest
 
@@ -115,6 +141,8 @@ class PointwiseFunctional(functional.Functional):
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional derivative
     def derivative(self, adjointer, variable, dependencies, values):
+        print "derivative"
+        print "%s\r\n" %(variable.name)
         # transate finish_time: UGLY!!
         if "FINISH_TIME" in self.times:
             final_time = _time_levels(adjointer, adjointer.timestep_count - 1)[1]
@@ -164,5 +192,8 @@ class PointwiseFunctional(functional.Functional):
         form = ff[0]*self.basis[0]
         for i in range(1, self.coords.shape[0]): form += ff[i]*self.basis[i]
 
+        print "project"
         v = backend.project(form, self.func.function_space())
+#        key()
+        print "projected"
         return adjlinalg.Vector(v)
