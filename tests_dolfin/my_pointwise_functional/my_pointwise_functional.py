@@ -164,7 +164,7 @@ def optimize():
 
 if __name__ == "__main__":
     # Record a reference solution
-    if "-rec" in sys.argv:
+    if "-r" in sys.argv:
         forward(Constant(6320.), Constant(3130.), Forward = True, Record = True, Annotate = False)
 
     # Optimize controls
