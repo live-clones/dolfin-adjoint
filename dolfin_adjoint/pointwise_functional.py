@@ -70,7 +70,7 @@ class PointwiseFunctional(functional.Functional):
             self.skip = True
         else:
             self.skip = False
-        key()
+        
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional
     def __call__(self, adjointer, timestep, dependencies, values):

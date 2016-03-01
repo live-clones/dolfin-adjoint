@@ -1,5 +1,6 @@
 from dolfin import *
 from dolfin_adjoint import *
+import ufl
 
 import numpy as np
 from IPython import embed as key
@@ -16,7 +17,7 @@ n    = FacetNormal(mesh)
 # Define functionspaces
 U = VectorFunctionSpace(mesh, "DG", 3, dim = 2)
 V = VectorFunctionSpace(mesh, "DG", 3, dim = 3)
-D = FunctionSpace(mesh, "CG", 1)
+Ds = FunctionSpace(mesh, "CG", 1)
 
 # Define source and receiver
 S = np.array((20e-3, 0.)) # Source coordinates
@@ -69,9 +70,9 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     q20 = interpolate(zero3, V, name = "foldstate")
 
     # Define fluxes on interior and exterior facets
-    q1hat    = (n[0]('-')*Ax1 + n[1]('-')*Ay1)*avg(q10) + C*0.5*dif(q20)
+    q1hat    = n[0]('-')*avg(Ax1*q10) + n[1]('-')*avg(Ay1*q10) + C*0.5*dif(q20)
     q1hatbnd = (n[0]*Ax1 + n[1]*Ay1)*(Gv*q10) + C*Gf*q20
-    q2hat    = (n[0]('-')*Ax2 + n[1]('-')*Ay2)*avg(q20) + C*0.5*dif(q10)
+    q2hat    = n[0]('-')*avg(Ax2*q20) + n[1]('-')*avg(Ay2*q20) + C*0.5*dif(q10)
     q2hatbnd = (n[0]*Ax2 + n[1]*Ay2)*(Gf*q20) + C*Gv*q10
 
     # Variational formulation
@@ -88,6 +89,8 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
 
     a1, L1 = lhs(F1), rhs(F1)
     a2, L2 = lhs(F2), rhs(F2)
+
+    
 
     # assembling
     A1 = assemble(a1)
@@ -127,7 +130,6 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
 
         # make sure times match solus
         times.append(t)
-        if Record: solus.append(vt(R))
 
         # increase time
         tstep += 1
@@ -142,8 +144,8 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
 def optimize():
 
     # Define the control
-    cl = interpolate(Constant(6000.), D, name="cl")
-    cl = Constant(6000.)
+    cl = interpolate(Constant(6000.), Ds, name="cl")
+    #cl = Constant(6000.)
     ct = Constant(3000.)
 
     # Execute first time to annotate and record the tape
@@ -161,11 +163,14 @@ def optimize():
 
     # Compute gradient
     dJdcl = compute_gradient(J, Control(cl), forget = False)
+    #Jcl = assemble(inner(v, v)*dx) # current value
+    #conv_rate = taylor_test(J, Control(cl), Jcl, dJdcl)
 
 if __name__ == "__main__":
     # Record a reference solution
     if "-r" in sys.argv:
-        forward(Constant(6320.), Constant(3130.), Forward = True, Record = True, Annotate = False)
+        cl = interpolate(Constant(6320.), Ds, name="my_cl")
+        forward(cl, Constant(3130.), Forward = True, Record = True, Annotate = False)
 
     # Optimize controls
     if "-o" in sys.argv:
