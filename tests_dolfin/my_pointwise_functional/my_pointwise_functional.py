@@ -130,6 +130,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
 
         # make sure times match solus
         times.append(t)
+        if Record: solus.append(vt(R))
 
         # increase time
         tstep += 1
