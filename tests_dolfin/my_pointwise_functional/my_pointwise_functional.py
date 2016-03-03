@@ -133,9 +133,9 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
         states.append(vt)
 
         # increase time
+        if Annotate: adj_inc_timestep(t, tstep > N)
         tstep += 1
         t = tstep*dt # more accurate than t += dt
-        if Annotate: adj_inc_timestep(t, tstep > N)
 
     if Record: np.savetxt("received.txt", np.array(solus))
 
@@ -150,7 +150,7 @@ def optimize():
     # Define the control
 #    cl = interpolate(Constant(6000.), Ds, name="cl")
     cl = Constant(6000.)
-    ct = Constant(3000.)
+    ct = Constant(3130.)
 
     # Execute first time to annotate and record the tape
     v, times, states = forward(cl, ct, Forward = True, Record = False, Annotate = True)
@@ -180,10 +180,9 @@ def optimize():
         return Jhatform
 
     # Compute gradient
-    Jcl = Jhat(cl)
-    key()
-    dJdcl = compute_gradient(J, Control(cl), forget = False)
-    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
+#    Jcl = Jhat(cl)
+#    dJdcl = compute_gradient(J, Control(cl), forget = False)
+#    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
 
 if __name__ == "__main__":
     # Record a reference solution
