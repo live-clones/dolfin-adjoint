@@ -12,8 +12,6 @@ from dolfin_adjoint.functional import _time_levels, _add, _coeffs, _vars
 from dolfin_adjoint.timeforms import dt
 import dolfin_adjoint.adjlinalg as adjlinalg
 
-from IPython import embed
-
 class PointwiseFunctional(functional.Functional):
     # u : function containing the solution
     # refs : vector containing the observations
@@ -70,11 +68,12 @@ class PointwiseFunctional(functional.Functional):
             self.skip = True
         else:
             self.skip = False
-        
+
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional
     def __call__(self, adjointer, timestep, dependencies, values):
-        if self.verbose: print "eval ", len(values)
+#        if self.verbose: print "eval ", len(values)
+        print "\r\n******************"
         toi = _time_levels(adjointer, timestep)[0] # time of interest
         if not self.skip and len(values) > 0:
             if timestep is adjointer.timestep_count -1:
@@ -84,24 +83,34 @@ class PointwiseFunctional(functional.Functional):
                 else: solu = values[0].data[self.index](self.coords)
                 ref  = self.refs[self.times.index(self.times[-1])]
                 my = (solu - float(ref))*(solu - float(ref))
+                print "add final contrib"
+                if self.verbose: print ref, " ", float(ref)
+                if self.verbose: print ref, " ", solu
 
                 # if necessary, add one but last contribution
                 if toi in self.times and len(values) > 0:
                     if self.index is None: solu = values[-1].data(self.coords)
                     else: solu = values[-1].data[self.index](self.coords)
                     ref  = self.refs[self.times.index(toi)]
+                    print "add contrib"
+                    if self.verbose: print ref, " ", float(ref)
+                    if self.verbose: print ref, " ", solu
                     my += (solu - float(ref))*(solu - float(ref))
             else:
                 if self.index is None: solu = values[-1].data(self.coords)
                 else: solu = values[-1].data[self.index](self.coords)
                 ref  = self.refs[self.times.index(toi)]
                 my = (solu - float(ref))*(solu - float(ref))
+                print "add reg contrib"
+                if self.verbose: print ref, " ", float(ref)
+                if self.verbose: print ref, " ", solu
         else:
             my = 0.0
 
-        if self.verbose: print "my eval ", my
-        if self.verbose:print "eval ", timestep, " times ", _time_levels(adjointer, timestep)
+        if self.verbose: print toi, " ", my
 
+#        if self.verbose:print "eval ", timestep, " times ", _time_levels(adjointer, timestep)
+#        key()
         return self.boost*my
 
     #-----------------------------------------------------------------------------------------------------
@@ -143,12 +152,12 @@ class PointwiseFunctional(functional.Functional):
             ff = backend.Constant(self.boost*2.0*(solu - float(ref)))
             v = backend.project(ff*self.basis, self.func.function_space())
 
-            if self.verbose: print "ff", float(ff)
-            if self.verbose: print "sol", solu
-            if self.verbose: print "ref", float(ref)
+#            if self.verbose: print "ff", float(ff)
+#            if self.verbose: print "sol", solu
+#            if self.verbose: print "ref", float(ref)
 
-            if self.verbose: print "tsoi", tsoi
-            if self.verbose: print "toi", toi
+#            if self.verbose: print "tsoi", tsoi
+#            if self.verbose: print "toi", toi
 
         my = v.vector().norm("l2")
         if self.verbose: print "my", my

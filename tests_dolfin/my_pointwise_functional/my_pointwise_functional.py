@@ -133,9 +133,9 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
         states.append(vt(R))
 
         # increase time
+        if Annotate: adj_inc_timestep(t, tstep > N)
         tstep += 1
         t = tstep*dt # more accurate than t += dt
-        if Annotate: adj_inc_timestep(t, tstep > N)
 
     if Record: np.savetxt("received.txt", np.array(solus))
 
@@ -164,6 +164,7 @@ def optimize():
 
     # Prepare the objective function
     start = 1
+    J = PointwiseFunctional(v, refs[start:], R, times[start:], u_ind=1, boost=1.e20, verbose=True)
 
     def Jhat(cl):
         v, times, states = forward(cl, ct, Forward = True)
@@ -179,6 +180,7 @@ def optimize():
         return Jhatform
 
     # Compute gradient
+
     Jcl = Jhat(cl)
     print Jcl
     key()
