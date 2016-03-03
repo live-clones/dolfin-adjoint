@@ -130,7 +130,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
         # make sure times match solus
         times.append(t)
         if Record: solus.append(vt(R))
-        states.append(vt)
+        states.append(vt(R))
 
         # increase time
         if Annotate: adj_inc_timestep(t, tstep > N)
@@ -164,25 +164,27 @@ def optimize():
 
     # Prepare the objective function
     start = 1
-    J = PointwiseFunctional(v, refs[start:], R, times[start:], u_ind=1, boost=1.e20, verbose=True)
-    RF = ReducedFunctional(J, Control(cl), eval_cb_post = eval_cb)
-    minimize(RF)
 
     def Jhat(cl):
         v, times, states = forward(cl, ct, Forward = True)
         combined = zip(times[start:], refs[start:], states[start:])
         Jhatform = 0
-        for (t, u_obs, u) in combined:
-            key()
-            print t, " ", pow(u(R)[-1] - float(u_obs), 2)
-            Jhatform += 1.e20*pow(u(R)[-1] - float(u_obs), 2)
+        for (t, ref, u) in combined:
+            print "\r\n ******************"
+            print ref, " ", float(ref)
+            print ref, " ", u[-1]
+            print t, " ", (u[-1] - float(ref))*(u[-1] - float(ref))
+            Jhatform += 1.e20*pow(u[-1] - float(ref), 2)
 
         return Jhatform
 
     # Compute gradient
-#    Jcl = Jhat(cl)
-#    dJdcl = compute_gradient(J, Control(cl), forget = False)
-#    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
+
+    Jcl = Jhat(cl)
+    print Jcl
+    key()
+    dJdcl = compute_gradient(J, Control(cl), forget = False)
+    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
 
 if __name__ == "__main__":
     # Record a reference solution
