@@ -130,7 +130,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
         # make sure times match solus
         times.append(t)
         if Record: solus.append(vt(R))
-        states.append(vt)
+        states.append(vt(R))
 
         # increase time
         tstep += 1
@@ -150,7 +150,7 @@ def optimize():
     # Define the control
 #    cl = interpolate(Constant(6000.), Ds, name="cl")
     cl = Constant(6000.)
-    ct = Constant(3000.)
+    ct = Constant(3130.)
 
     # Execute first time to annotate and record the tape
     v, times, states = forward(cl, ct, Forward = True, Record = False, Annotate = True)
@@ -164,23 +164,23 @@ def optimize():
 
     # Prepare the objective function
     start = 1
-    J = PointwiseFunctional(v, refs[start:], R, times[start:], u_ind=1, boost=1.e20, verbose=True)
-    RF = ReducedFunctional(J, Control(cl), eval_cb_post = eval_cb)
-    minimize(RF)
 
     def Jhat(cl):
         v, times, states = forward(cl, ct, Forward = True)
         combined = zip(times[start:], refs[start:], states[start:])
         Jhatform = 0
-        for (t, u_obs, u) in combined:
-            key()
-            print t, " ", pow(u(R)[-1] - float(u_obs), 2)
-            Jhatform += 1.e20*pow(u(R)[-1] - float(u_obs), 2)
+        for (t, ref, u) in combined:
+            print "\r\n ******************"
+            print ref, " ", float(ref)
+            print ref, " ", u[-1]
+            print t, " ", (u[-1] - float(ref))*(u[-1] - float(ref))
+            Jhatform += 1.e20*pow(u[-1] - float(ref), 2)
 
         return Jhatform
 
     # Compute gradient
     Jcl = Jhat(cl)
+    print Jcl
     key()
     dJdcl = compute_gradient(J, Control(cl), forget = False)
     conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
