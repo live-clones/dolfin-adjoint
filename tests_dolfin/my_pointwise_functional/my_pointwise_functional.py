@@ -39,7 +39,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     dt = 1.e-8        # time step size
     DT = Constant(dt) # constant for UFL formulation
     t = dt            # initial time
-    T = 1.e-7         # final time
+    T = 8.e-6         # final time
     N = T/dt          # number of time steps
 
     # Test and trial functions
@@ -90,8 +90,6 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     a1, L1 = lhs(F1), rhs(F1)
     a2, L2 = lhs(F2), rhs(F2)
 
-    
-
     # assembling
     A1 = assemble(a1)
     A2 = assemble(a2)
@@ -109,6 +107,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     # initiate time stepping
     tstep = 1
     if Record: solus = []
+    states = []
     times = []
     if Annotate: adj_start_timestep()
 
@@ -131,6 +130,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
         # make sure times match solus
         times.append(t)
         if Record: solus.append(vt(R))
+        if Record: states.append(vt)
 
         # increase time
         tstep += 1
@@ -139,7 +139,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
 
     if Record: np.savetxt("received.txt", np.array(solus))
 
-    return q10, times
+    return q10, times, states
 
 #------------------------------------------------------------------------------
 def optimize():
@@ -150,22 +150,31 @@ def optimize():
     ct = Constant(3000.)
 
     # Execute first time to annotate and record the tape
-    v, times = forward(cl, ct, Forward = True, Record = False, Annotate = True)
+    v, times, states = forward(cl, ct, Forward = True, Record = False, Annotate = True)
 
-    adj_html("forward.html", "forward")
-    adj_html("adjoint.html", "adjoint")
+    #adj_html("forward.html", "forward")
+    #adj_html("adjoint.html", "adjoint")
 
     # Load references
     rec = np.loadtxt("received.txt")
     refs = [Constant(x) for x in rec[0:len(times), -1]]
 
     # Prepare the objective function
-    J = PointwiseFunctional(v, refs[1:], R, times[1:], u_ind=1, boost=1.e20, verbose=False)
+    J = PointwiseFunctional(v, refs[1:], R, times[1:], u_ind=1, boost=1.e20, verbose=True)
 
+    def Jhat(cl):
+        v, times, states = forward(cl, ct, Forward = True, Record = True)
+        combined = zip(times, refs, states)
+        Jhatform = 0
+        for (t, u_obs, u) in combined:
+            Jhatform += 1.e20*pow(u(R)[-1] - float(u_obs), 2)
+
+        return Jhatform
+    
     # Compute gradient
     dJdcl = compute_gradient(J, Control(cl), forget = False)
-    #Jcl = assemble(inner(v, v)*dx) # current value
-    #conv_rate = taylor_test(J, Control(cl), Jcl, dJdcl)
+    Jcl = Jhat(cl)
+    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
 
 if __name__ == "__main__":
     # Record a reference solution
