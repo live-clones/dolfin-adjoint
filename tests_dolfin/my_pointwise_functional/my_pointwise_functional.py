@@ -149,7 +149,7 @@ def optimize():
 
     # Define the control
     cl = interpolate(Constant(6000.), Ds, name="cl")
-#    cl = Constant(6000.)
+    cl = Constant(6000.)
     ct = Constant(3000.)
 
     # Execute first time to annotate and record the tape
@@ -185,7 +185,7 @@ def optimize():
     print Jcl
     dJdcl = compute_gradient(J, Control(cl), forget = False)
 
-    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
+    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl, seed=1.)
     print "grad = ", float(dJdcl)
 
 if __name__ == "__main__":
