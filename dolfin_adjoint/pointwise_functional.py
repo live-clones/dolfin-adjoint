@@ -65,7 +65,7 @@ class PointwiseFunctional(functional.Functional):
         ps.apply(self.basis.vector())
 
         # Failsaife for parallel
-        if sum(self.basis.vector().array())<1.:
+        if sum(self.basis.vector().array())<1.e-12:
             if self.verbose: print "coord not in domain"
             self.skip = True
         else:
