@@ -152,12 +152,12 @@ class PointwiseFunctional(functional.Functional):
             ff = backend.Constant(self.boost*2.0*(solu - float(ref)))
             v = backend.project(ff*self.basis, self.func.function_space())
 
-#            if self.verbose: print "ff", float(ff)
-#            if self.verbose: print "sol", solu
-#            if self.verbose: print "ref", float(ref)
+            if self.verbose: print "ff", float(ff)
+            if self.verbose: print "sol", solu
+            if self.verbose: print "ref", float(ref)
 
-#            if self.verbose: print "tsoi", tsoi
-#            if self.verbose: print "toi", toi
+            if self.verbose: print "tsoi", tsoi
+            if self.verbose: print "toi", toi
 
         my = v.vector().norm("l2")
         if self.verbose: print "my", my
