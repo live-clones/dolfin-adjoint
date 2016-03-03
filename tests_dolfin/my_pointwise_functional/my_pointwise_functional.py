@@ -21,7 +21,7 @@ Ds = FunctionSpace(mesh, "CG", 1)
 
 # Define source and receiver
 S = np.array((20e-3, 0.)) # Source coordinates
-R = np.array((20.e-3, 20e-3)) # Receiver coordinates
+R = np.array((20.e-3, 1e-3)) # Receiver coordinates
 
 # Forward solver
 def forward(cl, ct, Forward=True, Record=False, Annotate=False):
@@ -39,7 +39,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     dt = 1.e-8        # time step size
     DT = Constant(dt) # constant for UFL formulation
     t = dt            # initial time
-    T = 1.e-7         # final time
+    T = 8.e-7         # final time
     N = T/dt          # number of time steps
 
     # Test and trial functions
@@ -149,7 +149,7 @@ def optimize():
 
     # Define the control
 #    cl = interpolate(Constant(6000.), Ds, name="cl")
-    cl = Constant(6000.)
+    cl = Constant(6320.)
     ct = Constant(3130.)
 
     # Execute first time to annotate and record the tape
@@ -183,9 +183,10 @@ def optimize():
 
     Jcl = Jhat(cl)
     print Jcl
-    key()
     dJdcl = compute_gradient(J, Control(cl), forget = False)
+
     conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
+    print "grad = ", dJdcl
 
 if __name__ == "__main__":
     # Record a reference solution
