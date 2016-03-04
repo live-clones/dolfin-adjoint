@@ -50,6 +50,11 @@ class PointwiseFunctional(functional.Functional):
             else:
                 self.timeform = sum(u[self.index]*dx*dt[t] for t in self.times)
 
+        # Add regularisation
+        if self.regform is not None:
+            self.timeform += self.regform*dt[0]
+            self.regfunc  = functional.Functional(self.regform*dt[0])
+
         # check compatibility inputs
         if len(self.refs) != len(self.times):
             raise RuntimeError("Number of timesteps and observations doesn't match")
@@ -110,12 +115,18 @@ class PointwiseFunctional(functional.Functional):
         if self.verbose: print toi, " ", my
 
 #        if self.verbose:print "eval ", timestep, " times ", _time_levels(adjointer, timestep)
-#        key()
         return self.boost*my
 
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional derivative
     def derivative(self, adjointer, variable, dependencies, values):
+        for dep in dependencies: print variable.timestep, "derive wrt ", dep.name
+
+        if variable.timestep is 0:
+            " derivatives wrt the controls "
+            d = derivative(self.regform, self.regform.coefficients()[0])
+            return self.regfunc.derivative(adjointer, variable, dependencies, values)
+
         # transate finish_time: UGLY!!
         if "FINISH_TIME" in self.times:
             final_time = _time_levels(adjointer, adjointer.timestep_count - 1)[1]

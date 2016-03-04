@@ -39,7 +39,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     dt = 1.e-8        # time step size
     DT = Constant(dt) # constant for UFL formulation
     t = dt            # initial time
-    T = 8.e-6         # final time
+    T = 8.e-8         # final time
     N = T/dt          # number of time steps
 
     # Test and trial functions
@@ -149,7 +149,7 @@ def optimize():
 
     # Define the control
     cl = interpolate(Constant(6000.), Ds, name="cl")
-    cl = Constant(6000.)
+#    cl = Constant(6000.)
     ct = Constant(3000.)
 
     # Execute first time to annotate and record the tape
@@ -164,7 +164,8 @@ def optimize():
 
     # Prepare the objective function
     start = 1
-    J = PointwiseFunctional(v, refs[start:], R, times[start:], u_ind=1, boost=1.e20, verbose=True)
+    reg = Constant(1e-6)*(inner(cl, cl)+inner(grad(cl), grad(cl)))*dx
+    J = PointwiseFunctional(v, refs[start:], R, times[start:], u_ind=1, boost=1.e20, verbose=True, regform=reg)
 
     def Jhat(cl):
         v, times, states = forward(cl, ct, Forward = True)
@@ -179,14 +180,14 @@ def optimize():
 
         return Jhatform
 
-    # Compute gradient
+#    # Compute gradient
 
-    Jcl = Jhat(cl)
-    print Jcl
+#    Jcl = Jhat(cl)
+#    print Jcl
     dJdcl = compute_gradient(J, Control(cl), forget = False)
 
-    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl, seed=1.)
-    print "grad = ", float(dJdcl)
+#    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl, seed=1.)
+#    print "grad = ", float(dJdcl)
 
 if __name__ == "__main__":
     # Record a reference solution
