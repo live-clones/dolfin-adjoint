@@ -165,7 +165,7 @@ def optimize():
     # Prepare the objective function
     start = 1
     reg = Constant(1e-6)*(inner(cl, cl)+inner(grad(cl), grad(cl)))*dx
-    J = PointwiseFunctional(v, refs[start:], R, times[start:], u_ind=1, boost=1.e20, verbose=True)
+    J = PointwiseFunctional(v, refs[start:], R, times[start:], u_ind=1, boost=1.e20, verbose=True, regform=reg)
 
     def Jhat(cl):
         v, times, states = forward(cl, ct, Forward = True)
@@ -178,15 +178,15 @@ def optimize():
             print t, " ", (u[-1] - float(ref))*(u[-1] - float(ref))
             Jhatform += 1.e20*pow(u[-1] - float(ref), 2)
 
-        return Jhatform
+        return Jhatform+assemble(Constant(1e-6)*(inner(cl, cl)+inner(grad(cl), grad(cl)))*dx)
 
 #    # Compute gradient
-
+    key()
     Jcl = Jhat(cl)
     print Jcl
     dJdcl = compute_gradient(J, Control(cl), forget = False)
 
-    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl, seed=1.)
+    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
 
 if __name__ == "__main__":
     # Record a reference solution
