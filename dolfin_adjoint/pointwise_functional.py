@@ -6,6 +6,7 @@ import ufl.algorithms
 import backend
 import hashlib
 from IPython import embed as key
+import numpy as np
 
 import dolfin_adjoint.functional as functional
 from dolfin_adjoint.functional import _time_levels, _add, _coeffs, _vars
@@ -35,20 +36,27 @@ class PointwiseFunctional(functional.Functional):
         self.name     = kwargs.get("name", None)
         self.regform  = kwargs.get("regform", None)
         self.boost    = kwargs.get("boost", 1.0)
-        self.index    = kwargs.get("u_ind", None)
+        self.index    = [kwargs.get("u_ind", None)]*self.coords.shape[0]
+        self.basis    = [None]*self.coords.shape[0]
+        self.skip     = [False]*self.coords.shape[0]
 
+       # Some conformity checks
         if self.times is None:
             self.times = ["FINISH_TIME"]
         elif len(self.times) < 1:
             raise RuntimeError("""The 'times' argument should be None,
                                     'FINISH_TIME' or a non-empty list""")
+        # Prep coords to be considerd as a matrix
+        if self.coords.ndim == 1:
+            self.coords = np.array([self.coords])
+            self.refs = [self.refs]
 
         # we prepare a ghost timeform. Only the time instant is important
         if not self.timeform:
             if self.index is None:
                 self.timeform = sum(u*dx*dt[t] for t in self.times)
             else:
-                self.timeform = sum(u[self.index]*dx*dt[t] for t in self.times)
+                self.timeform = sum(u[self.index[0]]*dx*dt[t] for t in self.times)
 
         # Add regularisation
         if self.regform is not None:
@@ -56,66 +64,80 @@ class PointwiseFunctional(functional.Functional):
             self.regfunc  = functional.Functional(self.regform*dt[0])
 
         # check compatibility inputs
-        if len(self.refs) != len(self.times):
-            raise RuntimeError("Number of timesteps and observations doesn't match")
-
-        # Prepare pointwise evals for derivative
-        if self.index is None:
-            ps = backend.PointSource(self.func.function_space(), backend.Point(self.coords), 1.)
+        if self.coords.shape[0] != len(self.refs):
+            raise RuntimeError("Number of coordinates and observations doesn't match %4i vs %4i" %(self.coords.shape[0], len(self.refs)))
         else:
-            ps = backend.PointSource(self.func.function_space().sub(self.index), backend.Point(self.coords), 1.)
-        self.basis = backend.Function(self.func.function_space()) # basis function for R
-        ps.apply(self.basis.vector())
+            for self.ref in self.refs:
+              if len(self.ref) != len(self.times): # check compatibility inputs
+                raise RuntimeError("Number of timesteps and observations doesn't match %4i vs %4i" %(len(self.times), len(self.refs)))
 
-        # Failsaife for parallel
-        if sum(self.basis.vector().array())<1.e-12:
-            if self.verbose: print "coord not in domain"
-            self.skip = True
-        else:
-            self.skip = False
+
+        for i in range (self.coords.shape[0]):
+            # Prepare pointwise evals for derivative
+            if self.index[i] is None:
+                ps = backend.PointSource(self.func.function_space(), backend.Point(self.coords[i,:]), 1.)
+            else:
+                ps = backend.PointSource(self.func.function_space().sub(self.index[i]), backend.Point(self.coords[i,:]), 1.)
+            self.basis[i] = backend.Function(self.func.function_space()) # basis function for R
+            ps.apply(self.basis[i].vector())
+
+            # Failsaife for parallel
+            if sum(self.basis[i].vector().array())<1.e-12:
+                if self.verbose: print "coord %i not in domain" %i
+                self.skip[i] = True
 
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional
     def __call__(self, adjointer, timestep, dependencies, values):
-#        if self.verbose: print "eval ", len(values)
+
+        if self.verbose: print "eval ", len(values)
         print "\r\n******************"
         toi = _time_levels(adjointer, timestep)[0] # time of interest
-        if not self.skip and len(values) > 0:
-            if timestep is adjointer.timestep_count -1:
 
-                # add final contribution
-                if self.index is None: solu = values[0].data(self.coords)
-                else: solu = values[0].data[self.index](self.coords)
-                ref  = self.refs[self.times.index(self.times[-1])]
-                my = (solu - float(ref))*(solu - float(ref))
-                print "add final contrib"
-                if self.verbose: print ref, " ", float(ref)
-                if self.verbose: print ref, " ", solu
+        my   = [0.0]*self.coords.shape[0]
+        for i in range (self.coords.shape[0]):
+            if not self.skip[i] and len(values) > 0:
+                if timestep is adjointer.timestep_count -1:
 
-                # if necessary, add one but last contribution
-                if toi in self.times and len(values) > 0:
-                    if self.index is None: solu = values[-1].data(self.coords)
-                    else: solu = values[-1].data[self.index](self.coords)
-                    ref  = self.refs[self.times.index(toi)]
-                    print "add contrib"
-                    if self.verbose: print ref, " ", float(ref)
-                    if self.verbose: print ref, " ", solu
-                    my += (solu - float(ref))*(solu - float(ref))
-            else:
-                if self.index is None: solu = values[-1].data(self.coords)
-                else: solu = values[-1].data[self.index](self.coords)
-                ref  = self.refs[self.times.index(toi)]
-                my = (solu - float(ref))*(solu - float(ref))
-                print "add reg contrib"
-                if self.verbose: print ref, " ", float(ref)
-                if self.verbose: print ref, " ", solu
-        else:
-            my = 0.0
+                    # add final contribution
+                    if self.index[i] is None: solu = values[0].data(self.coords[i,:])
+                    else: solu = values[0].data[self.index[i]](self.coords[i,:])
+                    ref  = self.refs[i][self.times.index(self.times[-1])]
+                    my[i] = (solu - float(ref))*(solu - float(ref))
 
-        if self.verbose: print toi, " ", my
+                    if self.verbose:
+                        print "add final contrib"
+                        print ref, " ", float(ref)
+                        print ref, " ", solu
 
-#        if self.verbose:print "eval ", timestep, " times ", _time_levels(adjointer, timestep)
-        return self.boost*my
+                    # if necessary, add one but last contribution
+                    if toi in self.times and len(values) > 0:
+                        if self.index[i] is None: solu = values[-1].data(self.coords[i,:])
+                        else: solu = values[-1].data[self.index[i]](self.coords[i,:])
+                        ref  = self.refs[i][self.times.index(toi)]
+                        my[i] += (solu - float(ref))*(solu - float(ref))
+
+                        if self.verbose:
+                            print "add contrib"
+                            print ref, " ", float(ref)
+                            print ref, " ", solu
+
+                else:
+                    if self.index[i] is None: solu = values[-1].data(self.coords[i,:])
+                    else: solu = values[-1].data[self.index[i]](self.coords[i,:])
+                    ref  = self.refs[i][self.times.index(toi)]
+                    my[i] = (solu - float(ref))*(solu - float(ref))
+
+                    if self.verbose:
+                        print "add regular contrib"
+                        print ref, " ", float(ref)
+                        print ref, " ", solu
+
+            if self.verbose:
+                print "my eval ", my[i]
+                print "eval ", timestep, " times ", _time_levels(adjointer, timestep)
+
+        return self.boost*sum(my)
 
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional derivative
@@ -134,43 +156,48 @@ class PointwiseFunctional(functional.Functional):
 
         if self.verbose:print "derive ", variable.timestep, " num values ", len(values)
         timesteps = self._derivative_timesteps(adjointer, variable)
-        if self.skip:
-            if self.verbose: print "skipped"
-            v = self.basis
-        else:
-            if len(timesteps) is 1: # only occurs at start and finish time
-                tsoi = timesteps[-1]
-                if tsoi is 0: toi = _time_levels(adjointer, tsoi)[0]; ind = -1
-                else: toi = _time_levels(adjointer, tsoi)[-1]; ind = 0
+
+        ff    = [0.0]*self.coords.shape[0]
+        for i in range (self.coords.shape[0]):
+            if self.skip[i]:
+                if self.verbose: print "skipped"
+                v[i] = self.basis[i]
             else:
-                if len(values) is 1: # one value (easy)
+                if len(timesteps) is 1: # only occurs at start and finish time
                     tsoi = timesteps[-1]
-                    toi = _time_levels(adjointer, tsoi)[0]
-                    ind = 0
-                elif len(values) is 2: # two values (hard)
-                    tsoi = timesteps[-1]
-                    toi = _time_levels(adjointer, tsoi)[0]
-                    if _time_levels(adjointer, tsoi)[1] in self.times: ind = 0
-                    else: ind = 1
-                else: # three values (easy)
-                    tsoi = timesteps[1]
-                    toi = _time_levels(adjointer, tsoi)[0]
-                    ind = 1
-            coef = values[ind].data
-            ref  = self.refs[self.times.index(toi)]
-            if self.index is None: solu = coef(self.coords)
-            else: solu = coef[self.index](self.coords)
-            ff = backend.Constant(self.boost*2.0*(solu - float(ref)))
-            v = backend.project(ff*self.basis, self.func.function_space())
+                    if tsoi is 0: toi = _time_levels(adjointer, tsoi)[0]; ind = -1
+                    else: toi = _time_levels(adjointer, tsoi)[-1]; ind = 0
+                else:
+                    if len(values) is 1: # one value (easy)
+                        tsoi = timesteps[-1]
+                        toi = _time_levels(adjointer, tsoi)[0]
+                        ind = 0
+                    elif len(values) is 2: # two values (hard)
+                        tsoi = timesteps[-1]
+                        toi = _time_levels(adjointer, tsoi)[0]
+                        if _time_levels(adjointer, tsoi)[1] in self.times: ind = 0
+                        else: ind = 1
+                    else: # three values (easy)
+                        tsoi = timesteps[1]
+                        toi = _time_levels(adjointer, tsoi)[0]
+                        ind = 1
+                coef = values[ind].data
+                ref  = self.refs[i][self.times.index(toi)]
+                if self.index[i] is None: solu = coef(self.coords[i,:])
+                else: solu = coef[self.index[i]](self.coords[i,:])
+                ff[i] = backend.Constant(self.boost*2.0*(solu - float(ref)))
 
-            if self.verbose: print "ff", float(ff)
-            if self.verbose: print "sol", solu
-            if self.verbose: print "ref", float(ref)
+                if self.verbose:
+                    print "ff", float(ff[i])
+                    print "sol", solu
+                    print "ref", float(ref)
+                    print "tsoi", tsoi
+                    print "toi", toi
 
-            if self.verbose: print "tsoi", tsoi
-            if self.verbose: print "toi", toi
+        # Set up linear combinations to be projected
+        form = ff[0]*self.basis[0]
+        for i in range(1, self.coords.shape[0]): form += ff[i]*self.basis[i]
 
-        my = v.vector().norm("l2")
-        if self.verbose: print "my", my
+        v = backend.project(form, self.func.function_space())
 
         return adjlinalg.Vector(v)

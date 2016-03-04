@@ -182,12 +182,11 @@ def optimize():
 
 #    # Compute gradient
 
-#    Jcl = Jhat(cl)
-#    print Jcl
+    Jcl = Jhat(cl)
+    print Jcl
     dJdcl = compute_gradient(J, Control(cl), forget = False)
 
-#    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl, seed=1.)
-#    print "grad = ", float(dJdcl)
+    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl, seed=1.)
 
 if __name__ == "__main__":
     # Record a reference solution
