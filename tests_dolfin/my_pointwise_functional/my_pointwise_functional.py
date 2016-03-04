@@ -165,7 +165,7 @@ def optimize():
     # Prepare the objective function
     start = 1
     reg = Constant(1e-6)*(inner(cl, cl)+inner(grad(cl), grad(cl)))*dx
-    J = PointwiseFunctional(v, refs[start:], R, times[start:], u_ind=1, boost=1.e20, verbose=True, regform=reg)
+    J = PointwiseFunctional(v, refs[start:], R, times[start:], u_ind=1, boost=1.e20, verbose=True)
 
     def Jhat(cl):
         v, times, states = forward(cl, ct, Forward = True)
