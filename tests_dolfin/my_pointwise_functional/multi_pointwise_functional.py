@@ -11,7 +11,7 @@ def dif(l):
 
 # Define mesh
 Ne   = 2 # number of elements per cm
-mesh = RectangleMesh(Point(0., 0.), Point(40.e-3, 20.e-3), 4*Ne, 2*Ne, "crossed")
+mesh = RectangleMesh(Point(0., 0.), Point(30.e-3, 20.e-3), 3*Ne, 2*Ne, "crossed")
 n    = FacetNormal(mesh)
 
 # Define functionspaces
@@ -20,8 +20,8 @@ V = VectorFunctionSpace(mesh, "DG", 3, dim = 3)
 Ds = FunctionSpace(mesh, "CG", 1)
 
 # Define source and receiver
-S = np.array((20e-3, 0.)) # Source coordinates
-R = np.array(((18.e-3, 20e-3),(22.e-3, 20e-3),(32.e-3, 20e-3),(8.e-3, 20e-3))) # Receiver coordinates
+S = np.array(((10e-3, 0.), (20e-3, 0.), (10e-3, 20e-3), (20e-3, 20e-3), (0., 10e-3), (30e-3, 10e-3))) # Source coordinates
+R = np.array(((6.25e-3, 12.5e-3),(16.25e-3, 12.5e-3),(23.75e-3, 12.5e-3),(6.25e-3, 7.5e-3),(13.75e-3, 7.5e-3),(23.75e-3, 7.5e-3))) # Receiver coordinates
 
 # Forward solver
 def forward(cl, ct, Forward=True, Record=False, Annotate=False):
@@ -51,9 +51,12 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     # Excitation
     D     = "((0.5+a*pow((t-td), 2))*exp(a*pow((t-td), 2)))"
     apod  = "exp(-0.5*pow((x[0]-xs)/w, 2))*(x[1] == ys)"
-    s     = Expression(("0.0", apod+"*"+D), w=3.e-3, td=2.e-6, \
-                                            a=-(pi*6.e5)**2, xs =S[0], \
-                                            ys = S[1], t = 0.0, degree = 3)
+
+    s = Constant(0.0)
+    for i in range(S.shape[0]):
+        s = Expression(("0.0", apod+"*"+D), w=3.e-3, td=2.e-6, \
+                                            a=-(pi*6.e5)**2, xs =S[i,0], \
+                                            ys = S[i,1], t = 0.0, degree = 3)
     zero2 = Expression(("0.0", "0.0"), degree = 1)
     zero3 = Expression(("0.0", "0.0", "0.0"), degree = 1)
 
@@ -151,7 +154,6 @@ def optimize():
 
     # Define the control
     cl = interpolate(Constant(6000.), Ds, name="cl")
-#    cl = Constant(6000.)
     ct = Constant(3000.)
 
     # Execute first time to annotate and record the tape
@@ -174,31 +176,43 @@ def optimize():
     reg = Constant(1e-6)*(inner(cl, cl)+inner(grad(cl), grad(cl)))*dx
     J = PointwiseFunctional(v, Refs, R, times[start:], u_ind=1, boost=1.e20, verbose=True, regform=reg)
 
-    def Jhat(cl):
-        v, times, states = forward(cl, ct, Forward = True)
-        Jhatform = 0
-        for i in range(R.shape[0]):
-            combined = zip(times[start:], Refs[i][start:], states[i][start:])
-            for (t, ref, u) in combined:
-                print "\r\n ******************"
-                print ref, " ", float(ref)
-                print ref, " ", u[-1]
-                print t, " ", (u[-1] - float(ref))*(u[-1] - float(ref))
-                Jhatform += 1.e20*pow(u[-1] - float(ref), 2)
+    Jr = ReducedFunctional(J, Control(cl))
+    cl_opt = minimize(Jr)
 
-        return Jhatform+assemble(Constant(1e-6)*(inner(cl, cl)+inner(grad(cl), grad(cl)))*dx)
+    File("cl_opt.pvd") << cl_opt
 
-#    # Compute gradient
-    Jcl = Jhat(cl)
-    print Jcl
-    dJdcl = compute_gradient(J, Control(cl), forget = False)
+#    def Jhat(cl):
+#        v, times, states = forward(cl, ct, Forward = True)
+#        Jhatform = 0
+#        for i in range(R.shape[0]):
+#            combined = zip(times[start:], Refs[i][start:], states[i][start:])
+#            for (t, ref, u) in combined:
+#                print "\r\n ******************"
+#                print ref, " ", float(ref)
+#                print ref, " ", u[-1]
+#                print t, " ", (u[-1] - float(ref))*(u[-1] - float(ref))
+#                Jhatform += 1.e20*pow(u[-1] - float(ref), 2)
 
-    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
+#        return Jhatform+assemble(Constant(1e-6)*(inner(cl, cl)+inner(grad(cl), grad(cl)))*dx)
+
+##    # Compute gradient
+#    Jcl = Jhat(cl)
+#    print Jcl
+#    dJdcl = compute_gradient(J, Control(cl), forget = False)
+
+#    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
 
 if __name__ == "__main__":
     # Record a reference solution
     if "-r" in sys.argv:
-        cl = interpolate(Constant(6320.), Ds, name="my_cl")
+        Defs = np.array(((12.5e-3, 12.5e-3), (17.5e-3,7.5e-3)))
+        defect = Constant(6320.)
+        cl     = interpolate(defect, Ds, name="cl")
+        for i in range(Defs.shape[0]):
+            defect = Expression("1.+a*exp(-0.5*pow((x[0]-xs)/w, 2))*(x[1] == ys)", a =0.05, xs=Defs[i,0], ys=Defs[i,1], w=2e-3)
+            cl *= interpolate(defect, Ds)
+
+        plot(cl, interactive = True)
         forward(cl, Constant(3130.), Forward = True, Record = True, Annotate = False)
 
     # Optimize controls
