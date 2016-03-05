@@ -42,7 +42,7 @@ for a given :math:`s^n`, for each time step :math:`n`, find
 
 .. math::
 
-    \frac{u^{n+1} - 2 u^n + u^{n-1}}{\Delta t} - c^2 u^n_{xx} &= 0, \\
+    \frac{u^{n+1} - 2 u^n + u^{n-1}}{\Delta t^2} - c^2 u^n_{xx} &= 0, \\
 
    u(0, t^n) = s(t^n) &= s^n.
 
@@ -53,7 +53,7 @@ Multiplying by test functions :math:`v \in U`, integrating by parts over
 .. math::
 
 
-   \langle \frac{u^{n+1} - 2 u^n + u^{n-1}}{\Delta t}, v \rangle
+   \langle \frac{u^{n+1} - 2 u^n + u^{n-1}}{\Delta t^2}, v \rangle
    + \langle c^2 u^n_x, v_x \rangle &= 0,
 
 hold for all :math:`v \in U`.
