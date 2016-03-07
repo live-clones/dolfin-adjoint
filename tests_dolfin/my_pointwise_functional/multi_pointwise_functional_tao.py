@@ -181,29 +181,22 @@ def optimize():
     J = PointwiseFunctional(v, Refs, R, times[start:], u_ind=1, boost=1.e20, verbose=True, regform=reg)
 
     Jr = ReducedFunctional(J, Control(cl), eval_cb_post=eval_cb)
-    cl_opt = minimize(Jr, method = "L-BFGS-B",\
-                     tol=1.0e-12, options = {"disp": True,"gtol":1.0e-12})
+    problem = MinimizationProblem(Jr)
 
-#    def Jhat(cl):
-#        v, times, states = forward(cl, ct, Forward = True)
-#        Jhatform = 0
-#        for i in range(R.shape[0]):
-#            combined = zip(times[start:], Refs[i][start:], states[i][start:])
-#            for (t, ref, u) in combined:
-#                print "\r\n ******************"
-#                print ref, " ", float(ref)
-#                print ref, " ", u[-1]
-#                print t, " ", (u[-1] - float(ref))*(u[-1] - float(ref))
-#                Jhatform += 1.e20*pow(u[-1] - float(ref), 2)
 
-#        return Jhatform+assemble(Constant(1e-6)*(inner(cl, cl)+inner(grad(cl), grad(cl)))*dx)
+    parameters = { "type": "blmvm",
+                   "max_it": 2000,
+                   "fatol": 1e-100,
+                   "frtol": 0.0,
+                   "gatol": 5e-9,
+                   "grtol": 0.0
+                 }
 
-##    # Compute gradient
-#    Jcl = Jhat(cl)
-#    print Jcl
-#    dJdcl = compute_gradient(J, Control(cl), forget = False)
+    # Now construct the TAO solver and pass the Riesz map.
+    solver = TAOSolver(problem, parameters=parameters, riesz_map=L2(W), prefix="opt")
 
-#    conv_rate = taylor_test(Jhat, Control(cl), Jcl, dJdcl)
+    cl_opttt = solver.solve()
+    File("output/cl_opttt.pvd") << cl_opttt
 
 if __name__ == "__main__":
     # Record a reference solution
