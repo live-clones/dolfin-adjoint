@@ -2,3 +2,5 @@
 *.html
 *.dat
 *~
+*.pvd
+*.vtu

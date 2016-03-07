@@ -121,7 +121,8 @@ class PointwiseFunctional(functional.Functional):
                             print "add contrib"
                             print ref, " ", float(ref)
                             print ref, " ", solu
-
+                elif timestep is 0:
+                    return backend.assemble(self.regform)
                 else:
                     if self.index[i] is None: solu = values[-1].data(self.coords[i,:])
                     else: solu = values[-1].data[self.index[i]](self.coords[i,:])

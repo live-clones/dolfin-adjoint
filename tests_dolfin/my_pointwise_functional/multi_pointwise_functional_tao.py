@@ -146,9 +146,11 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
 
     return q10, times, solus
 
-opt_file = File("cl_opt.pvd")
+opt_file = File("clt_opt.pvd")
+cl_opt = Function(Ds)
 def eval_cb(j, m):
-    opt_file << m
+    cl_opt.assign(m)
+    opt_file << cl_opt
     print("objective = %15.10e " % j)
 
 #------------------------------------------------------------------------------
