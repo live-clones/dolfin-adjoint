@@ -297,7 +297,7 @@ class Matrix(libadjoint.Matrix):
                 assembled_rhs = compatibility.assembled_rhs(b)
                 [bc.apply(assembled_rhs) for bc in bcs]
 
-                wrap_solve(assembled_lhs, x.data.vector(), assembled_rhs, self.solver_parameters)
+                wrap_solve(assembled_lhs, x.data, assembled_rhs, self.solver_parameters)
             else:
                 if hasattr(b, 'nonlinear_form'): # was a nonlinear solve
                     x = compatibility.assign_function_to_vector(x, b.nonlinear_u, function_space = test.function_space())
@@ -314,10 +314,7 @@ class Matrix(libadjoint.Matrix):
                     assembled_rhs = wrap_assemble(b.data, test)
                     [bc.apply(assembled_rhs) for bc in bcs]
 
-                    if backend.__name__ == "dolfin":
-                        wrap_solve(assembled_lhs, x.data.vector(), assembled_rhs, self.solver_parameters)
-                    else:
-                        wrap_solve(assembled_lhs, x.data, assembled_rhs, self.solver_parameters)
+                    wrap_solve(assembled_lhs, x.data, assembled_rhs, self.solver_parameters)
 
         return x
 
@@ -441,6 +438,8 @@ def wrap_solve(A, x, b, solver_parameters):
                 method = newton_options.get("linear_solver", method)
                 pc = newton_options.get("preconditioner", pc)
 
+        # We get passed in a Function, turn it into a Vector
+        x = x.vector()
         if method in lu_solvers or method == "default":
             if method == "lu": method = "default"
             solver = backend.LUSolver(method)
