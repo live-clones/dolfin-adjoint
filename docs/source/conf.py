@@ -68,7 +68,7 @@ import backend
 backend.__name__ = "dolfin"
 
 # Add path to dolfin_adjoint module
-sys.path.append('..')
+sys.path.insert(os.path.abspath('../..'))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = '1.1'
