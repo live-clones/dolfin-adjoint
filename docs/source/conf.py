@@ -67,6 +67,9 @@ for mod_name in MOCK_MODULES:
 import backend
 backend.__name__ = "dolfin"
 
+# Add path to dolfin_adjoint module
+sys.path.append('..')
+
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = '1.1'
 
