@@ -193,7 +193,7 @@ def optimize():
                  }
 
     # Now construct the TAO solver and pass the Riesz map.
-#    solver = TAOSolver(problem, parameters=parameters, riesz_map=L2(W), prefix="opt")
+#    solver = TAOSolver(problem, parameters=parameters, riesz_map=L2(Ds), prefix="opt")
     solver = TAOSolver(problem, parameters=parameters, riesz_map=None, prefix="opt")
 
     cl_opttt = solver.solve()
