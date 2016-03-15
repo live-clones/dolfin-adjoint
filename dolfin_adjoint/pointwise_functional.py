@@ -145,7 +145,7 @@ class PointwiseFunctional(functional.Functional):
     def derivative(self, adjointer, variable, dependencies, values):
         for dep in dependencies: print variable.timestep, "derive wrt ", dep.name
 
-        if variable.timestep is 0:
+        if variable.timestep is 0 and self.regform is not None:
             " derivatives wrt the controls "
             d = derivative(self.regform, self.regform.coefficients()[0])
             return self.regfunc.derivative(adjointer, variable, dependencies, values)
