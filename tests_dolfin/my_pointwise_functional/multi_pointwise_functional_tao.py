@@ -39,7 +39,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     dt = 1.e-8        # time step size
     DT = Constant(dt) # constant for UFL formulation
     t = dt            # initial time
-    T = 1.e-5         # final time
+    T = 1.e-7         # final time
     N = T/dt          # number of time steps
 
     # Test and trial functions
@@ -193,7 +193,8 @@ def optimize():
                  }
 
     # Now construct the TAO solver and pass the Riesz map.
-    solver = TAOSolver(problem, parameters=parameters, riesz_map=L2(W), prefix="opt")
+#    solver = TAOSolver(problem, parameters=parameters, riesz_map=L2(W), prefix="opt")
+    solver = TAOSolver(problem, parameters=parameters, riesz_map=None, prefix="opt")
 
     cl_opttt = solver.solve()
     File("output/cl_opttt.pvd") << cl_opttt
