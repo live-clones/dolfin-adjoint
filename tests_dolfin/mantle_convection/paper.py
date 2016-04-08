@@ -93,83 +93,83 @@ adj_checkpointing('multistage', steps=int(math.floor(finish/constant_dt)), snaps
 
 def main(T_ic, annotate=False):
   # Define initial and end time
-  t = 0.0
+    t = 0.0
 
-  T_ = Function(T_ic, annotate=annotate)
+    T_ = Function(T_ic, annotate=annotate)
 
-  # Define boundary conditions for the velocity and pressure u
-  bottom = DirichletBC(W.sub(0), (0.0, 0.0), "x[1] == 0.0" )
-  top = DirichletBC(W.sub(0).sub(1), 0.0, "x[1] == %g" % height)
-  left = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == 0.0")
-  right = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == %g" % length)
-  evil = DirichletBC(W.sub(1), 0.0, "x[0] < DOLFIN_EPS && x[1] < DOLFIN_EPS",
-                     "pointwise")
-  bcs = [bottom, top, left, right, evil]
+    # Define boundary conditions for the velocity and pressure u
+    bottom = DirichletBC(W.sub(0), (0.0, 0.0), "x[1] == 0.0" )
+    top = DirichletBC(W.sub(0).sub(1), 0.0, "x[1] == %g" % height)
+    left = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == 0.0")
+    right = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == %g" % length)
+    evil = DirichletBC(W.sub(1), 0.0, "x[0] < DOLFIN_EPS && x[1] < DOLFIN_EPS",
+                       "pointwise")
+    bcs = [bottom, top, left, right, evil]
 
-  rho = interpolate(rho0, Q)
+    rho = interpolate(rho0, Q)
 
-  # Functions at previous timestep (and initial conditions)
-  (w_, P) = compute_initial_conditions(T_, W, Q, bcs, annotate=annotate)
+    # Functions at previous timestep (and initial conditions)
+    (w_, P) = compute_initial_conditions(T_, W, Q, bcs, annotate=annotate)
 
-  # Predictor functions
-  T_pr = Function(Q)      # Tentative temperature (T)
+    # Predictor functions
+    T_pr = Function(Q)      # Tentative temperature (T)
 
-  # Functions at this timestep
-  T = Function(Q)         # Temperature (T) at this time step
-  w = Function(W)
+    # Functions at this timestep
+    T = Function(Q)         # Temperature (T) at this time step
+    w = Function(W)
 
-  # Store initial data
-  if annotate:
-    store(T_, w_, 0.0)
-
-  # Define initial CLF and time step
-  CLFnum = 0.5
-  dt = compute_timestep(w_)
-  t += dt
-  n = 1
-
-  w_pr = Function(W)
-  (u_pr, p_pr) = split(w_pr)
-  (u_, p_) = split(w_)
-
-  while (t <= finish):
-    message(t, dt)
-
-    # Solve for predicted temperature in terms of previous velocity
-    (a, L) = energy(Q, Constant(dt), u_, T_)
-    solve(a == L, T_pr, T_bcs, annotate=annotate)
-
-    # Solve for predicted flow
-    eta = viscosity(T_pr)
-    (a, L, precond) = momentum(W, eta, (Ra*T_pr)*g)
-
-    solve(a == L, w_pr, bcs, annotate=annotate)
-
-    # Solve for corrected temperature T in terms of predicted and
-    # previous velocity
-    (a, L) = energy_correction(Q, Constant(dt), u_pr, u_, T_)
-    solve(a == L, T, T_bcs, annotate=annotate)
-
-    # Solve for corrected flow
-    eta = viscosity(T)
-    (a, L, precond) = momentum(W, eta, (Ra*T)*g)
-    solve(a == L, w, bcs, annotate=annotate)
-
-    # Store stuff
+    # Store initial data
     if annotate:
-      store(T, w, t)
+        store(T_, w_, 0.0)
 
-    # Compute time step
-    dt = compute_timestep(w)
-
-    # Move to new timestep and update functions
-    T_.assign(T)
-    w_.assign(w)
+    # Define initial CLF and time step
+    CLFnum = 0.5
+    dt = compute_timestep(w_)
     t += dt
-    n += 1
-    adj_inc_timestep()
+    n = 1
 
-  return T_
+    w_pr = Function(W)
+    (u_pr, p_pr) = split(w_pr)
+    (u_, p_) = split(w_)
+
+    while (t <= finish):
+        message(t, dt)
+
+        # Solve for predicted temperature in terms of previous velocity
+        (a, L) = energy(Q, Constant(dt), u_, T_)
+        solve(a == L, T_pr, T_bcs, annotate=annotate)
+
+        # Solve for predicted flow
+        eta = viscosity(T_pr)
+        (a, L, precond) = momentum(W, eta, (Ra*T_pr)*g)
+
+        solve(a == L, w_pr, bcs, annotate=annotate)
+
+        # Solve for corrected temperature T in terms of predicted and
+        # previous velocity
+        (a, L) = energy_correction(Q, Constant(dt), u_pr, u_, T_)
+        solve(a == L, T, T_bcs, annotate=annotate)
+
+        # Solve for corrected flow
+        eta = viscosity(T)
+        (a, L, precond) = momentum(W, eta, (Ra*T)*g)
+        solve(a == L, w, bcs, annotate=annotate)
+
+        # Store stuff
+        if annotate:
+            store(T, w, t)
+
+        # Compute time step
+        dt = compute_timestep(w)
+
+        # Move to new timestep and update functions
+        T_.assign(T)
+        w_.assign(w)
+        t += dt
+        n += 1
+        adj_inc_timestep()
+
+    return T_
 
 def Nusselt():
     "Definition of Nusselt number, cf Blankenbach et al 1989"
@@ -188,28 +188,28 @@ def Nusselt():
     return (ds(2), Nu2)
 
 if __name__ == "__main__":
-  Tic = interpolate(InitialTemperature(Ra, length), Q, name="InitialTemperature")
+    Tic = interpolate(InitialTemperature(Ra, length), Q, name="InitialTemperature")
 
-  Tfinal = main(Tic, annotate=True)
-  (ds2, Nu2) = Nusselt()
+    Tfinal = main(Tic, annotate=True)
+    (ds2, Nu2) = Nusselt()
 
-  J = Functional(-(1.0/Nu2)*grad(Tfinal)[1]*ds2*dt[FINISH_TIME])
-  m = InitialConditionParameter("InitialTemperature")
-  Jm = assemble(-(1.0/Nu2)*grad(Tfinal)[1]*ds2)
-  dJdm = compute_gradient(J, m, forget=False)
+    J = Functional(-(1.0/Nu2)*grad(Tfinal)[1]*ds2*dt[FINISH_TIME])
+    m = InitialConditionParameter("InitialTemperature")
+    Jm = assemble(-(1.0/Nu2)*grad(Tfinal)[1]*ds2)
+    dJdm = compute_gradient(J, m, forget=False)
 
-  # project to trial space
-  M = assemble(inner(TestFunction(Q), TrialFunction(Q))*dx)
-  dJdm_p = Function(Q)
-  solve(M, dJdm_p.vector(), dJdm.vector())
+    # project to trial space
+    M = assemble(inner(TestFunction(Q), TrialFunction(Q))*dx)
+    dJdm_p = Function(Q)
+    solve(M, dJdm_p.vector(), dJdm.vector())
 
-  adjoint_vtu = File("bin-final/gradient.pvd", "compressed")
-  adjoint_vtu << dJdm_p
+    adjoint_vtu = File("bin-final/gradient.pvd", "compressed")
+    adjoint_vtu << dJdm_p
 
-  def J(ic):
-    Tfinal = main(ic)
-    return assemble(-(1.0/Nu2)*grad(Tfinal)[1]*ds2)
+    def J(ic):
+        Tfinal = main(ic)
+        return assemble(-(1.0/Nu2)*grad(Tfinal)[1]*ds2)
 
-  perturbation_direction = Function(Q)
-  perturbation_direction.vector()[:] = 1.0
-  minconv = taylor_test(J, m, Jm, dJdm)
+    perturbation_direction = Function(Q)
+    perturbation_direction.vector()[:] = 1.0
+    minconv = taylor_test(J, m, Jm, dJdm)

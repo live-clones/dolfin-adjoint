@@ -46,7 +46,7 @@ def main(u, annotate=False):
         adj_inc_timestep(time=t, finished = t>end)
 
 def derivative_cb(j, dj, m):
-  print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(), m.vector().max())
+    print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(), m.vector().max())
 
 if __name__ == "__main__":
 
@@ -68,10 +68,10 @@ if __name__ == "__main__":
 
     print "\n === Solving problem with L-BFGS-B. === \n"
     try:
-      u_opt = minimize(reduced_functional, method = 'L-BFGS-B', bounds = (lb, 1), tol = 1e-10, options = {'disp': True})
+        u_opt = minimize(reduced_functional, method = 'L-BFGS-B', bounds = (lb, 1), tol = 1e-10, options = {'disp': True})
     except ImportError:
-      info_red("No suitable scipy version found. Aborting test.")
-      from sys import exit; exit(0)
+        info_red("No suitable scipy version found. Aborting test.")
+        from sys import exit; exit(0)
 
     tol = 1e-9
     final_functional = reduced_functional(u_opt)
@@ -105,4 +105,3 @@ if __name__ == "__main__":
                          method = method, tol = 1e-10,
                          options = dict({'disp': True, "maxiter": 2}, **options[method]))
     info_green("Test passed")
-

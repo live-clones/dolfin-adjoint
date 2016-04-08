@@ -58,8 +58,8 @@ if __name__ == "__main__":
     dJdic = compute_gradient(J, FunctionControl("Velocity"), forget=False)
 
     def Jfunc(ic):
-      forward = main(ic, annotate=False)
-      return assemble(forward*forward*dx + ic*ic*dx)
+        forward = main(ic, annotate=False)
+        return assemble(forward*forward*dx + ic*ic*dx)
 
     HJic = hessian(J, FunctionControl("Velocity"), warn=False)
 

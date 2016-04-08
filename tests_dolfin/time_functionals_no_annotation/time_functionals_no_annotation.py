@@ -13,35 +13,34 @@ f = Constant(1.0)
 # with initial condition u(0) = c
 # this gives the solution u(t) = c + t.
 def run_forward(annotate=True):
-  u = TrialFunction(V)
-  v = TestFunction(V)
+    u = TrialFunction(V)
+    v = TestFunction(V)
 
-  u_0 = Function(V, name="Value")
-  u_0.vector()[0] = 1.0
+    u_0 = Function(V, name="Value")
+    u_0.vector()[0] = 1.0
 
-  dt = 0.5
-  T =  1.0
+    dt = 0.5
+    T =  1.0
 
-  F = ( (u - u_0)/dt*v - f*v)*dx
-  a, L = lhs(F), rhs(F)
+    F = ( (u - u_0)/dt*v - f*v)*dx
+    a, L = lhs(F), rhs(F)
 
-  t = float(dt)
+    t = float(dt)
 
-  while t <= T:
+    while t <= T:
 
-      solve(a == L, u_0, annotate=annotate)
+        solve(a == L, u_0, annotate=annotate)
 
-      t += float(dt)
+        t += float(dt)
 
-  return u_0
+    return u_0
 
 if __name__ == "__main__":
 
-  u = run_forward()
+    u = run_forward()
 
-  # Pointwise evaluation (at the end of time, symbolically)
-  J = Functional(inner(u,u)*dx*dt[FINISH_TIME])
-  dJdic = compute_gradient(J, Control(u), forget=False)
-  # Work out the solution by hand -- it's 4
-  assert dJdic.vector().array()[0] == 4.0
-
+    # Pointwise evaluation (at the end of time, symbolically)
+    J = Functional(inner(u,u)*dx*dt[FINISH_TIME])
+    dJdic = compute_gradient(J, Control(u), forget=False)
+    # Work out the solution by hand -- it's 4
+    assert dJdic.vector().array()[0] == 4.0

@@ -53,4 +53,3 @@ if __name__ == "__main__":
 
     print "Running forward replay .... "
     success = replay_dolfin(forget=False) # <------ should catch it here
-

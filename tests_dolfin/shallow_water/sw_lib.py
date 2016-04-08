@@ -231,5 +231,3 @@ def output_files(basename):
     p_out = File(basename+"_p.pvd", "compressed")
 
     return u_out, p_out
-
-

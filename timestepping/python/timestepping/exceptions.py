@@ -30,28 +30,28 @@ __all__ = \
   ]
 
 class AbstractMethodException(Exception):
-  pass
+    pass
 
 class CheckpointException(Exception):
-  pass
+    pass
 
 class DependencyException(Exception):
-  pass
+    pass
 
 class InvalidArgumentException(TypeError):
-  pass
+    pass
 
 class IOException(IOError):
-  pass
+    pass
 
 class NotImplementedException(Exception):
-  pass
+    pass
 
 class ParameterException(Exception):
-  pass
+    pass
 
 class StateException(Exception):
-  pass
+    pass
 
 class TimeLevelException(Exception):
-  pass
+    pass

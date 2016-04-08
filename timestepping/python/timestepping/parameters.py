@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2015 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -31,32 +31,32 @@ dolfin.parameters["form_compiler"]["cpp_optimize"] = True
 dolfin.parameters["form_compiler"]["cpp_optimize_flags"] = "-O3 -ffast-math -march=native"
 
 def nest_parameters(parameters, key):
-  """
-  Create a new Parameters object at the specified key in parameters, if one
-  does not already exist.
-  """
-  
-  if key in parameters:
-    if not isinstance(parameters[key], dolfin.Parameters):
-      raise ParameterException("Inconsistent parameter type")
-  else:
-    p = dolfin.Parameters(key)
-    parameters.add(p)
-  return
+    """
+    Create a new Parameters object at the specified key in parameters, if one
+    does not already exist.
+    """
+
+    if key in parameters:
+        if not isinstance(parameters[key], dolfin.Parameters):
+            raise ParameterException("Inconsistent parameter type")
+    else:
+        p = dolfin.Parameters(key)
+        parameters.add(p)
+    return
 
 def add_parameter(parameters, key, default_value):
-  """
-  Add a new parameter at the specified key in parameters. If the parameter
-  already exists, check that it is of the same type as default_value. Otherwise,
-  set the parameter to be equal to default_value.
-  """
-  
-  if key in parameters:
-    if not isinstance(parameters[key], default_value.__class__):
-      raise ParameterException("Inconsistent parameter type")
-  else:
-    parameters.add(key, default_value)
-  return
+    """
+    Add a new parameter at the specified key in parameters. If the parameter
+    already exists, check that it is of the same type as default_value. Otherwise,
+    set the parameter to be equal to default_value.
+    """
+
+    if key in parameters:
+        if not isinstance(parameters[key], default_value.__class__):
+            raise ParameterException("Inconsistent parameter type")
+    else:
+        parameters.add(key, default_value)
+    return
 
 # Configure timestepping parameters.
 nest_parameters(dolfin.parameters, "timestepping")

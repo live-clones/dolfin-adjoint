@@ -91,9 +91,9 @@ alpha = Constant(1.0e-8) # regularisation coefficient in functional
 
 
 def k(a):
-  """Solid isotropic material with penalisation (SIMP) conductivity
-rule, equation (11)."""
-  return eps + (1 - eps) * a**p
+    """Solid isotropic material with penalisation (SIMP) conductivity
+  rule, equation (11)."""
+    return eps + (1 - eps) * a**p
 
 # Next we define the mesh (a unit square) and the function spaces to be
 # used for the control :math:`a` and forward solution :math:`T`.
@@ -106,9 +106,9 @@ P = FunctionSpace(mesh, "CG", 1)  # function space for solution
 # Next we define the forward boundary condition and source term.
 
 class WestNorth(SubDomain):
-  """The top and left boundary of the unitsquare, used to enforce the Dirichlet boundary condition."""
-  def inside(self, x, on_boundary):
-    return (x[0] == 0.0 or x[1] == 1.0) and on_boundary
+    """The top and left boundary of the unitsquare, used to enforce the Dirichlet boundary condition."""
+    def inside(self, x, on_boundary):
+        return (x[0] == 0.0 or x[1] == 1.0) and on_boundary
 
 # the Dirichlet BC; the Neumann BC will be implemented implicitly by
 # dropping the surface integral after integration by parts
@@ -123,15 +123,15 @@ f = interpolate(Constant(1.0e-2), P, name="SourceTerm") # the volume source term
 
 
 def forward(a):
-  """Solve the forward problem for a given material distribution a(x)."""
-  T = Function(P, name="Temperature")
-  v = TestFunction(P)
+    """Solve the forward problem for a given material distribution a(x)."""
+    T = Function(P, name="Temperature")
+    v = TestFunction(P)
 
-  F = inner(grad(v), k(a)*grad(T))*dx - f*v*dx
-  solve(F == 0, T, bc, solver_parameters={"newton_solver": {"absolute_tolerance": 1.0e-7,
-                                                            "maximum_iterations": 20}})
+    F = inner(grad(v), k(a)*grad(T))*dx - f*v*dx
+    solve(F == 0, T, bc, solver_parameters={"newton_solver": {"absolute_tolerance": 1.0e-7,
+                                                              "maximum_iterations": 20}})
 
-  return T
+    return T
 
 # Now we define the ``__main__`` section. We define the initial guess
 # for the control and use it to solve the forward PDE. In order to
@@ -140,8 +140,8 @@ def forward(a):
 # bound constraint are satisfied.
 
 if __name__ == "__main__":
-  a = interpolate(Constant(0.3), A, name="Control") # initial guess.
-  T = forward(a)                        # solve the forward problem once.
+    a = interpolate(Constant(0.3), A, name="Control") # initial guess.
+    T = forward(a)                        # solve the forward problem once.
 
 # With the forward problem solved once, :py:mod:`dolfin_adjoint` has
 # built a *tape* of the forward model; it will use this tape to drive
@@ -161,18 +161,18 @@ if __name__ == "__main__":
 # executed on every functional derivative calculation
 # <../../documentation/optimisation>`.
 
-  controls = File("output/control_iterations.pvd")
-  a_viz = Function(A, name="ControlVisualisation")
-  def eval_cb(j, a):
-    a_viz.assign(a)
-    controls << a_viz
+    controls = File("output/control_iterations.pvd")
+    a_viz = Function(A, name="ControlVisualisation")
+    def eval_cb(j, a):
+        a_viz.assign(a)
+        controls << a_viz
 
 # Now we define the functional, compliance with a weak regularisation
 # term on the gradient of the material
 
-  J = Functional(f*T*dx + alpha * inner(grad(a), grad(a))*dx)
-  m = Control(a)
-  Jhat = ReducedFunctional(J, m, eval_cb_post=eval_cb)
+    J = Functional(f*T*dx + alpha * inner(grad(a), grad(a))*dx)
+    m = Control(a)
+    Jhat = ReducedFunctional(J, m, eval_cb_post=eval_cb)
 
 # This :py:class:`ReducedFunctional` object solves the forward PDE using
 # dolfin-adjoint's tape each time the functional is to be evaluated, and
@@ -185,13 +185,13 @@ if __name__ == "__main__":
 # class that wraps the :py:class:`ReducedFunctional` to handle array
 # input and output.
 
-  rfn  = ReducedFunctionalNumPy(Jhat)
+    rfn  = ReducedFunctionalNumPy(Jhat)
 
 # Now let us configure the control constraints. The bound constraints
 # are easy:
 
-  lb = 0.0
-  ub = 1.0
+    lb = 0.0
+    ub = 1.0
 
 # The volume constraint involves a little bit more work. Following
 # :cite:`nocedal2006`, inequality constraints are represented as
@@ -205,45 +205,45 @@ if __name__ == "__main__":
 # compute its Jacobian, and one to return the number of components in
 # the constraint.
 
-  out = File("output/iterations.pvd")
-  # Volume constraints
-  class VolumeConstraint(InequalityConstraint):
-    """A class that enforces the volume constraint g(a) = V - a*dx >= 0."""
-    def __init__(self, V):
-      self.V  = float(V)
-      self.scale = 1.
+    out = File("output/iterations.pvd")
+    # Volume constraints
+    class VolumeConstraint(InequalityConstraint):
+        """A class that enforces the volume constraint g(a) = V - a*dx >= 0."""
+        def __init__(self, V):
+            self.V  = float(V)
+            self.scale = 1.
 
 # The derivative of the constraint g(x) is constant (it is the
 # diagonal of the lumped mass matrix for the control function space),
 # so let's assemble it here once.  This is also useful in rapidly
 # calculating the integral each time without re-assembling.
 
-      self.smass  = assemble(TestFunction(A) * Constant(1) * dx)
-      self.tmpvec = Function(A)
+            self.smass  = assemble(TestFunction(A) * Constant(1) * dx)
+            self.tmpvec = Function(A)
 
-    def function(self, m):
-      self.tmpvec.assign(m)
-      out << self.tmpvec
+        def function(self, m):
+            self.tmpvec.assign(m)
+            out << self.tmpvec
 
-      # Compute the integral of the control over the domain
-      integral = self.smass.inner(self.tmpvec.vector())
-      return [self.scale * (self.V - integral)]
+            # Compute the integral of the control over the domain
+            integral = self.smass.inner(self.tmpvec.vector())
+            return [self.scale * (self.V - integral)]
 
-    def jacobian_action(self, m, dm, result):
-      result[:] = - self.scale * self.smass.inner(dm.vector())
+        def jacobian_action(self, m, dm, result):
+            result[:] = - self.scale * self.smass.inner(dm.vector())
 
-    def jacobian_adjoint_action(self, m, dp, result):
-      result.vector()[:] = interpolate(Constant(-self.scale * dp[0]), A).vector()
+        def jacobian_adjoint_action(self, m, dp, result):
+            result.vector()[:] = interpolate(Constant(-self.scale * dp[0]), A).vector()
 
-    def hessian_action(self, m, dm, dp, result):
-      result.vector().zero()
+        def hessian_action(self, m, dm, dp, result):
+            result.vector().zero()
 
-    def output_workspace(self):
-      return [0.0]
+        def output_workspace(self):
+            return [0.0]
 
-    def length(self):
-      """Return the number of components in the constraint vector (here, one)."""
-      return 1
+        def length(self):
+            """Return the number of components in the constraint vector (here, one)."""
+            return 1
 
 # Now that all the ingredients are in place, we can perform the
 # optimisation.  The :py:class:`ReducedFunctionalNumPy` class has a
@@ -252,46 +252,45 @@ if __name__ == "__main__":
 # optimisation problem to be solved. We call this and pass it to
 # :py:mod:`pyipopt` to solve:
 
-  parameters["adjoint"]["stop_annotating"] = True
-  problem = MinimizationProblem(Jhat, bounds=(lb, ub), constraints=VolumeConstraint(V))
+    parameters["adjoint"]["stop_annotating"] = True
+    problem = MinimizationProblem(Jhat, bounds=(lb, ub), constraints=VolumeConstraint(V))
 
-  parameters = {
-               "maximum_iterations": 200,
-               "optizelle_parameters":
-                   {
-                   "msg_level" : 10,
-                   "algorithm_class" : Optizelle.AlgorithmClass.TrustRegion,
-                   "H_type" : Optizelle.Operators.ScaledIdentity,
-                   "dir" : Optizelle.LineSearchDirection.BFGS,
-                   "eps_dx": 1.0e-32,
-                   "linesearch_iter_max" : 5,
-                   "ipm": Optizelle.InteriorPointMethod.PrimalDual,
-                   "mu": 1e-5,
-                   "eps_mu": 1e-3,
-                   "sigma" : 0.5,
-                   "delta" : 100.,
-                   #"xi_qn" : 1e-12,
-                   #"xi_pg" : 1e-12,
-                   #"xi_proj" : 1e-12,
-                   #"xi_tang" : 1e-12,
-                   #"xi_lmh" : 1e-12,
-                   "rho" : 100.,
-                   #"augsys_iter_max" : 1000,
-                   "krylov_iter_max" : 40,
-                   "eps_krylov" : 1e-6,
-                   #"dscheme": Optizelle.DiagnosticScheme.DiagnosticsOnly,
-                   "h_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
-                   "x_diag" : Optizelle.VectorSpaceDiagnostics.Basic,
-                   "y_diag" : Optizelle.VectorSpaceDiagnostics.Basic,
-                   "z_diag" : Optizelle.VectorSpaceDiagnostics.EuclideanJordan,
-                   #"f_diag" : Optizelle.FunctionDiagnostics.FirstOrder,
-                   "g_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
-                   "L_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
-                   "stored_history": 25,
-                   }
-               }
+    parameters = {
+                 "maximum_iterations": 200,
+                 "optizelle_parameters":
+                     {
+                     "msg_level" : 10,
+                     "algorithm_class" : Optizelle.AlgorithmClass.TrustRegion,
+                     "H_type" : Optizelle.Operators.ScaledIdentity,
+                     "dir" : Optizelle.LineSearchDirection.BFGS,
+                     "eps_dx": 1.0e-32,
+                     "linesearch_iter_max" : 5,
+                     "ipm": Optizelle.InteriorPointMethod.PrimalDual,
+                     "mu": 1e-5,
+                     "eps_mu": 1e-3,
+                     "sigma" : 0.5,
+                     "delta" : 100.,
+                     #"xi_qn" : 1e-12,
+                     #"xi_pg" : 1e-12,
+                     #"xi_proj" : 1e-12,
+                     #"xi_tang" : 1e-12,
+                     #"xi_lmh" : 1e-12,
+                     "rho" : 100.,
+                     #"augsys_iter_max" : 1000,
+                     "krylov_iter_max" : 40,
+                     "eps_krylov" : 1e-6,
+                     #"dscheme": Optizelle.DiagnosticScheme.DiagnosticsOnly,
+                     "h_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
+                     "x_diag" : Optizelle.VectorSpaceDiagnostics.Basic,
+                     "y_diag" : Optizelle.VectorSpaceDiagnostics.Basic,
+                     "z_diag" : Optizelle.VectorSpaceDiagnostics.EuclideanJordan,
+                     #"f_diag" : Optizelle.FunctionDiagnostics.FirstOrder,
+                     "g_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
+                     "L_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
+                     "stored_history": 25,
+                     }
+                 }
 
-  solver  = OptizelleSolver(problem, parameters=parameters)
-  a_opt   = solver.solve()
-  File("output/control_solution.xdmf") << a_opt
-
+    solver  = OptizelleSolver(problem, parameters=parameters)
+    a_opt   = solver.solve()
+    File("output/control_solution.xdmf") << a_opt

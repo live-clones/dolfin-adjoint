@@ -35,64 +35,64 @@ class TopBottomPeriodicBoundary(SubDomain):
         #print "map(%s): %s" % (x, y)
 
 def wrap_mesh(mesh, pbs):
-  print "Wrapping input mesh: # vertices == ", mesh.num_vertices()
+    print "Wrapping input mesh: # vertices == ", mesh.num_vertices()
 
-  def merge_slave_pairs(merged, new_map):
-    for key in merged:
-      if key in new_map:
-        del new_map[key]
+    def merge_slave_pairs(merged, new_map):
+        for key in merged:
+            if key in new_map:
+                del new_map[key]
 
-      if merged[key] in new_map:
-        merged[key] = new_map[merged[key]][1]
+            if merged[key] in new_map:
+                merged[key] = new_map[merged[key]][1]
 
-    copy = dict(merged)
-    for key in copy:
-      if merged[key] == key:
-        del merged[key]
+        copy = dict(merged)
+        for key in copy:
+            if merged[key] == key:
+                del merged[key]
 
-    for key in new_map:
-      merged[key] = new_map[key][1]
+        for key in new_map:
+            merged[key] = new_map[key][1]
 
-  merged_slave_pairs = {}
-  vertex_map = {}
+    merged_slave_pairs = {}
+    vertex_map = {}
 
-  for pb in pbs:
-    pbc = PeriodicBoundaryComputation()
-    slave_pairs = pbc.compute_periodic_pairs(mesh, pb, 0)
-    assert len(slave_pairs) > 0, "Periodic boundary found nothing"
-    merge_slave_pairs(merged_slave_pairs, slave_pairs)
-    del slave_pairs
+    for pb in pbs:
+        pbc = PeriodicBoundaryComputation()
+        slave_pairs = pbc.compute_periodic_pairs(mesh, pb, 0)
+        assert len(slave_pairs) > 0, "Periodic boundary found nothing"
+        merge_slave_pairs(merged_slave_pairs, slave_pairs)
+        del slave_pairs
 
-  slaves_hit = 0
-  vertex_map = {}
-  for i in range(mesh.num_vertices()):
-    if i in merged_slave_pairs:
-      # got a slave vertex, increment the counter
-      slaves_hit += 1
-    else:
-      vertex_map[i] = i - slaves_hit
+    slaves_hit = 0
+    vertex_map = {}
+    for i in range(mesh.num_vertices()):
+        if i in merged_slave_pairs:
+            # got a slave vertex, increment the counter
+            slaves_hit += 1
+        else:
+            vertex_map[i] = i - slaves_hit
 
-  for i in merged_slave_pairs:
-    vertex_map[i] = vertex_map[merged_slave_pairs[i]]
+    for i in merged_slave_pairs:
+        vertex_map[i] = vertex_map[merged_slave_pairs[i]]
 
-  wrapped_mesh = Mesh()
-  editor = MeshEditor()
-  editor.open(wrapped_mesh, mesh.topology().dim(), mesh.geometry().dim())
-  editor.init_vertices(mesh.num_vertices() - slaves_hit)
-  editor.init_cells(mesh.num_cells())
+    wrapped_mesh = Mesh()
+    editor = MeshEditor()
+    editor.open(wrapped_mesh, mesh.topology().dim(), mesh.geometry().dim())
+    editor.init_vertices(mesh.num_vertices() - slaves_hit)
+    editor.init_cells(mesh.num_cells())
 
-  coords = mesh.coordinates()
+    coords = mesh.coordinates()
 
-  for c in cells(mesh):
-    editor.add_cell(c.index(), numpy.array([vertex_map[v.index()] for v in vertices(c)], dtype="uintp"))
+    for c in cells(mesh):
+        editor.add_cell(c.index(), numpy.array([vertex_map[v.index()] for v in vertices(c)], dtype="uintp"))
 
-  for (i, v) in enumerate(vertices(mesh)):
-    if i not in merged_slave_pairs:
-      editor.add_vertex(vertex_map[i], coords[i])
+    for (i, v) in enumerate(vertices(mesh)):
+        if i not in merged_slave_pairs:
+            editor.add_vertex(vertex_map[i], coords[i])
 
-  editor.close()
-  print "Wrapped output mesh: # vertices == ", wrapped_mesh.num_vertices()
-  return wrapped_mesh
+    editor.close()
+    print "Wrapped output mesh: # vertices == ", wrapped_mesh.num_vertices()
+    return wrapped_mesh
 
 wrapped_mesh = wrap_mesh(mesh, [LeftRightPeriodicBoundary(), TopBottomPeriodicBoundary()])
 
@@ -102,7 +102,7 @@ code = r'''
 class KleinMap : public Expression
 {
   public:
-   
+
 void eval(Array<double>& values, const Array<double>& x) const
 {
   double u = x[0];
@@ -130,30 +130,30 @@ V = VectorFunctionSpace(mesh, "Lagrange", 1, dim=3)
 KleinMap = Expression(code, element=V.ufl_element())
 
 def transform_mesh(mesh, coord_map):
-  if isinstance(coord_map, Expression):
-    single_map = coord_map
-    coord_map = lambda coords: [single_map(pt) for pt in coords]
+    if isinstance(coord_map, Expression):
+        single_map = coord_map
+        coord_map = lambda coords: [single_map(pt) for pt in coords]
 
-  mapped_coords = coord_map(mesh.coordinates())
-  assert len(mapped_coords[0].shape) == 1
-  gdim = mapped_coords[0].shape[0]
-  assert gdim >= mesh.geometry().dim()
-  tdim = mesh.topology().dim()
+    mapped_coords = coord_map(mesh.coordinates())
+    assert len(mapped_coords[0].shape) == 1
+    gdim = mapped_coords[0].shape[0]
+    assert gdim >= mesh.geometry().dim()
+    tdim = mesh.topology().dim()
 
-  new_mesh = Mesh()
-  editor = MeshEditor()
-  editor.open(new_mesh, tdim, gdim)
-  editor.init_vertices(mesh.num_vertices())
-  editor.init_cells(mesh.num_cells())
+    new_mesh = Mesh()
+    editor = MeshEditor()
+    editor.open(new_mesh, tdim, gdim)
+    editor.init_vertices(mesh.num_vertices())
+    editor.init_cells(mesh.num_cells())
 
-  for c in cells(mesh):
-    editor.add_cell(c.index(), numpy.array([v.index() for v in vertices(c)], dtype="uintp"))
+    for c in cells(mesh):
+        editor.add_cell(c.index(), numpy.array([v.index() for v in vertices(c)], dtype="uintp"))
 
-  for (i, v) in enumerate(vertices(mesh)):
-    editor.add_vertex(i, mapped_coords[i])
+    for (i, v) in enumerate(vertices(mesh)):
+        editor.add_vertex(i, mapped_coords[i])
 
-  editor.close()
-  return new_mesh
+    editor.close()
+    return new_mesh
 
 new_mesh = transform_mesh(wrapped_mesh, KleinMap)
 File("klein.xdmf") << new_mesh

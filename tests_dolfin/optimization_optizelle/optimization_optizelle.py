@@ -21,7 +21,7 @@ except ImportError:
 
 set_log_level(ERROR)
 
-parameters["adjoint"]["cache_factorizations"] = True
+parameters["adjoint"]["cache_factorizations"] = False
 
 # Create mesh
 n = 50

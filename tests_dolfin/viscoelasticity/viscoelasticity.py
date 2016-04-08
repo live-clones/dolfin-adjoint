@@ -74,9 +74,9 @@ def get_box():
     # Mark all facets by 0, exterior facets by 1, and then top and
     # bottom by 2
     try:
-      boundaries = FacetFunction("sizet", mesh)
+        boundaries = FacetFunction("sizet", mesh)
     except:
-      boundaries = FacetFunction("size_t", mesh)
+        boundaries = FacetFunction("size_t", mesh)
 
     boundaries.set_all(0)
     on_bdry = AutoSubDomain(lambda x, on_boundary: on_boundary)
@@ -304,10 +304,10 @@ if __name__ == "__main__":
     dJdm = compute_gradient(J, m)
 
     def Jfunc(amplitude):
-      z = main(ic, params, amplitude, T=T, dt=dt, annotate=False)
-      (sigma0, sigma1, v, gamma) = split(z)
-      J = assemble(inner(sigma0[2], sigma0[2])*dx)
-      return J
+        z = main(ic, params, amplitude, T=T, dt=dt, annotate=False)
+        (sigma0, sigma1, v, gamma) = split(z)
+        J = assemble(inner(sigma0[2], sigma0[2])*dx)
+        return J
 
     info_blue("Checking adjoint correctness ... ")
     minconv = taylor_test(Jfunc, m, Jm, dJdm)

@@ -20,7 +20,7 @@ n = 64
 mesh = UnitSquareMesh(n, n)
 
 cf = CellFunction("bool", mesh)
-subdomain = CompiledSubDomain('std::abs(x[0]-0.5)<0.25 && std::abs(x[1]-0.5)<0.25')
+subdomain = CompiledSubDomain('std::abs(x[0]-0.5) < 0.25 && std::abs(x[1]-0.5) < 0.25')
 subdomain.mark(cf, True)
 mesh = refine(mesh, cf)
 

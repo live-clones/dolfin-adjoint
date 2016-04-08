@@ -91,8 +91,8 @@ alphabar = 2.5 * mu / (0.01**2)      # parameter for \alpha
 q = Constant(0.01) # q value that controls difficulty/discrete-valuedness of solution
 
 def alpha(rho):
-  """Inverse permeability as a function of rho, equation (40)"""
-  return alphabar + (alphaunderbar - alphabar) * rho * (1 + q) / (rho + q)
+    """Inverse permeability as a function of rho, equation (40)"""
+    return alphabar + (alphaunderbar - alphabar) * rho * (1 + q) / (rho + q)
 
 # Next we define the mesh (a rectangle 1 high and :math:`\delta` wide)
 # and the function spaces to be used for the control :math:`\rho`, the
@@ -113,22 +113,22 @@ W = MixedFunctionSpace([U, P])          # mixed Taylor-Hood function space
 # Define the boundary condition on velocity
 
 class InflowOutflow(Expression):
-  def eval(self, values, x):
-    values[1] = 0.0
-    values[0] = 0.0
-    l = 1.0/6.0
-    gbar = 1.0
+    def eval(self, values, x):
+        values[1] = 0.0
+        values[0] = 0.0
+        l = 1.0/6.0
+        gbar = 1.0
 
-    if x[0] == 0.0 or x[0] == delta:
-      if (1.0/4 - l/2) < x[1] < (1.0/4 + l/2):
-        t = x[1] - 1.0/4
-        values[0] = gbar*(1 - (2*t/l)**2)
-      if (3.0/4 - l/2) < x[1] < (3.0/4 + l/2):
-        t = x[1] - 3.0/4
-        values[0] = gbar*(1 - (2*t/l)**2)
+        if x[0] == 0.0 or x[0] == delta:
+            if (1.0/4 - l/2) < x[1] < (1.0/4 + l/2):
+                t = x[1] - 1.0/4
+                values[0] = gbar*(1 - (2*t/l)**2)
+            if (3.0/4 - l/2) < x[1] < (3.0/4 + l/2):
+                t = x[1] - 3.0/4
+                values[0] = gbar*(1 - (2*t/l)**2)
 
-  def value_shape(self):
-    return (2,)
+    def value_shape(self):
+        return (2,)
 
 # Next we define a function that given a control :math:`\rho` solves the
 # forward PDE for velocity and pressure :math:`(u, p)`. (The advantage
@@ -138,17 +138,17 @@ class InflowOutflow(Expression):
 
 
 def forward(rho):
-  """Solve the forward problem for a given fluid distribution rho(x)."""
-  w = Function(W)
-  (u, p) = split(w)
-  (v, q) = TestFunctions(W)
+    """Solve the forward problem for a given fluid distribution rho(x)."""
+    w = Function(W)
+    (u, p) = split(w)
+    (v, q) = TestFunctions(W)
 
-  F = (alpha(rho) * inner(u, v) * dx + inner(grad(u), grad(v)) * dx +
-       inner(grad(p), v) * dx  + inner(div(u), q) * dx)
-  bc = DirichletBC(W.sub(0), InflowOutflow(), "on_boundary")
-  solve(F == 0, w, bcs=bc)
+    F = (alpha(rho) * inner(u, v) * dx + inner(grad(u), grad(v)) * dx +
+         inner(grad(p), v) * dx  + inner(div(u), q) * dx)
+    bc = DirichletBC(W.sub(0), InflowOutflow(), "on_boundary")
+    solve(F == 0, w, bcs=bc)
 
-  return w
+    return w
 
 # Now we define the ``__main__`` section. We define the initial guess
 # for the control and use it to solve the forward PDE. In order to
@@ -157,9 +157,9 @@ def forward(rho):
 # constraint are satisfied.
 
 if __name__ == "__main__":
-  rho = interpolate(Constant(float(V)/delta), A, name="Control")
-  w   = forward(rho)
-  (u, p) = split(w)
+    rho = interpolate(Constant(float(V)/delta), A, name="Control")
+    w   = forward(rho)
+    (u, p) = split(w)
 
 # With the forward problem solved once, :py:mod:`dolfin_adjoint` has
 # built a *tape* of the forward model; it will use this tape to drive
@@ -173,117 +173,117 @@ if __name__ == "__main__":
 # an initial guess for the main task (:math:`q=0.1`), we shall save
 # these iterates in ``output/control_iterations_guess.pvd``.
 
-  controls = File("output/control_iterations_guess-optizelle.pvd")
-  allctrls = File("output/allcontrols-optizelle.pvd")
-  rho_viz = Function(A, name="ControlVisualisation")
-  def eval_cb(j, rho):
-    rho_viz.assign(rho)
-    controls << rho_viz
-    allctrls << rho_viz
+    controls = File("output/control_iterations_guess-optizelle.pvd")
+    allctrls = File("output/allcontrols-optizelle.pvd")
+    rho_viz = Function(A, name="ControlVisualisation")
+    def eval_cb(j, rho):
+        rho_viz.assign(rho)
+        controls << rho_viz
+        allctrls << rho_viz
 
 # Now we define the functional and :doc:`reduced functional
 # <../maths/2-problem>`:
 
-  J = Functional(0.5 * inner(alpha(rho) * u, u) * dx + mu * inner(grad(u), grad(u)) * dx)
-  m = Control(rho)
-  Jhat = ReducedFunctional(J, m, eval_cb_post=eval_cb)
+    J = Functional(0.5 * inner(alpha(rho) * u, u) * dx + mu * inner(grad(u), grad(u)) * dx)
+    m = Control(rho)
+    Jhat = ReducedFunctional(J, m, eval_cb_post=eval_cb)
 
 # The control constraints are the same as the :doc:`Poisson topology
 # example <../poisson-topology/poisson-topology>`, and so won't be
 # discussed again here.
 
-  # Bound constraints
-  lb = 0.0
-  ub = 1.0
+    # Bound constraints
+    lb = 0.0
+    ub = 1.0
 
-  out = File("output/iterations-optizelle.pvd")
-  class VolumeConstraint(InequalityConstraint):
-    """A class that enforces the volume constraint g(a) = V - a*dx >= 0."""
-    def __init__(self, V):
-      self.V  = float(V)
-      self.scale = 1.
+    out = File("output/iterations-optizelle.pvd")
+    class VolumeConstraint(InequalityConstraint):
+        """A class that enforces the volume constraint g(a) = V - a*dx >= 0."""
+        def __init__(self, V):
+            self.V  = float(V)
+            self.scale = 1.
 
 # The derivative of the constraint g(x) is constant (it is the
 # diagonal of the lumped mass matrix for the control function space),
 # so let's assemble it here once.  This is also useful in rapidly
 # calculating the integral each time without re-assembling.
 
-      self.smass  = assemble(TestFunction(A) * Constant(1) * dx)
-      self.tmpvec = Function(A)
+            self.smass  = assemble(TestFunction(A) * Constant(1) * dx)
+            self.tmpvec = Function(A)
 
-    def function(self, m):
-      self.tmpvec.assign(m)
-      out << self.tmpvec
+        def function(self, m):
+            self.tmpvec.assign(m)
+            out << self.tmpvec
 
-      # Compute the integral of the control over the domain
-      integral = self.smass.inner(self.tmpvec.vector())
-      return [self.scale * (self.V - integral)]
+            # Compute the integral of the control over the domain
+            integral = self.smass.inner(self.tmpvec.vector())
+            return [self.scale * (self.V - integral)]
 
-    def jacobian_action(self, m, dm, result):
-      result[:] = - self.scale * self.smass.inner(dm.vector())
+        def jacobian_action(self, m, dm, result):
+            result[:] = - self.scale * self.smass.inner(dm.vector())
 
-    def jacobian_adjoint_action(self, m, dp, result):
-      result.vector()[:] = interpolate(Constant(-self.scale * dp[0]), A).vector()
+        def jacobian_adjoint_action(self, m, dp, result):
+            result.vector()[:] = interpolate(Constant(-self.scale * dp[0]), A).vector()
 
-    def hessian_action(self, m, dm, dp, result):
-      result.vector().zero()
+        def hessian_action(self, m, dm, dp, result):
+            result.vector().zero()
 
-    def output_workspace(self):
-      return [0.0]
+        def output_workspace(self):
+            return [0.0]
 
-    def length(self):
-      """Return the number of components in the constraint vector (here, one)."""
-      return 1
+        def length(self):
+            """Return the number of components in the constraint vector (here, one)."""
+            return 1
 
 # Now that all the ingredients are in place, we can perform the initial
 # optimisation. We set the maximum number of iterations for this initial
 # optimisation problem to 30; there's no need to solve this to
 # completion, as its only purpose is to generate an initial guess.
 
-  # Solve the optimisation problem with q = 0.01
-  problem = MinimizationProblem(Jhat, bounds=(lb, ub), constraints=VolumeConstraint(V))
-  parameters = {
-               "maximum_iterations": 200,
-               "optizelle_parameters":
-                   {
-                   "msg_level" : 10,
-                   "algorithm_class" : Optizelle.AlgorithmClass.TrustRegion,
-                   #"H_type" : Optizelle.Operators.ScaledIdentity,
-                   "H_type" : Optizelle.Operators.UserDefined,
-                   "dir" : Optizelle.LineSearchDirection.BFGS,
-                   "eps_dx": 1.0e-15,
-                   "linesearch_iter_max" : 5,
-                   #"ipm": Optizelle.InteriorPointMethod.LogBarrier,
-                   "ipm": Optizelle.InteriorPointMethod.PrimalDual,
-                   "mu": 1e-5,
-                   "eps_mu": 1e-3,
-                   "sigma" : 0.5,
-                   "delta" : 100.,
-                   #"xi_qn" : 1e-12,
-                   #"xi_pg" : 1e-12,
-                   #"xi_proj" : 1e-12,
-                   #"xi_tang" : 1e-12,
-                   #"xi_lmh" : 1e-12,
-                   "rho" : 100.,
-                   #"augsys_iter_max" : 1000,
-                   "krylov_iter_max" : 20,
-                   "eps_krylov" : 1e-8,
-                   #"dscheme": Optizelle.DiagnosticScheme.DiagnosticsOnly,
-                   "h_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
-                   "x_diag" : Optizelle.VectorSpaceDiagnostics.Basic,
-                   "y_diag" : Optizelle.VectorSpaceDiagnostics.Basic,
-                   "z_diag" : Optizelle.VectorSpaceDiagnostics.EuclideanJordan,
-                   #"f_diag" : Optizelle.FunctionDiagnostics.FirstOrder,
-                   "g_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
-                   "L_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
-                   "stored_history": 25,
-                   }
-               }
+    # Solve the optimisation problem with q = 0.01
+    problem = MinimizationProblem(Jhat, bounds=(lb, ub), constraints=VolumeConstraint(V))
+    parameters = {
+                 "maximum_iterations": 200,
+                 "optizelle_parameters":
+                     {
+                     "msg_level" : 10,
+                     "algorithm_class" : Optizelle.AlgorithmClass.TrustRegion,
+                     #"H_type" : Optizelle.Operators.ScaledIdentity,
+                     "H_type" : Optizelle.Operators.UserDefined,
+                     "dir" : Optizelle.LineSearchDirection.BFGS,
+                     "eps_dx": 1.0e-15,
+                     "linesearch_iter_max" : 5,
+                     #"ipm": Optizelle.InteriorPointMethod.LogBarrier,
+                     "ipm": Optizelle.InteriorPointMethod.PrimalDual,
+                     "mu": 1e-5,
+                     "eps_mu": 1e-3,
+                     "sigma" : 0.5,
+                     "delta" : 100.,
+                     #"xi_qn" : 1e-12,
+                     #"xi_pg" : 1e-12,
+                     #"xi_proj" : 1e-12,
+                     #"xi_tang" : 1e-12,
+                     #"xi_lmh" : 1e-12,
+                     "rho" : 100.,
+                     #"augsys_iter_max" : 1000,
+                     "krylov_iter_max" : 20,
+                     "eps_krylov" : 1e-8,
+                     #"dscheme": Optizelle.DiagnosticScheme.DiagnosticsOnly,
+                     "h_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
+                     "x_diag" : Optizelle.VectorSpaceDiagnostics.Basic,
+                     "y_diag" : Optizelle.VectorSpaceDiagnostics.Basic,
+                     "z_diag" : Optizelle.VectorSpaceDiagnostics.EuclideanJordan,
+                     #"f_diag" : Optizelle.FunctionDiagnostics.FirstOrder,
+                     "g_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
+                     "L_diag" : Optizelle.FunctionDiagnostics.SecondOrder,
+                     "stored_history": 25,
+                     }
+                 }
 
-  solver  = OptizelleSolver(problem, inner_product="L2", parameters=parameters)
-  rho_opt = solver.solve()
+    solver  = OptizelleSolver(problem, inner_product="L2", parameters=parameters)
+    rho_opt = solver.solve()
 
-  File("output/control_solution_guess-optizelle.xdmf") << rho_opt
+    File("output/control_solution_guess-optizelle.xdmf") << rho_opt
 
 ## With the optimised value for :math:`q=0.01` in hand, we *reset* the
 ## dolfin-adjoint state, clearing its tape, and configure the new problem

@@ -31,17 +31,17 @@ replay_dolfin()
 J = Functional(dot(state, state)*dx*dt[FINISH_TIME])
 f_direct = assemble(dot(state, state)*dx)
 for (adj_state, var) in compute_adjoint(J):
-  pass
+    pass
 
 ic = Function(W)
 ic.interpolate(kelvin.InitialConditions())
 def compute_J(ic):
-  state = sw_lib.timeloop_theta(M, G, ic, kelvin.params, annotate=False)
-  return assemble(dot(state, state)*dx)
+    state = sw_lib.timeloop_theta(M, G, ic, kelvin.params, annotate=False)
+    return assemble(dot(state, state)*dx)
 
 minconv = test_initial_condition_adjoint(compute_J, ic, adj_state, seed=0.001)
 if minconv < 1.9:
-  exit_code = 1
+    exit_code = 1
 else:
-  exit_code = 0
+    exit_code = 0
 sys.exit(exit_code)

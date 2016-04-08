@@ -44,75 +44,75 @@ V_u  = VectorFunctionSpace(mesh, "CG", 2)
 u = Function(V_u, "velocity.xml.gz")
 
 def main(kappa):
-  # Test and trial functions
-  v   = TestFunction(V_dg)
-  phi = TrialFunction(V_dg)
+    # Test and trial functions
+    v   = TestFunction(V_dg)
+    phi = TrialFunction(V_dg)
 
-  # Diffusivity
+    # Diffusivity
 
-  # Source term
-  f = Constant(0.0)
+    # Source term
+    f = Constant(0.0)
 
-  # Penalty term
-  alpha = Constant(5.0)
+    # Penalty term
+    alpha = Constant(5.0)
 
-  # Mesh-related functions
-  n = FacetNormal(mesh)
-  h = CellSize(mesh)
-  h_avg = (h('+') + h('-'))/2
+    # Mesh-related functions
+    n = FacetNormal(mesh)
+    h = CellSize(mesh)
+    h_avg = (h('+') + h('-'))/2
 
-  # ( dot(v, n) + |dot(v, n)| )/2.0
-  un = (dot(u, n) + abs(dot(u, n)))/2.0
+    # ( dot(v, n) + |dot(v, n)| )/2.0
+    un = (dot(u, n) + abs(dot(u, n)))/2.0
 
-  # Bilinear form
-  a_int = dot(grad(v), kappa*grad(phi) - u*phi)*dx
+    # Bilinear form
+    a_int = dot(grad(v), kappa*grad(phi) - u*phi)*dx
 
-  a_fac = kappa('+')*(alpha('+')/h('+'))*dot(jump(v, n), jump(phi, n))*dS \
-        - kappa('+')*dot(avg(grad(v)), jump(phi, n))*dS \
-        - kappa('+')*dot(jump(v, n), avg(grad(phi)))*dS
+    a_fac = kappa('+')*(alpha('+')/h('+'))*dot(jump(v, n), jump(phi, n))*dS \
+          - kappa('+')*dot(avg(grad(v)), jump(phi, n))*dS \
+          - kappa('+')*dot(jump(v, n), avg(grad(phi)))*dS
 
-  a_vel = dot(jump(v), un('+')*phi('+') - un('-')*phi('-') )*dS  + dot(v, un*phi)*ds
+    a_vel = dot(jump(v), un('+')*phi('+') - un('-')*phi('-') )*dS  + dot(v, un*phi)*ds
 
-  a = a_int + a_fac + a_vel
+    a = a_int + a_fac + a_vel
 
-  # Linear form
-  L = v*f*dx
+    # Linear form
+    L = v*f*dx
 
-  # Set up boundary condition (apply strong BCs)
-  g = Expression("sin(pi*5.0*x[1])")
-  bc = DirichletBC(V_dg, g, DirichletBoundary(), "geometric")
+    # Set up boundary condition (apply strong BCs)
+    g = Expression("sin(pi*5.0*x[1])")
+    bc = DirichletBC(V_dg, g, DirichletBoundary(), "geometric")
 
-  # Solution function
-  phi_h = Function(V_dg)
+    # Solution function
+    phi_h = Function(V_dg)
 
-  # Assemble and apply boundary conditions
-  A = assemble(a)
-  b = assemble(L)
-  bc.apply(A, b)
+    # Assemble and apply boundary conditions
+    A = assemble(a)
+    b = assemble(L)
+    bc.apply(A, b)
 
-  # Solve system
-  solve(A, phi_h.vector(), b)
+    # Solve system
+    solve(A, phi_h.vector(), b)
 
-  return phi_h
+    return phi_h
 
 if __name__ == "__main__":
-  kappa = Constant(0.0, name="Kappa")
+    kappa = Constant(0.0, name="Kappa")
 
-  phi = main(kappa)
-
-  success = replay_dolfin()
-  if not success:
-    sys.exit(1)
-
-  J = Functional(phi*phi*dx*dt[FINISH_TIME])
-  Jkappa = assemble(phi*phi*dx)
-  dJdkappa = compute_gradient(J, Control(kappa))
-
-  def J(kappa):
     phi = main(kappa)
-    return assemble(phi*phi*dx)
 
-  minconv = taylor_test(J, Control(kappa), Jkappa, dJdkappa, seed=0.0001)
+    success = replay_dolfin()
+    if not success:
+        sys.exit(1)
 
-  if minconv < 1.9:
-    sys.exit(1)
+    J = Functional(phi*phi*dx*dt[FINISH_TIME])
+    Jkappa = assemble(phi*phi*dx)
+    dJdkappa = compute_gradient(J, Control(kappa))
+
+    def J(kappa):
+        phi = main(kappa)
+        return assemble(phi*phi*dx)
+
+    minconv = taylor_test(J, Control(kappa), Jkappa, dJdkappa, seed=0.0001)
+
+    if minconv < 1.9:
+        sys.exit(1)

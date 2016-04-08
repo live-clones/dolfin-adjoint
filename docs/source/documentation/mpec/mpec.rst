@@ -127,7 +127,7 @@ the maximum operator:
 ::
 
   def smoothmax(r, eps=1e-4):
-    return conditional(gt(r, eps), r - eps/2, conditional(lt(r, 0), 0, r**2 / (2*eps)))
+      return conditional(gt(r, eps), r - eps/2, conditional(lt(r, 0), 0, r**2 / (2*eps)))
   
 Now, we are ready to mesh the domain and define the discrete function
 spaces.  For this example we use piecewise linear, continuous finite
@@ -190,9 +190,9 @@ We begin by defining the loop and updating the :math:`\alpha` value.
 ::
 
   for i in range(4):
-    # Update the penalisation value
-    alpha.assign(float(alpha)/2)
-    info_green("Set alpha to %f." % float(alpha))
+      # Update the penalisation value
+      alpha.assign(float(alpha)/2)
+      info_green("Set alpha to %f." % float(alpha))
   
 We rely on a useful property of dolfin-adjoint here: if a ``Constant``
 object is used as a control (here achieved by creating the
@@ -208,7 +208,7 @@ select a set of sensible stopping criteria:
 
 ::
 
-    u_opt = minimize(Jhat, method="L-BFGS-B", bounds=(0.01, 0.03), options={"gtol": 1e-12, "ftol": 1e-100})
+      u_opt = minimize(Jhat, method="L-BFGS-B", bounds=(0.01, 0.03), options={"gtol": 1e-12, "ftol": 1e-100})
   
 The following step is optional and implements a performance
 improvement. The idea is to use the optimised state solution as an
@@ -223,7 +223,7 @@ function on the tape, which is exactly what we want here:
 
 ::
 
-    y_opt = DolfinAdjointVariable(y).tape_value()
+      y_opt = DolfinAdjointVariable(y).tape_value()
   
 The next line modifies the tape such that the initial guess for ``y``
 (to be used in the Newton solver in the forward problem) is set to
@@ -233,19 +233,19 @@ The next line modifies the tape such that the initial guess for ``y``
 
 ::
 
-    Control(y).update(y_opt)
+      Control(y).update(y_opt)
   
 Finally, we store the optimal state and control to disk and print some
 statistics:
 
 ::
 
-    ypvd << y_opt
-    upvd << u_opt
-    feasibility = sqrt(assemble(inner((Max(Constant(0.0), -y_opt)), (Max(Constant(0.0), -y_opt)))*dx))
-    info_green("Feasibility: %s" % feasibility)
-    info_green("Norm of y: %s" % sqrt(assemble(inner(y_opt, y_opt)*dx)))
-    info_green("Norm of u_opt: %s" % sqrt(assemble(inner(u_opt, u_opt)*dx)))
+      ypvd << y_opt
+      upvd << u_opt
+      feasibility = sqrt(assemble(inner((Max(Constant(0.0), -y_opt)), (Max(Constant(0.0), -y_opt)))*dx))
+      info_green("Feasibility: %s" % feasibility)
+      info_green("Norm of y: %s" % sqrt(assemble(inner(y_opt, y_opt)*dx)))
+      info_green("Norm of u_opt: %s" % sqrt(assemble(inner(u_opt, u_opt)*dx)))
   
 The example code can be found in ``examples/mpec/`` in the
 ``dolfin-adjoint`` source tree, and executed as follows:

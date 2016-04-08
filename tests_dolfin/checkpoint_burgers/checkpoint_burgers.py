@@ -23,8 +23,8 @@ def main(ic, annotate=False):
     timestep = Constant(1.0/n)
     t = 0.0
     end = 0.5
-    if annotate: 
-      adj_checkpointing('multistage', int(ceil(end/float(timestep))), 5, 10, verbose=True)
+    if annotate:
+        adj_checkpointing('multistage', int(ceil(end/float(timestep))), 5, 10, verbose=True)
 
     u_ = Function(ic, annotate=annotate)
     u = TrialFunction(V)
@@ -42,7 +42,7 @@ def main(ic, annotate=False):
     j = 0
     j += 0.5*float(timestep)*assemble(u_*u_*dx)
     if annotate:
-      adjointer.time.start(t)
+        adjointer.time.start(t)
 
     while (t <= end):
         solve(a == L, u, bc, annotate=annotate)
@@ -51,14 +51,14 @@ def main(ic, annotate=False):
 
         t += float(timestep)
 
-        if t>end: 
-          quad_weight = 0.5
+        if t>end:
+            quad_weight = 0.5
         else:
-          quad_weight = 1.0
+            quad_weight = 1.0
         j += quad_weight*float(timestep)*assemble(u_*u_*dx)
 
         if annotate:
-          adj_inc_timestep(time=t, finished=t>end)
+            adj_inc_timestep(time=t, finished=t>end)
         #plot(u)
 
     #interactive()
@@ -74,8 +74,8 @@ if __name__ == "__main__":
     dJdm = compute_gradient(J, m)
 
     def Jhat(ic):
-      j, forward = main(ic, annotate=False)
-      return j 
+        j, forward = main(ic, annotate=False)
+        return j
 
     minconv = taylor_test(Jhat, m, j, dJdm, seed=1.0e-3)
     assert minconv > 1.8

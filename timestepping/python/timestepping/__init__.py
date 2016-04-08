@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2015 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -84,7 +84,7 @@ __all__ = \
   time_systems.__all__ + \
   versions.__all__ + \
   vtu_io.__all__ + \
-  [ 
+  [
     "caches",
     "checkpointing",
     "equation_solvers",
@@ -102,4 +102,3 @@ __all__ = \
     "versions",
     "vtu_io"
   ]
-  

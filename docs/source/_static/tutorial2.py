@@ -23,9 +23,9 @@ bc = DirichletBC(V, (0.0, 0.0), "on_boundary")
 t = 0.0
 end = 0.1
 while (t <= end):
-  solve(F == 0, u_next, bc)
-  u.assign(u_next)
-  t += float(timestep)
+    solve(F == 0, u_next, bc)
+    u.assign(u_next)
+    t += float(timestep)
 
 J = Functional(inner(u, u)*dx*dt[FINISH_TIME])
 dJdic = compute_gradient(J, Control(u), forget=False)

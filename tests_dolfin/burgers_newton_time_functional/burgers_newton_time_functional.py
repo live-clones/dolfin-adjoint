@@ -38,7 +38,7 @@ def main(ic, annotate=False):
     j += 0.5*float(timestep)*assemble(u_*u_*u_*u_*dx)
 
     if annotate:
-      adjointer.time.start(0)
+        adjointer.time.start(0)
 
     while (t <= end):
         solve(F == 0, u, bc, annotate=annotate)
@@ -46,13 +46,13 @@ def main(ic, annotate=False):
 
         t += float(timestep)
 
-        if t>end: 
-          quad_weight = 0.5
+        if t>end:
+            quad_weight = 0.5
         else:
-          quad_weight = 1.0
+            quad_weight = 1.0
         j += quad_weight*float(timestep)*assemble(u_*u_*u_*u_*dx)
         if annotate:
-          adj_inc_timestep(time=t, finished=t>end)
+            adj_inc_timestep(time=t, finished=t>end)
 
     return j, u_
 
@@ -80,8 +80,8 @@ if __name__ == "__main__":
     HJm  = hessian(J, m)
 
     def Jfunc(ic):
-      j, forward = main(ic, annotate=False)
-      return j 
+        j, forward = main(ic, annotate=False)
+        return j
 
     minconv = taylor_test(Jfunc, m, Jm, dJdm, HJm=HJm, seed=5.0e-4, perturbation_direction=interpolate(Expression("x[0]"), V))
     assert minconv > 2.7

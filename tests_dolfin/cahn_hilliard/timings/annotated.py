@@ -38,63 +38,63 @@ steps = 20
 
 def main(ic):
 
-  # Define trial and test functions
-  du    = TrialFunction(ME)
-  q, v  = TestFunctions(ME)
+    # Define trial and test functions
+    du    = TrialFunction(ME)
+    q, v  = TestFunctions(ME)
 
-  # Define functions
-  u   = Function(ME)  # current solution
-  u0  = Function(ME)  # solution from previous converged step
+    # Define functions
+    u   = Function(ME)  # current solution
+    u0  = Function(ME)  # solution from previous converged step
 
-  # Split mixed functions
-  dc, dmu = split(du)
-  c,  mu  = split(u)
-  c0, mu0 = split(u0)
+    # Split mixed functions
+    dc, dmu = split(du)
+    c,  mu  = split(u)
+    c0, mu0 = split(u0)
 
-  # Create intial conditions and interpolate
-  u.assign(ic, annotate=False)
-  u0.assign(ic, annotate=False)
+    # Create intial conditions and interpolate
+    u.assign(ic, annotate=False)
+    u0.assign(ic, annotate=False)
 
-  # Compute the chemical potential df/dc
-  c = variable(c)
-  f    = 100*c**2*(1-c)**2
-  dfdc = diff(f, c)
+    # Compute the chemical potential df/dc
+    c = variable(c)
+    f    = 100*c**2*(1-c)**2
+    dfdc = diff(f, c)
 
-  # mu_(n+theta)
-  mu_mid = (1.0-theta)*mu0 + theta*mu
+    # mu_(n+theta)
+    mu_mid = (1.0-theta)*mu0 + theta*mu
 
-  # Weak statement of the equations
-  L0 = c*q*dx - c0*q*dx + dt*dot(grad(mu_mid), grad(q))*dx
-  L1 = mu*v*dx - dfdc*v*dx - lmbda*dot(grad(c), grad(v))*dx
-  L = L0 + L1
+    # Weak statement of the equations
+    L0 = c*q*dx - c0*q*dx + dt*dot(grad(mu_mid), grad(q))*dx
+    L1 = mu*v*dx - dfdc*v*dx - lmbda*dot(grad(c), grad(v))*dx
+    L = L0 + L1
 
-  # Compute directional derivative about u in the direction of du (Jacobian)
-  a = derivative(L, u, du)
+    # Compute directional derivative about u in the direction of du (Jacobian)
+    a = derivative(L, u, du)
 
-  # Create nonlinear problem and Newton solver
-  parameters = {}
-  parameters["newton_solver"] = {}
-  parameters["newton_solver"]["convergence_criterion"] = "incremental"
-  parameters["newton_solver"]["relative_tolerance"] = 1e-6
+    # Create nonlinear problem and Newton solver
+    parameters = {}
+    parameters["newton_solver"] = {}
+    parameters["newton_solver"]["convergence_criterion"] = "incremental"
+    parameters["newton_solver"]["relative_tolerance"] = 1e-6
 
-  # Step in time
-  t = 0.0
-  T = steps*dt
-  import os
-  while (t < T):
-      t += dt
-      u0.assign(u, annotate=True)
-      print "Starting solve at t=%s: " % t, os.popen("date").read()
-      solve(L == 0, u, J=a, solver_parameters=parameters, annotate=True)
-      print "Finished solve at t=%s: " % t, os.popen("date").read()
-      adj_inc_timestep()
+    # Step in time
+    t = 0.0
+    T = steps*dt
+    import os
+    while (t < T):
+        t += dt
+        u0.assign(u, annotate=True)
+        print "Starting solve at t=%s: " % t, os.popen("date").read()
+        solve(L == 0, u, J=a, solver_parameters=parameters, annotate=True)
+        print "Finished solve at t=%s: " % t, os.popen("date").read()
+        adj_inc_timestep()
 
-  return u
+    return u
 
 if __name__ == "__main__":
-  ic = Function(ME)
-  init = InitialConditions()
-  ic.interpolate(init)
-  ic_copy = Function(ic)
+    ic = Function(ME)
+    init = InitialConditions()
+    ic.interpolate(init)
+    ic_copy = Function(ic)
 
-  forward = main(ic)
+    forward = main(ic)

@@ -32,9 +32,8 @@ assert var.timestep == 4
 assert var.iteration == 0
 assert max(abs(var.tape_value().vector().array() - 5)) < 1e-12
 
-# Another way is to explicitly set timestep and iteration to retrieve 
+# Another way is to explicitly set timestep and iteration to retrieve
 for t in range(5):
     var = DolfinAdjointVariable(u_new, timestep=t, iteration=-1)
     expected_value = t + 1
     assert max(abs(var.tape_value().vector().array() - expected_value)) < 1e-12
-

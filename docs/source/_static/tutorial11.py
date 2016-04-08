@@ -9,31 +9,31 @@ ic = project(Expression(("sin(2*pi*x[0])", "cos(2*pi*x[1])")),  V)
 nu = Constant(0.0001, name="nu")
 
 def main(ic):
-  u = Function(ic, name="Velocity")
-  u_next = Function(V, name="VelocityNext")
-  v = TestFunction(V)
+    u = Function(ic, name="Velocity")
+    u_next = Function(V, name="VelocityNext")
+    v = TestFunction(V)
 
-  timestep = Constant(0.01)
+    timestep = Constant(0.01)
 
-  F = (inner((u_next - u)/timestep, v)
-     + inner(grad(u_next)*u_next, v)
-     + nu*inner(grad(u_next), grad(v)))*dx
+    F = (inner((u_next - u)/timestep, v)
+       + inner(grad(u_next)*u_next, v)
+       + nu*inner(grad(u_next), grad(v)))*dx
 
-  bc = DirichletBC(V, (0.0, 0.0), "on_boundary")
+    bc = DirichletBC(V, (0.0, 0.0), "on_boundary")
 
-  t = 0.0
-  end = 0.1
-  while (t <= end):
-    solve(F == 0, u_next, bc)
-    u.assign(u_next)
-    t += float(timestep)
+    t = 0.0
+    end = 0.1
+    while (t <= end):
+        solve(F == 0, u_next, bc)
+        u.assign(u_next)
+        t += float(timestep)
 
-  return u
+    return u
 
 if __name__ == "__main__":
-  u = main(ic)
+    u = main(ic)
 
-  gst = compute_gst("Velocity", "Velocity", nsv=3)
-  for i in range(gst.ncv):
-    sigma = gst.get_gst(i)
-    print "Growth rate of vector %s: %s" % (i, sigma)
+    gst = compute_gst("Velocity", "Velocity", nsv=3)
+    for i in range(gst.ncv):
+        sigma = gst.get_gst(i)
+        print "Growth rate of vector %s: %s" % (i, sigma)

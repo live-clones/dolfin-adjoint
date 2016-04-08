@@ -149,8 +149,8 @@ class DolfinVectorSpace(object):
     @staticmethod
     def __rand(x):
         if isinstance(x, GenericFunction):
-           xvec = x.vector()
-           xvec.set_local( numpy.random.random(xvec.local_size()) )
+            xvec = x.vector()
+            xvec.set_local( numpy.random.random(xvec.local_size()) )
         elif isinstance(x, Constant):
             raise NotImplementedError
         elif isinstance(x, numpy.ndarray):
@@ -412,7 +412,7 @@ try:
         @optizelle_callback
         def hessvec(self, x, dx, H_dx):
             self.eval(x)
-            H = self.rf.hessian(dx, project=True)
+            H = enlist(self.rf.hessian(dx, project=True))
             DolfinVectorSpace.scal(self.scale, H)
             DolfinVectorSpace.copy(H, H_dx)
 

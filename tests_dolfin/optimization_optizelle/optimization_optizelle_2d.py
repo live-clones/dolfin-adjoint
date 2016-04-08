@@ -35,7 +35,7 @@ u = Function(V, name='State')
 v = TestFunction(V)
 
 # Define and solve the Poisson equation to generate the dolfin-adjoint annotation
-F = (inner(grad(u), grad(v)) - f*v)*dx 
+F = (inner(grad(u), grad(v)) - f*v)*dx
 bc = DirichletBC(V, 0.0, "on_boundary")
 solve(F == 0, u, bc)
 

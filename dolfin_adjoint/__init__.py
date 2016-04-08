@@ -13,7 +13,7 @@ importing the :py:mod:`dolfin` module. dolfin-adjoint relies on *overloading* ma
 the key functions of dolfin to achieve its degree of automation.
 """
 
-__version__ = '1.5'
+__version__ = '1.6'
 __author__  = 'Patrick Farrell and Simon Funke'
 __credits__ = ['Patrick Farrell', 'Simon Funke', 'David Ham', 'Marie Rognes']
 __license__ = 'LGPL-3'
@@ -36,16 +36,16 @@ import functional
 import split_annotation
 
 if backend.__name__ == "dolfin":
-  import lusolver
+    import lusolver
 
 import gst
 import function
 
 if backend.__name__ == "dolfin":
-  import genericmatrix
-  import genericvector
-  import optimization
-  import reduced_functional
-  from optimization import optimization
+    import genericmatrix
+    import genericvector
+    import optimization
+    import reduced_functional
+    from optimization import optimization
 
 from ui import *

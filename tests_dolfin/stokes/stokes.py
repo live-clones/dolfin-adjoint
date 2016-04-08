@@ -116,8 +116,8 @@ if __name__ == "__main__":
     dJdic = compute_gradient(J, Control(T), forget=False)
 
     def Jhat(ic):
-      T = main(ic, annotate=False)
-      return assemble(T*T*dx)
+        T = main(ic, annotate=False)
+        return assemble(T*T*dx)
 
     minconv = taylor_test(Jhat, Control(T), Jic, dJdic)
     assert minconv > 1.9

@@ -71,16 +71,16 @@ if __name__ == "__main__":
     print "Running adjoint ... "
     J = Functional(forward*forward*dx*dt[FINISH_TIME])
     for (adjoint, var) in compute_adjoint(J, forget=False):
-      pass
+        pass
 
     def Jfunc(ic):
-      forward = main(ic, annotate=False)
-      return assemble(forward*forward*dx)
+        forward = main(ic, annotate=False)
+        return assemble(forward*forward*dx)
 
     ic.vector()[:] = ic_copy.vector()
     minconv = test_initial_condition_adjoint(Jfunc, ic, adjoint, seed=1.0e-1)
     if minconv < 1.8:
-      sys.exit(1)
+        sys.exit(1)
 #
 #    ic.vector()[:] = ic_copy.vector()
 #    dJ = assemble(derivative(forward_copy*forward_copy*dx, forward_copy))

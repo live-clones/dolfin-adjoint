@@ -14,7 +14,7 @@
 #
 # Background
 # **********
-# 
+#
 # In the ocean, the diffusivity coefficient of temperature is approximately two
 # orders of magnitude larger than the diffusivity coefficient of salinity.
 # Suppose warm salty water lies above colder, less salty water. If a parcel of
@@ -52,7 +52,7 @@
 # where :math:`\zeta` is the vorticity, :math:`\psi` is the streamfunction,
 # :math:`T` is the temperature, :math:`S` is the salinity, and :math:`\textrm{Ra}`,
 # :math:`\textrm{Sc}`, :math:`\textrm{Pr}` and :math:`{R_{\rho}^0}` are nondimensional parameters.
-# Periodic boundary conditions are applied on the left and right boundaries. 
+# Periodic boundary conditions are applied on the left and right boundaries.
 # The configuration consists of two well-mixed layers (i.e., of homogeneous
 # temperature and salinity) separated by an interface. To activate the
 # instability, :cite:`ozgokmen1998b` add a sinusoidal perturbation to the initial
@@ -72,7 +72,7 @@ from dolfin_adjoint import *
 # minutes; for production computations, this might be run at 300 x 300 or 500 x
 # 500.
 
-mesh = RectangleMesh(0, 0, 1, 2, 50, 50)
+mesh = RectangleMesh(Point(0, 0), Point(1, 2), 50, 50)
 
 # Computing the singular value decomposition of the propagator requires many
 # actions of the propagator, the operator that maps perturbations in the input
@@ -91,12 +91,12 @@ parameters["adjoint"]["cache_factorizations"] = True
 # function maps from the right-hand boundary to the left-hand boundary.
 
 class PeriodicBoundary(SubDomain):
-  def inside(self, x, on_boundary):
-    return x[0] == 0.0 and on_boundary
+    def inside(self, x, on_boundary):
+        return x[0] == 0.0 and on_boundary
 
-  def map(self, x, y):
-    y[0] = x[0] - 1
-    y[1] = x[1]
+    def map(self, x, y):
+        y[0] = x[0] - 1
+        y[1] = x[1]
 
 pbc = PeriodicBoundary()
 
@@ -144,52 +144,52 @@ Rrho = Constant(1.8)
 
 def get_ic():
 
-  class InitialSalinity(Expression):
-    def eval(self, values, x):
-      # salinity initial condition: salty on top, fresh on the bottom, and a wavy
-      # interface in between
-      if x[1] > 1.1 + 0.016*cos(10*pi*x[0]): 
-        values[0] = 1.0
-      elif x[1] < 0.9 + 0.016*cos(10*pi*x[0]):
-        values[0] = 0.0
-      else:
-        values[0] = 5*(x[1]-0.016*cos(10*pi*x[0])) - 4.5
+    class InitialSalinity(Expression):
+        def eval(self, values, x):
+            # salinity initial condition: salty on top, fresh on the bottom, and a wavy
+            # interface in between
+            if x[1] > 1.1 + 0.016*cos(10*pi*x[0]):
+                values[0] = 1.0
+            elif x[1] < 0.9 + 0.016*cos(10*pi*x[0]):
+                values[0] = 0.0
+            else:
+                values[0] = 5*(x[1]-0.016*cos(10*pi*x[0])) - 4.5
 
-  class InitialTemperature(Expression):
-    def eval(self, values, x):
-      # temperature initial condition: warm on top, cool on bottom
-      if x[1] > 1.1:
-        values[0] = 1.0
-      elif x[1] < 0.9:
-        values[0] = 0.0
-      else:
-        values[0] = 5*x[1] - 4.5
+    class InitialTemperature(Expression):
+        def eval(self, values, x):
+            # temperature initial condition: warm on top, cool on bottom
+            if x[1] > 1.1:
+                values[0] = 1.0
+            elif x[1] < 0.9:
+                values[0] = 0.0
+            else:
+                values[0] = 5*x[1] - 4.5
 
-  salinity_ic = interpolate(InitialSalinity(), S, name="InitialSalinity")
-  zeta        = Constant(0) # initially at rest
-  t           = InitialTemperature()
-  s           = salinity_ic
+    salinity_ic = interpolate(InitialSalinity(), S, name="InitialSalinity")
+    zeta        = Constant(0) # initially at rest
+    t           = InitialTemperature()
+    s           = salinity_ic
 
-  z_test = TestFunction(Z)
-  (zeta_test, p_test, t_test, s_test) = split(z_test)
+    z_test = TestFunction(Z)
+    (zeta_test, p_test, t_test, s_test) = split(z_test)
 
-  z = Function(Z, name="State")
-  (zeta_trial, p_trial, t_trial, s_trial) = split(z)
+    z = Function(Z, name="State")
+    (zeta_trial, p_trial, t_trial, s_trial) = split(z)
 
-  # project zeta, t, s; solve for the streamfunction p
+    # project zeta, t, s; solve for the streamfunction p
 
-  a = (inner(zeta_test, zeta_trial)*dx +
-       inner(t_test, t_trial)*dx       +
-       inner(s_test, s_trial)*dx       +
-       inner(grad(p_test), grad(p_trial))*dx)
-  L = (inner(zeta_test, zeta)*dx       +
-       inner(t_test, t)*dx             +
-       inner(s_test, s)*dx             -
-       inner(p_test, zeta)*dx)
-  F = a - L
+    a = (inner(zeta_test, zeta_trial)*dx +
+         inner(t_test, t_trial)*dx       +
+         inner(s_test, s_trial)*dx       +
+         inner(grad(p_test), grad(p_trial))*dx)
+    L = (inner(zeta_test, zeta)*dx       +
+         inner(t_test, t)*dx             +
+         inner(s_test, s)*dx             -
+         inner(p_test, zeta)*dx)
+    F = a - L
 
-  solve(F == 0, z, bcs, solver_parameters={"newton_solver": {"linear_solver": "lu"}})
-  return z
+    solve(F == 0, z, bcs, solver_parameters={"newton_solver": {"linear_solver": "lu"}})
+    return z
 
 #
 
@@ -204,73 +204,73 @@ def get_ic():
 # seen as a map from the initial salinity to the final salinity.
 
 def project_salinity(z_final):
-  s = project(split(z_final)[-1], S, name="FinalSalinity")
-  return s
+    s = project(split(z_final)[-1], S, name="FinalSalinity")
+    return s
 
 # The main loop of the forward model. Compute the initial conditions, advance
 # the equations forward in time, and then compute the final salinity.
 
 def main():
 
-  # This function takes the theta-weighted average of the old
-  # and new values at a timestep. This is used in the timestepping
-  # later.
+    # This function takes the theta-weighted average of the old
+    # and new values at a timestep. This is used in the timestepping
+    # later.
 
-  def cn(old, new):
-    return (1-theta)*old + theta*new
+    def cn(old, new):
+        return (1-theta)*old + theta*new
 
-  # Define the :math:`\nabla^\perp` operator (the 2D equivalent of
-  # the cross product) and advection flux operators.
-  
-  def grad_perp(field):
-    x = grad(field)
-    return as_vector([-x[1], x[0]])
-  
-  def J(test, stream, tracer):
-    return -inner(grad(test), tracer*(grad_perp(stream)))*dx
+    # Define the :math:`\nabla^\perp` operator (the 2D equivalent of
+    # the cross product) and advection flux operators.
 
-  z_old = get_ic()
-  (zeta_old, p_old, t_old, s_old) = split(z_old)
+    def grad_perp(field):
+        x = grad(field)
+        return as_vector([-x[1], x[0]])
 
-  store(z_old, time=0.0)
+    def J(test, stream, tracer):
+        return -inner(grad(test), tracer*(grad_perp(stream)))*dx
 
-  z_test = TestFunction(Z)
-  (zeta_test, p_test, t_test, s_test) = split(z_test)
+    z_old = get_ic()
+    (zeta_old, p_old, t_old, s_old) = split(z_old)
 
-  z = Function(Z, name="NextState")
-  (zeta, p, t, s) = split(z)
+    store(z_old, time=0.0)
 
-  t_cn = cn(t_old, t)
-  s_cn = cn(s_old, s)
-  zeta_cn = cn(zeta_old, zeta)
+    z_test = TestFunction(Z)
+    (zeta_test, p_test, t_test, s_test) = split(z_test)
 
-  time = 0.0
-  while time < endT:
-    F = (inner((zeta - zeta_old)/dt, zeta_test)*dx
-      +  (1-theta)* J(zeta_test, p_old, zeta_old)
-      +  (theta)  * J(zeta_test, p, zeta)
-      -  Ra*(1.0/Pr) * inner(zeta_test, grad(t_cn)[0] - (1.0/Rrho)*grad(s_cn)[0])*dx
-      +  inner(grad(zeta_test), grad(zeta_cn))*dx
-      +  inner((t - t_old)/dt, t_test)*dx
-      +  (1-theta)* J(t_test, p_old, t_old)
-      +  (theta)  * J(t_test, p, t)
-      +  (1.0/Pr) * inner(grad(t_test), grad(t_cn))*dx
-      +  inner((s - s_old)/dt, s_test)*dx
-      +  (1-theta)* J(s_test, p_old, s_old)
-      +  (theta)  * J(s_test, p, s)
-      +  (1.0/Sc) * inner(grad(s_test), grad(s_cn))*dx
-      +  inner(grad(p_test), grad(p))*dx
-      +  inner(p_test, zeta)*dx)
+    z = Function(Z, name="NextState")
+    (zeta, p, t, s) = split(z)
 
-    solve(F == 0, z, bcs=bcs, J=derivative(F, z), solver_parameters=
-    {"newton_solver": {"maximum_iterations": 20, "linear_solver": "mumps"}})
+    t_cn = cn(t_old, t)
+    s_cn = cn(s_old, s)
+    zeta_cn = cn(zeta_old, zeta)
 
-    z_old.assign(z)
+    time = 0.0
+    while time < endT:
+        F = (inner((zeta - zeta_old)/dt, zeta_test)*dx
+          +  (1-theta)* J(zeta_test, p_old, zeta_old)
+          +  (theta)  * J(zeta_test, p, zeta)
+          -  Ra*(1.0/Pr) * inner(zeta_test, grad(t_cn)[0] - (1.0/Rrho)*grad(s_cn)[0])*dx
+          +  inner(grad(zeta_test), grad(zeta_cn))*dx
+          +  inner((t - t_old)/dt, t_test)*dx
+          +  (1-theta)* J(t_test, p_old, t_old)
+          +  (theta)  * J(t_test, p, t)
+          +  (1.0/Pr) * inner(grad(t_test), grad(t_cn))*dx
+          +  inner((s - s_old)/dt, s_test)*dx
+          +  (1-theta)* J(s_test, p_old, s_old)
+          +  (theta)  * J(s_test, p, s)
+          +  (1.0/Sc) * inner(grad(s_test), grad(s_cn))*dx
+          +  inner(grad(p_test), grad(p))*dx
+          +  inner(p_test, zeta)*dx)
 
-    time += float(dt)
-    store(z_old, time=time)
+        solve(F == 0, z, bcs=bcs, J=derivative(F, z), solver_parameters=
+        {"newton_solver": {"maximum_iterations": 20, "linear_solver": "mumps"}})
 
-  s = project_salinity(z_old)
+        z_old.assign(z)
+
+        time += float(dt)
+        store(z_old, time=time)
+
+    s = project_salinity(z_old)
 
 # I/O functions for the forward and stability runs.  First, define a function to
 # perform the I/O during the forward run.  These PVD files store the forward
@@ -282,19 +282,19 @@ t_pvd = File("results/temperature.pvd")
 s_pvd = File("results/salinity.pvd")
 
 def store(z, time):
-  if MPI.rank(mpi_comm_world()) == 0:
-    info_blue("Storing variables at t=%s" % time)
+    if MPI.rank(mpi_comm_world()) == 0:
+        info_blue("Storing variables at t=%s" % time)
 
-  (u, p, t, s) = z.split()
+    (u, p, t, s) = z.split()
 
-  u.rename("Velocity", "u")
-  p.rename("Pressure", "p")
-  t.rename("Temperature", "t")
-  s.rename("Salinity", "s")
-  zeta_pvd << (u, time)
-  p_pvd << (p, time)
-  t_pvd << (t, time)
-  s_pvd << (s, time)
+    u.rename("Velocity", "u")
+    p.rename("Pressure", "p")
+    t.rename("Temperature", "t")
+    s.rename("Salinity", "s")
+    zeta_pvd << (u, time)
+    p_pvd << (p, time)
+    t_pvd << (t, time)
+    s_pvd << (s, time)
 
 # Next, the I/O function for the output of the generalised stability analysis
 # (gst stands for generalised stability theory).
@@ -303,37 +303,37 @@ s_in_pvd = File("results/gst_input_s.pvd")
 s_out_pvd = File("results/gst_output_s.pvd")
 
 def store_gst(z, io, i):
-  if io == "input":
-    z.rename("SalinityIn%d" % i, "gst_in_%d" % i)
-    s_in_pvd << (z, float(i))
-    f = File("results/gst_input_%s.xdmf" % i)
-    f << z
-  elif io == "output":
-    z.rename("SalinityOut%d" % i, "gst_out_%d" % i)
-    s_out_pvd << (z, float(i))
-    f = File("results/gst_output_%s.xdmf" % i)
-    f << z
+    if io == "input":
+        z.rename("SalinityIn%d" % i, "gst_in_%d" % i)
+        s_in_pvd << (z, float(i))
+        f = File("results/gst_input_%s.xdmf" % i)
+        f << z
+    elif io == "output":
+        z.rename("SalinityOut%d" % i, "gst_out_%d" % i)
+        s_out_pvd << (z, float(i))
+        f = File("results/gst_output_%s.xdmf" % i)
+        f << z
 
 if __name__ == "__main__":
 # First, run the forward model, building the graph:
 
-  z = main()
+    z = main()
 
 # Now take the singular value decomposition of the propagator that maps
 # perturbations to initial salinity forwards in time to perturbations in final
 # salinity. This requires that libadjoint was compiled with support for SLEPc:
 
-  gst = compute_gst("InitialSalinity", "FinalSalinity", nsv=2)
+    gst = compute_gst("InitialSalinity", "FinalSalinity", nsv=2)
 
 # Now fetch the results of the SVD:
 
-  for i in range(gst.ncv):
-    (sigma, u, v) = gst.get_gst(i, return_vectors=True)
+    for i in range(gst.ncv):
+        (sigma, u, v) = gst.get_gst(i, return_vectors=True)
 
-    print "Singular value: ", sigma
+        print "Singular value: ", sigma
 
-    store_gst(v, "input", i)
-    store_gst(u, "output", i)
+        store_gst(v, "input", i)
+        store_gst(u, "output", i)
 
 # The example code can be found in ``examples/salt-fingering`` in the ``dolfin-adjoint``
 # source tree, and executed as follows:

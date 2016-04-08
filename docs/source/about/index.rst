@@ -31,6 +31,8 @@ where the model is implemented in the Python interface to DOLFIN.
 
 News
 ====
+**20.8.2015**: dolfin-adjoint 1.6 released (compatible with FEniCS 1.6).
+
 **11.6.2015**: P. E. Farrell, S. W. Funke, D. A. Ham and M. E. Rognes were awarded the 2015 `Wilkinson prize for numerical software`_ for dolfin-adjoint.
 
 
@@ -103,7 +105,7 @@ The dolfin-adjoint project is developed and maintained by the
 following authors:
 
 - `Patrick E. Farrell <http://pefarrell.org>`__ (Mathematical Institute, University of Oxford)
-- `Simon W. Funke <http://simonfunke.com>`__ (Center for Biomedical Computing, Simula Research Laboratory / Applied Modelling and Computation Group, Imperial College London)
+- `Simon W. Funke <http://simonfunke.com>`__ (Center for Biomedical Computing, Simula Research Laboratory)
 - `David A. Ham <http://www.ic.ac.uk/people/david.ham>`__ (Department of Mathematics and Department of Computing, Imperial College London)
 - `Marie E. Rognes <http://home.simula.no/~meg/>`__ (Center for Biomedical Computing, Simula Research Laboratory)
 - `James R. Maddison <http://www.maths.ed.ac.uk/people/show?person-364>`__ (School of Mathematics, University of Edinburgh)

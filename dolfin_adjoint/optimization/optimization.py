@@ -39,10 +39,10 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
         print "You have an unusable installation of scipy. This version is not supported by dolfin-adjoint."
 
         try:
-          import scipy
-          print "Version: %s\tFile: %s" % (scipy.__version__, scipy.__file__)
+            import scipy
+            print "Version: %s\tFile: %s" % (scipy.__version__, scipy.__file__)
         except:
-          pass
+            pass
 
         raise
 
@@ -85,23 +85,23 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
         kwargs["hessp"] = H
 
     if "constraints" in kwargs:
-      from constraints import canonicalise, InequalityConstraint, EqualityConstraint
-      constraints = canonicalise(kwargs["constraints"])
-      scipy_c = []
-      for c in constraints:
-        if isinstance(c, InequalityConstraint):
-          typestr = "ineq"
-        elif isinstance(c, EqualityConstraint):
-          typestr = "eq"
-        else:
-          raise Exception, "Unknown constraint class"
+        from constraints import canonicalise, InequalityConstraint, EqualityConstraint
+        constraints = canonicalise(kwargs["constraints"])
+        scipy_c = []
+        for c in constraints:
+            if isinstance(c, InequalityConstraint):
+                typestr = "ineq"
+            elif isinstance(c, EqualityConstraint):
+                typestr = "eq"
+            else:
+                raise Exception, "Unknown constraint class"
 
-        def jac(x):
-          out = c.jacobian(x)
-          return [gather(y) for y in out]
+            def jac(x):
+                out = c.jacobian(x)
+                return [gather(y) for y in out]
 
-        scipy_c.append(dict(type=typestr, fun=c.function, jac=jac))
-      kwargs["constraints"] = scipy_c
+            scipy_c.append(dict(type=typestr, fun=c.function, jac=jac))
+        kwargs["constraints"] = scipy_c
 
     if method=="basinhopping":
         try:
@@ -116,8 +116,8 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
         kwargs["minimizer_kwargs"]["jac"]=dJ
 
         if "bounds" in kwargs["minimizer_kwargs"]:
-          kwargs["minimizer_kwargs"]["bounds"] = \
-              serialise_bounds(rf_np, kwargs["minimizer_kwargs"]["bounds"])
+            kwargs["minimizer_kwargs"]["bounds"] = \
+                serialise_bounds(rf_np, kwargs["minimizer_kwargs"]["bounds"])
 
         res = basinhopping(J, m_global, **kwargs)
 

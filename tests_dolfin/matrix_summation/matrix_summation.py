@@ -47,8 +47,8 @@ if __name__ == "__main__":
     dJdm = compute_gradient(J, m, forget=False)
 
     def Jfunc(ic):
-      forward = main(ic, annotate=False)
-      return assemble(forward*forward*dx)
+        forward = main(ic, annotate=False)
+        return assemble(forward*forward*dx)
 
     minconv = taylor_test(Jfunc, m, Jm, dJdm, seed=1.0e-6)
     assert minconv > 1.8

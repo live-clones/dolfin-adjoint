@@ -72,12 +72,12 @@ PETScOptions.set("pc_gamg_agg_nsmooths", 1)
 # optimisation algorithm.
 
 try:
-  import pyipopt
+    import pyipopt
 except ImportError:
-  info_red("""This example depends on IPOPT and pyipopt. \
-When compiling IPOPT, make sure to link against HSL, as it \
-is a necessity for practical problems.""")
-  raise
+    info_red("""This example depends on IPOPT and pyipopt. \
+  When compiling IPOPT, make sure to link against HSL, as it \
+  is a necessity for practical problems.""")
+    raise
 
 # Form compiler options
 parameters["form_compiler"]["optimize"]     = True
@@ -96,9 +96,9 @@ alpha = Constant(1.0e-8) # regularisation coefficient in functional
 
 
 def k(a):
-  """Solid isotropic material with penalisation (SIMP) conductivity
-rule, equation (11)."""
-  return eps + (1 - eps) * a**p
+    """Solid isotropic material with penalisation (SIMP) conductivity
+  rule, equation (11)."""
+    return eps + (1 - eps) * a**p
 
 # Next we define the mesh (a unit square) and the function spaces to be
 # used for the control :math:`a` and forward solution :math:`T`.
@@ -111,12 +111,12 @@ P = FunctionSpace(mesh, "CG", 1)  # function space for solution
 # Next we define the forward boundary condition and source term.
 
 class DirichletBoundary(SubDomain):
-  """
-  The left, top and far boundaries of the unit cube, used to enforce the
-  Dirichlet boundary condition.
-  """
-  def inside(self, x, on_boundary):
-    return (x[0] == 0.0 or x[1] == 1.0 or x[2] == 1.0) and on_boundary
+    """
+    The left, top and far boundaries of the unit cube, used to enforce the
+    Dirichlet boundary condition.
+    """
+    def inside(self, x, on_boundary):
+        return (x[0] == 0.0 or x[1] == 1.0 or x[2] == 1.0) and on_boundary
 
 # Define the Dirichlet BC; the Neumann BC will be implemented implicitly by
 # dropping the surface integral after integration by parts
@@ -131,17 +131,17 @@ f = interpolate(Constant(1.0e-2), P, name="SourceTerm") # the volume source term
 # <../../documentation/verification>`.)
 
 def forward(a):
-  """Solve the forward problem for a given material distribution a(x)."""
-  T = Function(P, name="Temperature")
-  v = TestFunction(P)
+    """Solve the forward problem for a given material distribution a(x)."""
+    T = Function(P, name="Temperature")
+    v = TestFunction(P)
 
-  F = inner(grad(v), k(a)*grad(T))*dx - f*v*dx
-  solve(F == 0, T, bc, solver_parameters={"newton_solver": {"absolute_tolerance": 1.0e-7,
-                                                            "maximum_iterations": 20,
-                                                            "linear_solver": "cg",
-                                                            "preconditioner": "petsc_amg"}})
+    F = inner(grad(v), k(a)*grad(T))*dx - f*v*dx
+    solve(F == 0, T, bc, solver_parameters={"newton_solver": {"absolute_tolerance": 1.0e-7,
+                                                              "maximum_iterations": 20,
+                                                              "linear_solver": "cg",
+                                                              "preconditioner": "petsc_amg"}})
 
-  return T
+    return T
 
 # Now we define the ``__main__`` section. We define the initial guess
 # for the control and use it to solve the forward PDE. In order to
@@ -150,8 +150,8 @@ def forward(a):
 # bound constraint are satisfied.
 
 if __name__ == "__main__":
-  a = interpolate(V, A, name="Control") # initial guess.
-  T = forward(a)                        # solve the forward problem once.
+    a = interpolate(V, A, name="Control") # initial guess.
+    T = forward(a)                        # solve the forward problem once.
 
 # With the forward problem solved once, :py:mod:`dolfin_adjoint` has
 # built a *tape* of the forward model; it will use this tape to drive
@@ -171,18 +171,18 @@ if __name__ == "__main__":
 # executed on every functional derivative calculation
 # <../../documentation/optimisation>`.
 
-  controls = File("output-3d/control_iterations.pvd")
-  a_viz = Function(A, name="ControlVisualisation")
-  def eval_cb(j, a):
-    a_viz.assign(a)
-    controls << a_viz
+    controls = File("output-3d/control_iterations.pvd")
+    a_viz = Function(A, name="ControlVisualisation")
+    def eval_cb(j, a):
+        a_viz.assign(a)
+        controls << a_viz
 
 # Now we define the functional, compliance with a weak regularisation
 # term on the gradient of the material
 
-  J = Functional(f*T*dx + alpha * inner(grad(a), grad(a))*dx)
-  m = Control(a)
-  Jhat = ReducedFunctional(J, m, eval_cb_post=eval_cb)
+    J = Functional(f*T*dx + alpha * inner(grad(a), grad(a))*dx)
+    m = Control(a)
+    Jhat = ReducedFunctional(J, m, eval_cb_post=eval_cb)
 
 # This :py:class:`ReducedFunctional` object solves the forward PDE using
 # dolfin-adjoint's tape each time the functional is to be evaluated, and
@@ -194,8 +194,8 @@ if __name__ == "__main__":
 # Now let us configure the control constraints. The bound constraints
 # are easy:
 
-  lb = 0.0
-  ub = 1.0
+    lb = 0.0
+    ub = 1.0
 
 # The volume constraint involves a little bit more work. Following
 # :cite:`nocedal2006`, inequality constraints are represented as
@@ -209,51 +209,51 @@ if __name__ == "__main__":
 # compute its Jacobian, and one to return the number of components in
 # the constraint.
 
-  class VolumeConstraint(InequalityConstraint):
-    """A class that enforces the volume constraint g(a) = V - a*dx >= 0."""
-    def __init__(self, V):
-      self.V  = float(V)
+    class VolumeConstraint(InequalityConstraint):
+        """A class that enforces the volume constraint g(a) = V - a*dx >= 0."""
+        def __init__(self, V):
+            self.V  = float(V)
 
 # The derivative of the constraint g(x) is constant (it is the
 # diagonal of the lumped mass matrix for the control function space),
 # so let's assemble it here once.  This is also useful in rapidly
 # calculating the integral each time without re-assembling.
 
-      self.smass  = assemble(TestFunction(A) * Constant(1) * dx)
-      self.tmpvec = Function(A)
+            self.smass  = assemble(TestFunction(A) * Constant(1) * dx)
+            self.tmpvec = Function(A)
 
-    def function(self, m):
-      self.tmpvec.vector()[:] = m
+        def function(self, m):
+            self.tmpvec.vector()[:] = m
 
 # Compute the integral of the control over the domain
 
-      integral = self.smass.inner(self.tmpvec.vector())
-      if MPI.rank(mpi_comm_world()) == 0:
-        print "Current control integral: ", integral
-      return [self.V - integral]
+            integral = self.smass.inner(self.tmpvec.vector())
+            if MPI.rank(mpi_comm_world()) == 0:
+                print "Current control integral: ", integral
+            return [self.V - integral]
 
-    def jacobian(self, m):
-      return [-self.smass]
+        def jacobian(self, m):
+            return [-self.smass]
 
-    def output_workspace(self):
-      return [0.0]
+        def output_workspace(self):
+            return [0.0]
 
-    def length(self):
-      """Return the number of components in the constraint vector (here, one)."""
-      return 1
+        def length(self):
+            """Return the number of components in the constraint vector (here, one)."""
+            return 1
 
 # Now that all the ingredients are in place, we can perform the
 # optimisation.  The :py:class:`MinimizationProblem` class
 # represents the optimisation problem to be solved. We instantiate
 # this and pass it to :py:mod:`pyipopt` to solve:
 
-  problem = MinimizationProblem(Jhat, bounds=(lb, ub), constraints=VolumeConstraint(V))
-  parameters = None
+    problem = MinimizationProblem(Jhat, bounds=(lb, ub), constraints=VolumeConstraint(V))
+    parameters = None
 
-  solver = IPOPTSolver(problem, parameters=parameters)
-  a_opt = solver.solve()
+    solver = IPOPTSolver(problem, parameters=parameters)
+    a_opt = solver.solve()
 
-  File("output-3d/control_solution.xdmf") << a_opt
+    File("output-3d/control_solution.xdmf") << a_opt
 
 # The example code can be found in ``examples/poisson-topology/`` in the
 # ``dolfin-adjoint`` source tree. Running it takes approximately 5 minutes

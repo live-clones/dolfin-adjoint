@@ -49,135 +49,135 @@ v = TestFunction(V)
 q = TestFunction(Q)
 
 def main(ic):
-  # Set parameter values
-  dt = 0.01
-  T = 0.05
-  nu = 0.01
+    # Set parameter values
+    dt = 0.01
+    T = 0.05
+    nu = 0.01
 
-  # Define time-dependent pressure boundary condition
-  p_in = Expression("sin(3.0*t)", t=0.0)
+    # Define time-dependent pressure boundary condition
+    p_in = Expression("sin(3.0*t)", t=0.0)
 
-  # Define boundary conditions
-  noslip  = DirichletBC(V, (0, 0),
-                        "on_boundary && \
-                         (x[0] < DOLFIN_EPS | x[1] < DOLFIN_EPS | \
-                         (x[0] > 0.5 - DOLFIN_EPS && x[1] > 0.5 - DOLFIN_EPS))")
-  inflow  = DirichletBC(Q, p_in, "x[1] > 1.0 - DOLFIN_EPS")
-  outflow = DirichletBC(Q, 0, "x[0] > 1.0 - DOLFIN_EPS")
-  bcu = [noslip]
-  bcp = [inflow, outflow]
+    # Define boundary conditions
+    noslip  = DirichletBC(V, (0, 0),
+                          "on_boundary && \
+                           (x[0] < DOLFIN_EPS | x[1] < DOLFIN_EPS | \
+                           (x[0] > 0.5 - DOLFIN_EPS && x[1] > 0.5 - DOLFIN_EPS))")
+    inflow  = DirichletBC(Q, p_in, "x[1] > 1.0 - DOLFIN_EPS")
+    outflow = DirichletBC(Q, 0, "x[0] > 1.0 - DOLFIN_EPS")
+    bcu = [noslip]
+    bcp = [inflow, outflow]
 
-  # Create functions
-  u0 = Function(ic, name="Velocity")
-  u1 = Function(V, name="VelocityNext")
-  p1 = Function(Q, name="Pressure")
+    # Create functions
+    u0 = Function(ic, name="Velocity")
+    u1 = Function(V, name="VelocityNext")
+    p1 = Function(Q, name="Pressure")
 
-  # Define coefficients
-  k = Constant(dt)
-  f = Constant((0, 0))
+    # Define coefficients
+    k = Constant(dt)
+    f = Constant((0, 0))
 
-  # Tentative velocity step
-  F1 = (1/k)*inner(u - u0, v)*dx + inner(grad(u0)*u0, v)*dx + \
-       nu*inner(grad(u), grad(v))*dx - inner(f, v)*dx
-  a1 = lhs(F1)
-  L1 = rhs(F1)
+    # Tentative velocity step
+    F1 = (1/k)*inner(u - u0, v)*dx + inner(grad(u0)*u0, v)*dx + \
+         nu*inner(grad(u), grad(v))*dx - inner(f, v)*dx
+    a1 = lhs(F1)
+    L1 = rhs(F1)
 
-  # Pressure update
-  a2 = inner(grad(p), grad(q))*dx
-  L2 = -(1/k)*div(u1)*q*dx
+    # Pressure update
+    a2 = inner(grad(p), grad(q))*dx
+    L2 = -(1/k)*div(u1)*q*dx
 
-  # Velocity update
-  a3 = inner(u, v)*dx
-  L3 = inner(u1, v)*dx - k*inner(grad(p1), v)*dx
+    # Velocity update
+    a3 = inner(u, v)*dx
+    L3 = inner(u1, v)*dx - k*inner(grad(p1), v)*dx
 
-  # Assemble matrices
-  A1 = assemble(a1, cache=True)
-  A2 = assemble(a2, cache=True)
-  A3 = assemble(a3, cache=True)
+    # Assemble matrices
+    A1 = assemble(a1, cache=True)
+    A2 = assemble(a2, cache=True)
+    A3 = assemble(a3, cache=True)
 
-  prec = "amg" if has_krylov_solver_preconditioner("amg") else "default"
-  
-  begin("Projecting initial velocity")
-  phi = Function(Q, name = "ScalarPotential")
-  b = assemble(-div(u0) * q * dx)
-  [bc.apply(A2, b) for bc in bcp]
-  solve(A2, phi.vector(), b, "gmres", prec)
-  b = assemble(inner(u0, v) * dx - inner(grad(phi), v) * dx)
-  [bc.apply(A3, b) for bc in bcu]  
-  solve(A3, u0.vector(), b, "gmres", "default")
-  del(phi, b)
-  end()
+    prec = "amg" if has_krylov_solver_preconditioner("amg") else "default"
 
-  # Time-stepping
-  t = dt
-  while t < T + DOLFIN_EPS:
+    begin("Projecting initial velocity")
+    phi = Function(Q, name = "ScalarPotential")
+    b = assemble(-div(u0) * q * dx)
+    [bc.apply(A2, b) for bc in bcp]
+    solve(A2, phi.vector(), b, "gmres", prec)
+    b = assemble(inner(u0, v) * dx - inner(grad(phi), v) * dx)
+    [bc.apply(A3, b) for bc in bcu]
+    solve(A3, u0.vector(), b, "gmres", "default")
+    del(phi, b)
+    end()
 
-      # Update pressure boundary condition
-      p_in.t = t
+    # Time-stepping
+    t = dt
+    while t < T + DOLFIN_EPS:
 
-      # Compute tentative velocity step
-      begin("Computing tentative velocity")
-      b1 = assemble(L1)
-      [bc.apply(A1, b1) for bc in bcu]
-      solve(A1, u1.vector(), b1, "gmres", "default")
-      end()
+        # Update pressure boundary condition
+        p_in.t = t
 
-      # Pressure correction
-      begin("Computing pressure correction")
-      b2 = assemble(L2)
-      [bc.apply(A2, b2) for bc in bcp]
-      solve(A2, p1.vector(), b2, "gmres", prec)
-      end()
+        # Compute tentative velocity step
+        begin("Computing tentative velocity")
+        b1 = assemble(L1)
+        [bc.apply(A1, b1) for bc in bcu]
+        solve(A1, u1.vector(), b1, "gmres", "default")
+        end()
 
-      # Velocity correction
-      begin("Computing velocity correction")
-      b3 = assemble(L3)
-      [bc.apply(A3, b3) for bc in bcu]
-      solve(A3, u1.vector(), b3, "gmres", "default")
-      end()
+        # Pressure correction
+        begin("Computing pressure correction")
+        b2 = assemble(L2)
+        [bc.apply(A2, b2) for bc in bcp]
+        solve(A2, p1.vector(), b2, "gmres", prec)
+        end()
 
-      # Move to next time step
-      u0.assign(u1)
-      t += dt
-      adj_inc_timestep()
-  return u0
+        # Velocity correction
+        begin("Computing velocity correction")
+        b3 = assemble(L3)
+        [bc.apply(A3, b3) for bc in bcu]
+        solve(A3, u1.vector(), b3, "gmres", "default")
+        end()
+
+        # Move to next time step
+        u0.assign(u1)
+        t += dt
+        adj_inc_timestep()
+    return u0
 
 if __name__ == "__main__":
 
-  import sys
+    import sys
 
-  ic = Function(V)
-  fwd_timer = Timer("Forward run")
-  soln = main(ic)
-  fwd_time = fwd_timer.stop()
-  parameters["adjoint"]["stop_annotating"] = True
+    ic = Function(V)
+    fwd_timer = Timer("Forward run")
+    soln = main(ic)
+    fwd_time = fwd_timer.stop()
+    parameters["adjoint"]["stop_annotating"] = True
 
-  adj_html("forward.html", "forward")
-  adj_html("adjoint.html", "adjoint")
+    adj_html("forward.html", "forward")
+    adj_html("adjoint.html", "adjoint")
 
-  replay_timer = Timer("Replay")
-  success = replay_dolfin(tol=1.0e-9)
-  replay_time = replay_timer.stop()
+    replay_timer = Timer("Replay")
+    success = replay_dolfin(tol=1.0e-9)
+    replay_time = replay_timer.stop()
 
-  ratio = replay_time / fwd_time
+    ratio = replay_time / fwd_time
 
-  print "Forward time: ", fwd_time
-  print "Replay time: ", replay_time
-  print "Ratio: ", ratio
+    print "Forward time: ", fwd_time
+    print "Replay time: ", replay_time
+    print "Ratio: ", ratio
 
-  assert success
-  if '--ignore' not in sys.argv:
-    assert ratio < 1.5
+    assert success
+    if '--ignore' not in sys.argv:
+        assert ratio < 1.5
 
-  J = Functional(inner(soln, soln)**1*dx*dt[FINISH_TIME] + inner(soln, soln)*dx*dt[START_TIME])
-  m = Control(soln)
-  adj_timer = Timer("Adjoint run")
-  dJdm = compute_gradient(J, m)
-  adj_time = adj_timer.stop()
+    J = Functional(inner(soln, soln)**1*dx*dt[FINISH_TIME] + inner(soln, soln)*dx*dt[START_TIME])
+    m = Control(soln)
+    adj_timer = Timer("Adjoint run")
+    dJdm = compute_gradient(J, m)
+    adj_time = adj_timer.stop()
 
-  print "Adjoint time: ", adj_time
-  ratio = adj_time / fwd_time
-  print "Ratio: ", ratio
+    print "Adjoint time: ", adj_time
+    ratio = adj_time / fwd_time
+    print "Ratio: ", ratio
 
-  if '--ignore' not in sys.argv:
-    assert ratio < 1.5
+    if '--ignore' not in sys.argv:
+        assert ratio < 1.5

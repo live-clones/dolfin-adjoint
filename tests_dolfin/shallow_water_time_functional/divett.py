@@ -1,4 +1,4 @@
-from dolfin import * 
+from dolfin import *
 from math import exp, sqrt, pi
 
 import sw_lib
@@ -39,16 +39,16 @@ mesh.order()
 mesh.init()
 
 class Left(SubDomain):
-      def inside(self, x, on_boundary):
-           return on_boundary and near(x[0], 0.0)
+    def inside(self, x, on_boundary):
+        return on_boundary and near(x[0], 0.0)
 
 class Right(SubDomain):
-      def inside(self, x, on_boundary):
-           return on_boundary and near(x[0], basin_x)
+    def inside(self, x, on_boundary):
+        return on_boundary and near(x[0], basin_x)
 
 class Sides(SubDomain):
-      def inside(self, x, on_boundary):
-           return on_boundary and (near(x[1], 0.0) or near(x[1], basin_y))
+    def inside(self, x, on_boundary):
+        return on_boundary and (near(x[1], 0.0) or near(x[1], basin_y))
 
 # Initialize sub-domain instances
 left = Left()
@@ -57,9 +57,9 @@ sides = Sides()
 
 # Initialize mesh function for boundary domains
 try:
-  boundaries = FacetFunction("sizet", mesh)
+    boundaries = FacetFunction("sizet", mesh)
 except:
-  boundaries = FacetFunction("size_t", mesh)
+    boundaries = FacetFunction("size_t", mesh)
 boundaries.set_all(0)
 left.mark(boundaries, 1)
 right.mark(boundaries, 2)

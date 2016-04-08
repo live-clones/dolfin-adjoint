@@ -1,4 +1,4 @@
-import ufl 
+import ufl
 import libadjoint
 
 class TimeConstant(object):
@@ -12,7 +12,7 @@ class StartTimeConstant(TimeConstant):
         TimeConstant.__init__(self, "START_TIME")
     def __cmp__(self, other):
         if isinstance(other, StartTimeConstant):
-          return 0
+            return 0
         return -1
     def __repr__(self):
         return "StartTimeConstant()"
@@ -22,7 +22,7 @@ class FinishTimeConstant(TimeConstant):
         TimeConstant.__init__(self, "FINISH_TIME")
     def __cmp__(self, other):
         if isinstance(other, FinishTimeConstant):
-          return 0
+            return 0
         return 1
     def __repr__(self):
         return "FinishTimeConstant()"
@@ -39,7 +39,7 @@ class NoTime(TimeConstant):
             raise libadjoint.exceptions.LibadjointErrorInvalidInputs("Invalid time information: "+self.label)
     def __repr__(self):
         return "NoTimeConstant("+self.label+")"
-    
+
 
 START_TIME = StartTimeConstant()
 FINISH_TIME = FinishTimeConstant()
@@ -54,7 +54,7 @@ def timeslice(inslice):
         start = START_TIME
     else:
         start = inslice.start
-        
+
     if inslice.stop is None:
         stop = FINISH_TIME
     else:
@@ -75,7 +75,7 @@ class TimeTerm(object):
 
     def __mul__(self, factor):
         return TimeTerm(factor * self.form, self.time)
-    
+
     __rmul__ = __mul__
 
     def __div__(self, factor):
@@ -83,7 +83,7 @@ class TimeTerm(object):
 
     def __repr__(self):
         return "TimeTerm("+self.form.__repr__()+",time = "+\
-            repr(self.time)+")"    
+            repr(self.time)+")"
 
     def __neg__(self):
         return TimeTerm(-self.form,self.time)
@@ -101,7 +101,7 @@ class TimeForm(object):
 
     def __add__(self, other):
         # Adding occurs by concatenating terms in the forms list.
-        
+
         if isinstance(other, TimeForm):
             sum = TimeForm(self.terms + other.terms)
             return sum
@@ -118,9 +118,9 @@ class TimeForm(object):
 
     def __sub__(self, other):
         # Subtract by adding the negation of all the terms.
-        
+
         if isinstance(other, TimeForm):
-            sum = TimeForm(self.terms + [-term for term in other.terms])        
+            sum = TimeForm(self.terms + [-term for term in other.terms])
             return sum
 
         else:
@@ -134,7 +134,7 @@ class TimeForm(object):
 
     def __mul__(self, factor):
         return TimeForm([factor * term for term in self.terms])
-    
+
     __rmul__ = __mul__
 
     def __div__(self, factor):
@@ -144,39 +144,39 @@ class TimeForm(object):
         return "TimeForm("+repr(self.terms)+")"
 
     def is_functional(self):
-      for term in self.terms:
-          form = term.form
+        for term in self.terms:
+            form = term.form
 
-          if hasattr(form, 'compute_form_data'):
-            fd = form.compute_form_data()
-            if fd.rank != 0:
-                return False
-          else:
-            if term.form.arguments():
-              return False
+            if hasattr(form, 'compute_form_data'):
+                fd = form.compute_form_data()
+                if fd.rank != 0:
+                    return False
+            else:
+                if term.form.arguments():
+                    return False
 
-          return True
+            return True
 
 
 class TimeMeasure(object):
     '''Define a measure for an integral over some interval in time.'''
     def __init__(self, interval = None):
-        
+
         if interval is None:
             interval = slice(START_TIME,FINISH_TIME,None)
 
         self.interval = timeslice(interval)
 
     def __getitem__(object, key):
-        
+
         return TimeMeasure(timeslice(key))
 
     def __rmul__(self, other):
-        
+
         if isinstance(other, ufl.form.Form):
             # Multiplication with a form produces the TimeForm.
             return TimeForm(TimeTerm(other, self.interval))
-            
+
         else:
             return NotImplemented
 
@@ -187,14 +187,14 @@ dt = TimeMeasure()
 
 if __name__ == "__main__":
     from dolfin import *
-    
+
     mesh = UnitSquare(2,2)
-    
+
     U = FunctionSpace(mesh, "Lagrange", 1)
     v = TestFunction(U)
 
     F = v*dx
-    
+
     TF = F*dt
-    
-    AT = at_time(F,0.0) 
+
+    AT = at_time(F,0.0)

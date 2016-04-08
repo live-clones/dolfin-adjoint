@@ -86,80 +86,80 @@ T_bcs = [bottom_temperature, top_temperature]
 
 def main(T_, annotate=False):
   # Define initial and end time
-  t = 0.0
-  finish = 0.015
+    t = 0.0
+    finish = 0.015
 
-  # Define boundary conditions for the velocity and pressure u
-  bottom = DirichletBC(W.sub(0), (0.0, 0.0), "x[1] == 0.0" )
-  top = DirichletBC(W.sub(0).sub(1), 0.0, "x[1] == %g" % height)
-  left = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == 0.0")
-  right = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == %g" % length)
-  evil = DirichletBC(W.sub(1), 0.0, "x[0] < DOLFIN_EPS && x[1] < DOLFIN_EPS",
-                     "pointwise")
-  bcs = [bottom, top, left, right, evil]
+    # Define boundary conditions for the velocity and pressure u
+    bottom = DirichletBC(W.sub(0), (0.0, 0.0), "x[1] == 0.0" )
+    top = DirichletBC(W.sub(0).sub(1), 0.0, "x[1] == %g" % height)
+    left = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == 0.0")
+    right = DirichletBC(W.sub(0).sub(0), 0.0, "x[0] == %g" % length)
+    evil = DirichletBC(W.sub(1), 0.0, "x[0] < DOLFIN_EPS && x[1] < DOLFIN_EPS",
+                       "pointwise")
+    bcs = [bottom, top, left, right, evil]
 
-  rho = interpolate(rho0, Q)
+    rho = interpolate(rho0, Q)
 
-  # Functions at previous timestep (and initial conditions)
-  (w_, P) = compute_initial_conditions(T_, W, Q, bcs, annotate=annotate)
+    # Functions at previous timestep (and initial conditions)
+    (w_, P) = compute_initial_conditions(T_, W, Q, bcs, annotate=annotate)
 
-  # Predictor functions
-  T_pr = Function(Q, name="TentativeTemperature")      # Tentative temperature (T)
+    # Predictor functions
+    T_pr = Function(Q, name="TentativeTemperature")      # Tentative temperature (T)
 
-  # Functions at this timestep
-  T = Function(Q, name="Temperature")         # Temperature (T) at this time step
-  w = Function(W, name="VelocityPressure")
+    # Functions at this timestep
+    T = Function(Q, name="Temperature")         # Temperature (T) at this time step
+    w = Function(W, name="VelocityPressure")
 
-  # Store initial data
-  store(T_, w_, 0.0)
+    # Store initial data
+    store(T_, w_, 0.0)
 
-  # Define initial CLF and time step
-  CLFnum = 0.5
-  dt = compute_timestep(w_)
-  t += dt
-  n = 1
+    # Define initial CLF and time step
+    CLFnum = 0.5
+    dt = compute_timestep(w_)
+    t += dt
+    n = 1
 
-  w_pr = Function(W, name="TentativeVelocityPressure")
-  (u_pr, p_pr) = split(w_pr)
-  (u_, p_) = split(w_)
+    w_pr = Function(W, name="TentativeVelocityPressure")
+    (u_pr, p_pr) = split(w_pr)
+    (u_, p_) = split(w_)
 
-  # Solver for the Stokes systems
+    # Solver for the Stokes systems
 
-  while (t <= finish and n <= 2):
+    while (t <= finish and n <= 2):
     #message(t, dt)
 
     # Solve for predicted temperature in terms of previous velocity
-    (a, L) = energy(Q, Constant(dt), u_, T_)
-    solve(a == L, T_pr, T_bcs, annotate=annotate)
+        (a, L) = energy(Q, Constant(dt), u_, T_)
+        solve(a == L, T_pr, T_bcs, annotate=annotate)
 
-    # Solve for predicted flow
-    eta = viscosity(T_pr)
-    (a, L, precond) = momentum(W, eta, (Ra*T_pr)*g)
-    solve(a == L, w_pr, bcs, annotate=annotate)
+        # Solve for predicted flow
+        eta = viscosity(T_pr)
+        (a, L, precond) = momentum(W, eta, (Ra*T_pr)*g)
+        solve(a == L, w_pr, bcs, annotate=annotate)
 
-    # Solve for corrected temperature T in terms of predicted and previous velocity
-    (a, L) = energy_correction(Q, Constant(dt), u_pr, u_, T_)
-    solve(a == L, T, T_bcs, annotate=annotate)
+        # Solve for corrected temperature T in terms of predicted and previous velocity
+        (a, L) = energy_correction(Q, Constant(dt), u_pr, u_, T_)
+        solve(a == L, T, T_bcs, annotate=annotate)
 
-    # Solve for corrected flow
-    eta = viscosity(T)
-    (a, L, precond) = momentum(W, eta, (Ra*T)*g)
-    solve(a == L, w, bcs, annotate=annotate)
+        # Solve for corrected flow
+        eta = viscosity(T)
+        (a, L, precond) = momentum(W, eta, (Ra*T)*g)
+        solve(a == L, w, bcs, annotate=annotate)
 
-    # Store stuff
-    store(T, w, t)
+        # Store stuff
+        store(T, w, t)
 
-    # Compute time step
-    dt = compute_timestep(w)
+        # Compute time step
+        dt = compute_timestep(w)
 
-    # Move to new timestep and update functions
-    T_.assign(T)
-    w_.assign(w)
-    t += dt
-    n += 1
-    adj_inc_timestep()
+        # Move to new timestep and update functions
+        T_.assign(T)
+        w_.assign(w)
+        t += dt
+        n += 1
+        adj_inc_timestep()
 
-  return T_
+    return T_
 
 def Nusselt():
     "Definition of Nusselt number, cf Blankenbach et al 1989"
@@ -182,32 +182,32 @@ def Nusselt():
     #return Nu
 
 if __name__ == "__main__":
-  Tic = Function(interpolate(InitialTemperature(Ra, length), Q), name="InitialTemperature")
-  ic_copy = Function(Tic)
-  another_copy = Function(Tic)
+    Tic = Function(interpolate(InitialTemperature(Ra, length), Q), name="InitialTemperature")
+    ic_copy = Function(Tic)
+    another_copy = Function(Tic)
 
-  Tfinal = main(Tic, annotate=True)
-  (ds2, Nu2) = Nusselt()
+    Tfinal = main(Tic, annotate=True)
+    (ds2, Nu2) = Nusselt()
 
-  #print "Replaying forward run ... "
-  #adj_html("forward.html", "forward")
-  #success = replay_dolfin(forget=False, stop=True)
+    #print "Replaying forward run ... "
+    #adj_html("forward.html", "forward")
+    #success = replay_dolfin(forget=False, stop=True)
 
-  print "Running adjoint ... "
-  adj_html("adjoint.html", "adjoint")
+    print "Running adjoint ... "
+    adj_html("adjoint.html", "adjoint")
 
-  J = Functional(-(1.0/Nu2)*grad(Tfinal)[1]*ds2*dt[FINISH_TIME])
-  for (adjoint, var) in compute_adjoint(J, forget=False):
-    pass
+    J = Functional(-(1.0/Nu2)*grad(Tfinal)[1]*ds2*dt[FINISH_TIME])
+    for (adjoint, var) in compute_adjoint(J, forget=False):
+        pass
 
-  def J(ic):
-    Tfinal = main(ic)
-    return assemble(-(1.0/Nu2)*grad(Tfinal)[1]*ds2)
+    def J(ic):
+        Tfinal = main(ic)
+        return assemble(-(1.0/Nu2)*grad(Tfinal)[1]*ds2)
 
-  direction = Function(ic_copy)
-  direction.vector()[:] = 1.0
+    direction = Function(ic_copy)
+    direction.vector()[:] = 1.0
 
-  minconv = test_initial_condition_adjoint(J, ic_copy, adjoint, seed=5.0e-1, perturbation_direction=direction)
+    minconv = test_initial_condition_adjoint(J, ic_copy, adjoint, seed=5.0e-1, perturbation_direction=direction)
 
-  if minconv < 1.8:
-    sys.exit(1)
+    if minconv < 1.8:
+        sys.exit(1)

@@ -21,7 +21,7 @@ def message(t, dt):
     print "-"*60
 
 def preconditioner():
-    eta = eta0 * exp(-b_val*T_/deltaT + c_val*(1.0 - triangle.x[1])/height ) 
+    eta = eta0 * exp(-b_val*T_/deltaT + c_val*(1.0 - triangle.x[1])/height )
     (a, L, pre) = momentum(mesh, eta, g, Ra*T_ - Rb*phi_)
     (A, b) = assemble_system(a, L, bcs)
     P = assemble_system(pre, L, bcs)[0]
@@ -147,11 +147,11 @@ while (t <= finish):
 
     # Solve for predicted velocity
     H = Ra*T_pr - Rb*phi_pr
-    eta = eta0 * exp(-b_val*T_pr/deltaT + c_val*(1.0 - triangle.x[1])/height ) 
+    eta = eta0 * exp(-b_val*T_pr/deltaT + c_val*(1.0 - triangle.x[1])/height )
     (a, L, precond) = momentum(mesh, eta, g, H)
     (A, b) = assemble_system(a, L, bcs)
     solver.set_operators(A, P)
-    t1 = time.time()	
+    t1 = time.time()
     solver.solve(velocity_pressure.vector(), b)
     t2 = time.time()
     print "Krylov solve took ", (t2 - t1)
@@ -183,8 +183,8 @@ while (t <= finish):
 
     # Solve for corrected velocity
     H = Ra*T - Rb*phi
-    eta = eta0 * exp(-b_val*T/deltaT + c_val*(1.0 - triangle.x[1])/height ) 
- 
+    eta = eta0 * exp(-b_val*T/deltaT + c_val*(1.0 - triangle.x[1])/height )
+
     #solve(A, velocity_pressure.vector(), b)
     (a, L, precond) = momentum(mesh, eta, g, H)
     (A, b) = assemble_system(a, L, bcs)
@@ -214,4 +214,3 @@ while (t <= finish):
     t += dt
 
 interactive()
-

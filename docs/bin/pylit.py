@@ -17,7 +17,7 @@
 
 """pylit: bidirectional text <-> code converter
 
-Convert between a *text document* with embedded code 
+Convert between a *text document* with embedded code
 and *source code* with embedded documentation.
 """
 

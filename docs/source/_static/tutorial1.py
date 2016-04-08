@@ -22,6 +22,6 @@ bc = DirichletBC(V, (0.0, 0.0), "on_boundary")
 t = 0.0
 end = 0.1
 while (t <= end):
-  solve(F == 0, u_next, bc)
-  u.assign(u_next)
-  t += float(timestep)
+    solve(F == 0, u_next, bc)
+    u.assign(u_next)
+    t += float(timestep)

@@ -59,8 +59,8 @@ if __name__ == "__main__":
     m_dot = interpolate(Constant(1.0), V)
 
     def Jfunc(ic):
-      forward = main(ic, annotate=False)
-      return assemble(inner(forward, forward)**2*dx)
+        forward = main(ic, annotate=False)
+        return assemble(inner(forward, forward)**2*dx)
 
     minconv = taylor_test(Jfunc, m, Jm, dJdm, HJm=HJm, perturbation_direction=m_dot, seed=0.2)
 #    assert minconv > 1.9

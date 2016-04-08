@@ -1,3 +1,9 @@
+dolfin-adjoint (1.6~vivid) vivid; urgency=low
+
+  * Release dolfin-adjoint version 1.6.
+
+ -- Simon Funke <simon@simula.no>  Thu, 20 Aug 2015 16:37:05 +0100
+
 dolfin-adjoint (1.5~utopic) utopic; urgency=low
 
   * Release dolfin-adjoint version 1.5.

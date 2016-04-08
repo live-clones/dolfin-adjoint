@@ -169,7 +169,7 @@ class IPOPTSolver(OptimizationSolver):
                     cols = range(ncontrols) * nconstraints
                     return (numpy.array(rows), numpy.array(cols))
                 else:
-                  return numpy.array(gather(constraint.jacobian(x)))
+                    return numpy.array(gather(constraint.jacobian(x)))
 
             # The bounds for the constraint: by the definition of our
             # constraint type, the lower bound is always zero,

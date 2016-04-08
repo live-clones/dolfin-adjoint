@@ -5,7 +5,7 @@ import os.path
 
 dolfin.parameters["adjoint"]["cache_factorizations"] = True
 if dolfin.__version__ > '1.2.0':
-  dolfin.parameters["adjoint"]["symmetric_bcs"] = True
+    dolfin.parameters["adjoint"]["symmetric_bcs"] = True
 
 n = 30
 mesh = UnitIntervalMesh(n)
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     m1 = FunctionControl("Velocity")
     m2 = ConstantControl("nu")
 
-    # Test caching of the reduced functional evaluation 
+    # Test caching of the reduced functional evaluation
     rf = ReducedFunctional(J, [m1, m2], cache=cache_file)
 
     t = dolfin.Timer("")
@@ -66,10 +66,10 @@ if __name__ == "__main__":
     b = rf([interpolate(Constant(2), V), Constant(4)])
     time_b = t.stop()
 
-    assert a == b 
+    assert a == b
     assert time_a/time_b > 50 # Check that speed-up is significant
 
-    # Now let's test the caching of the functional gradient 
+    # Now let's test the caching of the functional gradient
     t = dolfin.Timer("")
     a = rf.derivative(forget=False)
     time_a = t.stop()
@@ -79,14 +79,14 @@ if __name__ == "__main__":
     time_b = t.stop()
 
     assert max(abs(a[0].vector().array() - b[0].vector().array())) == 0
-    assert float(a[1]) == float(b[1]) 
+    assert float(a[1]) == float(b[1])
     assert time_a/time_b > 100 # Check that speed-up is significant
 
-    # Finally, let's check caching of the Hessian 
+    # Finally, let's check caching of the Hessian
     # TODO
 
     # Check that the cache file gets created
-    del rf  
-    assert os.path.isfile(cache_file) 
+    del rf
+    assert os.path.isfile(cache_file)
 
     info_green("Test passed")

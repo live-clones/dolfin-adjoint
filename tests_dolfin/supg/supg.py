@@ -41,9 +41,9 @@ def boundary_value(n):
 # Load mesh and subdomains
 mesh = Mesh("mesh.xml.gz")
 try:
-  sub_domains = MeshFunction("sizet", mesh, "subdomains.xml.gz");
+    sub_domains = MeshFunction("sizet", mesh, "subdomains.xml.gz");
 except:
-  sub_domains = MeshFunction("size_t", mesh, "subdomains.xml.gz");
+    sub_domains = MeshFunction("size_t", mesh, "subdomains.xml.gz");
 h = CellSize(mesh)
 
 # Create FunctionSpaces
@@ -57,103 +57,103 @@ File("velocity.xml.gz") >> velocity
 
 def main(u0, f):
 
-  # Parameters
-  T = 1.0
-  dt = 0.1
-  t = dt
-  c = 0.00005
+    # Parameters
+    T = 1.0
+    dt = 0.1
+    t = dt
+    c = 0.00005
 
-  # Test and trial functions
-  u, v = TrialFunction(Q), TestFunction(Q)
-  u_new = Function(Q)
+    # Test and trial functions
+    u, v = TrialFunction(Q), TestFunction(Q)
+    u_new = Function(Q)
 
-  # Mid-point solution
-  u_mid = 0.5*(u0 + u)
+    # Mid-point solution
+    u_mid = 0.5*(u0 + u)
 
-  # Residual
-  r = u-u0 + dt*(dot(velocity, grad(u_mid)) - c*div(grad(u_mid)) - f)
+    # Residual
+    r = u-u0 + dt*(dot(velocity, grad(u_mid)) - c*div(grad(u_mid)) - f)
 
-  # Galerkin variational problem
-  F = v*(u-u0)*dx + dt*(v*dot(velocity, grad(u_mid))*dx + c*dot(grad(v), grad(u_mid))*dx)
+    # Galerkin variational problem
+    F = v*(u-u0)*dx + dt*(v*dot(velocity, grad(u_mid))*dx + c*dot(grad(v), grad(u_mid))*dx)
 
-  # Add SUPG stabilisation terms
-  vnorm = sqrt(dot(velocity, velocity))
-  F += (h/2.0*vnorm)*dot(velocity, grad(v))*r*dx
+    # Add SUPG stabilisation terms
+    vnorm = sqrt(dot(velocity, velocity))
+    F += (h/2.0*vnorm)*dot(velocity, grad(v))*r*dx
 
-  # Create bilinear and linear forms
-  a = lhs(F)
-  L = rhs(F)
+    # Create bilinear and linear forms
+    a = lhs(F)
+    L = rhs(F)
 
-  # Set up boundary condition
-  g = Expression("b", b=boundary_value(0))
-  bc = DirichletBC(Q, g, sub_domains, 1)
+    # Set up boundary condition
+    g = Expression("b", b=boundary_value(0))
+    bc = DirichletBC(Q, g, sub_domains, 1)
 
-  # Assemble matrix
-  A = assemble(a)
-  bc.apply(A)
+    # Assemble matrix
+    A = assemble(a)
+    bc.apply(A)
 
-  # Create linear solver and factorize matrix
-  solver = LUSolver()
-  solver.set_operator(A)
-  solver.parameters["reuse_factorization"] = True
+    # Create linear solver and factorize matrix
+    solver = LUSolver()
+    solver.set_operator(A)
+    solver.parameters["reuse_factorization"] = True
 
-  # Output file
-  out_file = File("results/temperature.pvd")
+    # Output file
+    out_file = File("results/temperature.pvd")
 
-  # Set intial condition
-  u_new.assign(u0)
+    # Set intial condition
+    u_new.assign(u0)
 
-  # Time-stepping
-  while t < T:
+    # Time-stepping
+    while t < T:
 
     # Assemble vector and apply boundary conditions
-    b = assemble(L)
-    bc.apply(b)
+        b = assemble(L)
+        bc.apply(b)
 
-    # Solve the linear system (re-use the already factorized matrix A)
-    solver.solve(u_new.vector(), b)
+        # Solve the linear system (re-use the already factorized matrix A)
+        solver.solve(u_new.vector(), b)
 
-    # Copy solution from previous interval
-    u0.assign(u_new)
+        # Copy solution from previous interval
+        u0.assign(u_new)
 
-    # Save the solution to file
-    out_file << (u_new, t)
+        # Save the solution to file
+        out_file << (u_new, t)
 
-    # Move to next interval and adjust boundary condition
-    t += dt
-    g.b = boundary_value(int(t/dt))
+        # Move to next interval and adjust boundary condition
+        t += dt
+        g.b = boundary_value(int(t/dt))
 
-  return u0
+    return u0
 
 if __name__ == "__main__":
-  u0 = Function(Q, name="Tracer")
-  f  = Constant(0.0)
-  u = main(u0, f=f)
+    u0 = Function(Q, name="Tracer")
+    f  = Constant(0.0)
+    u = main(u0, f=f)
 
-  adj_html("forward.html", "forward")
-  adj_html("adjoint.html", "adjoint")
+    adj_html("forward.html", "forward")
+    adj_html("adjoint.html", "adjoint")
 
-  info_blue("Replaying forward model .. ")
+    info_blue("Replaying forward model .. ")
 
-  success = replay_dolfin()
+    success = replay_dolfin()
 
-  if not success:
-    sys.exit(1)
+    if not success:
+        sys.exit(1)
 
-  info_blue("Running adjoint ... ")
+    info_blue("Running adjoint ... ")
 
-  J = Functional(u*u*dx*dt[FINISH_TIME])
-  param = Control(f)
-  dJdf = compute_gradient(J, param, forget=False)
+    J = Functional(u*u*dx*dt[FINISH_TIME])
+    param = Control(f)
+    dJdf = compute_gradient(J, param, forget=False)
 
-  def J(param):
-    u0 = Function(Q)
-    u = main(u0, f=param)
-    return assemble(u*u*dx)
+    def J(param):
+        u0 = Function(Q)
+        u = main(u0, f=param)
+        return assemble(u*u*dx)
 
-  info_blue("Verifying adjoint ... ")
+    info_blue("Verifying adjoint ... ")
 
-  minconv = test_scalar_parameter_adjoint(J, f, dJdf)
+    minconv = test_scalar_parameter_adjoint(J, f, dJdf)
 
-  if minconv < 1.9:
-    sys.exit(1)
+    if minconv < 1.9:
+        sys.exit(1)

@@ -39,13 +39,12 @@ class InitialConditions(Expression):
         return (3,)
 
 try:
-  mesh=Mesh("basin.xml")
+    mesh=Mesh("basin.xml")
 except RuntimeError:
-  import sys
-  import os.path
+    import sys
+    import os.path
 
-  mesh=Mesh(os.path.dirname(sys.argv[0]) + os.path.sep + "basin.xml")
+    mesh=Mesh(os.path.dirname(sys.argv[0]) + os.path.sep + "basin.xml")
 
 mesh.order()
 mesh.init()
-

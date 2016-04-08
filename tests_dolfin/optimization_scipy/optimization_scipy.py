@@ -42,8 +42,8 @@ def main(u, annotate=False):
         adj_inc_timestep(time=t, finished = t>end)
 
 def derivative_cb(j, dj, m):
-  print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(),
-                                                m.vector().max())
+    print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(),
+                                                  m.vector().max())
 
 if __name__ == "__main__":
 
@@ -64,40 +64,39 @@ if __name__ == "__main__":
                                            derivative_cb_post=derivative_cb)
 
     try:
-      print "\n === Solving problem with L-BFGS-B. === \n"
-      u_opt = minimize(reduced_functional, method = 'L-BFGS-B', bounds = (lb, 1), tol = 1e-10, options = {'disp': True})
+        print "\n === Solving problem with L-BFGS-B. === \n"
+        u_opt = minimize(reduced_functional, method = 'L-BFGS-B', bounds = (lb, 1), tol = 1e-10, options = {'disp': True})
 
-      tol = 1e-9
-      final_functional = reduced_functional(u_opt)
-      print "Final functional value: ", final_functional
-      if final_functional > tol:
-          print 'Test failed: Optimised functional value exceeds tolerance: ' , final_functional, ' > ', tol, '.'
-          sys.exit(1)
+        tol = 1e-9
+        final_functional = reduced_functional(u_opt)
+        print "Final functional value: ", final_functional
+        if final_functional > tol:
+            print 'Test failed: Optimised functional value exceeds tolerance: ' , final_functional, ' > ', tol, '.'
+            sys.exit(1)
 
-      # Run the problem again with SQP, this time for performance reasons with the gradient test switched off
-      dolfin.parameters["optimization"]["test_gradient"] = False
+        # Run the problem again with SQP, this time for performance reasons with the gradient test switched off
+        dolfin.parameters["optimization"]["test_gradient"] = False
 
-      # Method specific arguments:
-      options = {"SLSQP": {"bounds": (lb, 1)},
-                 "BFGS": {"bounds": None},
-                 "COBYLA": {"bounds": None, "rhobeg": 0.1},
-                 "TNC": {"bounds": None},
-                 "L-BFGS-B": {"bounds": (lb, 1)},
-                 "Newton-CG": {"bounds": None},
-                 "Nelder-Mead": {"bounds": None },
-                 "Anneal": {"bounds": None, "lower": -0.1, "upper": 0.1},
-                 "CG": {"bounds": None},
-                 "Powell": {"bounds": None}
-                }
+        # Method specific arguments:
+        options = {"SLSQP": {"bounds": (lb, 1)},
+                   "BFGS": {"bounds": None},
+                   "COBYLA": {"bounds": None, "rhobeg": 0.1},
+                   "TNC": {"bounds": None},
+                   "L-BFGS-B": {"bounds": (lb, 1)},
+                   "Newton-CG": {"bounds": None},
+                   "Nelder-Mead": {"bounds": None },
+                   "Anneal": {"bounds": None, "lower": -0.1, "upper": 0.1},
+                   "CG": {"bounds": None},
+                   "Powell": {"bounds": None}
+                  }
 
-      for method in ["SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Newton-CG", "Nelder-Mead", "Anneal", "CG"]: #, "Powell"]:
-          print "\n === Solving problem with %s. ===\n" % method
-          reduced_functional(ic)
-          u_opt = minimize(reduced_functional,
-                           bounds = options[method].pop("bounds"),
-                           method = method, tol = 1e-10,
-                           options = dict({'disp': True, "maxiter": 2}, **options[method]))
-      info_green("Test passed")
+        for method in ["SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Newton-CG", "Nelder-Mead", "Anneal", "CG"]: #, "Powell"]:
+            print "\n === Solving problem with %s. ===\n" % method
+            reduced_functional(ic)
+            u_opt = minimize(reduced_functional,
+                             bounds = options[method].pop("bounds"),
+                             method = method, tol = 1e-10,
+                             options = dict({'disp': True, "maxiter": 2}, **options[method]))
+        info_green("Test passed")
     except ImportError:
-      info_red("No suitable scipy version found. Aborting test.")
-
+        info_red("No suitable scipy version found. Aborting test.")

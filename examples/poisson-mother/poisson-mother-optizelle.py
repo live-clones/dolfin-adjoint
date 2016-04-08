@@ -53,38 +53,38 @@ rf = ReducedFunctional(J, control)
 class VolumeConstraint(InequalityConstraint):
     """A class that enforces the volume constraint g(a) = volume - a*dx >= 0."""
     def __init__(self, volume, W):
-      self.volume  = float(volume)
+        self.volume  = float(volume)
 
-      # The derivative of the constraint g(x) is constant (it is the diagonal of the lumped mass matrix for the control function space), so let's assemble it here once.
-      # This is also useful in rapidly calculating the integral each time without re-assembling.
-      self.smass  = assemble(TestFunction(W) * Constant(1) * dx)
-      self.tmpvec = Function(W)
+        # The derivative of the constraint g(x) is constant (it is the diagonal of the lumped mass matrix for the control function space), so let's assemble it here once.
+        # This is also useful in rapidly calculating the integral each time without re-assembling.
+        self.smass  = assemble(TestFunction(W) * Constant(1) * dx)
+        self.tmpvec = Function(W)
 
     def function(self, m):
-      self.tmpvec.assign(m)
+        self.tmpvec.assign(m)
 
-      # Compute the integral of the control over the domain
-      integral = self.smass.inner(self.tmpvec.vector())
-      cmax = m.vector().max()
-      cmin = m.vector().min()
+        # Compute the integral of the control over the domain
+        integral = self.smass.inner(self.tmpvec.vector())
+        cmax = m.vector().max()
+        cmin = m.vector().min()
 
-      if MPI.rank(mpi_comm_world()) == 0:
-        print "Current control integral: ", integral
-        print "Maximum of control: ", cmax
-        print "Minimum of control: ", cmin
-      return [self.volume - integral]
+        if MPI.rank(mpi_comm_world()) == 0:
+            print "Current control integral: ", integral
+            print "Maximum of control: ", cmax
+            print "Minimum of control: ", cmin
+        return [self.volume - integral]
 
     def jacobian_action(self, m, dm, result):
-      result[:] = self.smass.inner(-dm.vector())
+        result[:] = self.smass.inner(-dm.vector())
 
     def jacobian_adjoint_action(self, m, dp, result):
-      result.vector()[:] = -1.*dp[0]
+        result.vector()[:] = -1.*dp[0]
 
     def hessian_action(self, m, dm, dp, result):
-      result.vector()[:] = 0.0
+        result.vector()[:] = 0.0
 
     def output_workspace(self):
-      return [0.0]
+        return [0.0]
 
 #problem = MinimizationProblem(rf, bounds=(0.1, 0.8), constraints=VolumeConstraint(0.3, W))
 problem = MinimizationProblem(rf, bounds=(0.1, 0.8))

@@ -19,19 +19,19 @@ def Dt(u, u_, timestep):
     return (u - u_)/timestep
 
 class BurgersProblem(NonlinearProblem):
-  def __init__(self, F, u, bc):
-    NonlinearProblem.__init__(self)
-    self.f = F
-    self.jacob = derivative(F, u)
-    self.bc = bc
+    def __init__(self, F, u, bc):
+        NonlinearProblem.__init__(self)
+        self.f = F
+        self.jacob = derivative(F, u)
+        self.bc = bc
 
-  def F(self, b, x):
-    assemble(self.f, tensor=b)
-    self.bc.apply(b)
+    def F(self, b, x):
+        assemble(self.f, tensor=b)
+        self.bc.apply(b)
 
-  def J(self, A, x):
-    assemble(self.jacob, tensor=A)
-    self.bc.apply(A)
+    def J(self, A, x):
+        assemble(self.jacob, tensor=A)
+        self.bc.apply(A)
 
 def main(ic, annotate=False):
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     Jm = assemble(forward*forward*dx)
 
     def Jfunc(ic):
-      forward = main(ic, annotate=False)
-      return assemble(forward*forward*dx)
+        forward = main(ic, annotate=False)
+        return assemble(forward*forward*dx)
 
     minconv = taylor_test(Jfunc, m, Jm, dJdm)
