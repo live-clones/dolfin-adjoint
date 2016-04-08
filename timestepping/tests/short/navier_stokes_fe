@@ -161,12 +161,12 @@ if dolfin_version() < (1, 6, 0):
   print("%.16e" % err)
   assert(err < 2.0e-14)
 else:
-  ref = 2.4175738706578880e+00
+  ref = 2.4175708574347046e+00
   err = abs(comp - ref)
   print("%.16e" % comp)
   print("%.16e" % ref)
   print("%.16e" % err)
-  assert(err < 2.0e-15)
+  assert(err < 2.0e-14)
 
 timer = Timer("adjoint")
 dJdm = system.compute_gradient(ic)
@@ -180,12 +180,12 @@ if dolfin_version() < (1, 6, 0):
   print("%.16e" % err)
   assert(err < 8.0e-20)
 else:
-  ref = 2.6753588693256763e-05
+  ref = 2.6753551238791110e-05
   err = abs(comp - ref)
   print("%.16e" % comp)
   print("%.16e" % ref)
   print("%.16e" % err)
-  assert(err < 9.0e-20)
+  assert(err < 1.0e-20)
 
 orders = system.taylor_test(ic, grad = dJdm, fact = 1.0e-7)
 assert((orders > 1.98).all())
