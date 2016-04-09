@@ -36,7 +36,7 @@ class PointwiseFunctional(functional.Functional):
         self.name     = kwargs.get("name", None)
         self.regform  = kwargs.get("regform", None)
         self.boost    = kwargs.get("boost", 1.0)
-        self.index    = [kwargs.get("u_ind", None)]*self.coords.shape[0]
+        self.index    = kwargs.get("u_ind", None)
         self.basis    = [None]*self.coords.shape[0]
         self.skip     = [False]*self.coords.shape[0]
 
@@ -70,7 +70,8 @@ class PointwiseFunctional(functional.Functional):
             for self.ref in self.refs:
               if len(self.ref) != len(self.times): # check compatibility inputs
                 raise RuntimeError("Number of timesteps and observations doesn't match %4i vs %4i" %(len(self.times), len(self.refs)))
-
+        if len(self.index) != self.coords.shape[0]:
+            self.index = [self.index]*self.coords.shape[0]
 
         for i in range (self.coords.shape[0]):
             # Prepare pointwise evals for derivative
