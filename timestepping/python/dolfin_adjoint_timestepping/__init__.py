@@ -36,7 +36,7 @@ This version of the library integrates with dolfin-adjoint.
 
 __license__ = "LGPL-3"
 
-__version__ = "1.5.0+"
+__version__ = "1.6.0"
 
 __all__ = \
   dolfin_adjoint_timestepping.__all__ + \
