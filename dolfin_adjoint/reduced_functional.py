@@ -281,12 +281,14 @@ class ReducedFunctional(object):
         value in direction m_dot.
 
 	Args:
-	    m_dot: The direction in control space in which to compute the Hessian. Must be of the same type as the Control (e.g. Function, Constant or lists of latter).
+            m_dot: The direction in control space in which to compute the
+                Hessian. Must be of the same type as the Control (e.g. Function,
+                Constant or lists of latter).
 
-	    project (Optional[bool]): If True, the returned value will be the L2
+            project (Optional[bool]): If True, the returned value will be the L2
                 Riesz representer, if False it will be the l2 Riesz representative.
-                The L2 projection requires one additional linear solve.
-                Defaults to False.
+                The L2 projection requires one additional linear solve.  Defaults to
+                False.
 
 	Returns:
 	    The directional second derivative. The returned type is the same as the control
@@ -337,10 +339,17 @@ class ReducedFunctional(object):
         running the Taylor test.
 
 	Args:
-	    value: The point in control space where to perform the Taylor test. Must be of the same type as the Control (e.g. Function, Constant or lists of latter).
-	    test_hessian (Optional[boolean]): If True, the Taylor test also includes the Hessian. Defaults to False.
-	    seed (Optional[float]): The initial perturbation size for the Taylor test.
-	    perturbation_direction (Optional): The direction in which to perform the Taylor test. Must be of the same type as the Control (e.g. Function, Constant or lists of latter). Defaults to a random direction.
+            value: The point in control space where to perform the Taylor test.
+                Must be of the same type as the Control (e.g. Function, Constant or
+                lists of latter).
+            test_hessian (Optional[boolean]): If True, the Taylor test also
+                includes the Hessian. Defaults to False.
+            seed (Optional[float]): The initial perturbation size for the Taylor
+                test.
+            perturbation_direction (Optional): The direction in which to perform
+                the Taylor test. Must be of the same type as the Control (e.g.
+                Function, Constant or lists of latter). Defaults to a random
+                direction.
 
 	Returns:
 	    float: The minimum (higher-order) convergence rate of all performed tests.
