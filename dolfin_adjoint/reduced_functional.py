@@ -355,7 +355,7 @@ class ReducedFunctional(object):
 	    float: The minimum (higher-order) convergence rate of all performed tests.
 
 	The Taylor test also prints out detailed information about the convergence rate
-	if the fenics.log_level is set accordingly.
+	if the fenics.log_level is set INFO or higher.
         """
 
         Jm = self(m)
