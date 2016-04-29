@@ -358,7 +358,7 @@ class ReducedFunctional(object):
 	if the fenics.log_level is set INFO or higher.
         """
 
-        Jm = self(m)
+        Jm = self(value)
         dJdm = self.derivative(forget=False)
         if test_hessian:
             HJm = self.H

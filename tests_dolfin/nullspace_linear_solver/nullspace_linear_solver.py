@@ -24,7 +24,7 @@ mesh = UnitSquareMesh(n, n)
 V = FunctionSpace(mesh, "CG", 1)
 W = FunctionSpace(mesh, "DG", 0)
 
-f = interpolate(Expression("x[0]"), W, name='Control')
+f = interpolate(Expression("x[0]", degree=1), W, name='Control')
 u = Function(V, name='State')
 v = TrialFunction(V)
 w = TestFunction(V)
@@ -43,7 +43,7 @@ nullspace = VectorSpaceBasis([constants])
 as_backend_type(A).set_nullspace(nullspace)
 
 # now we can solve
-solver = LinearSolver("mumps")
+solver = LinearSolver(mpi_comm_world(), "mumps")
 solver.set_nullspace(nullspace)
 solver.solve(A, u.vector(), b)
 
@@ -56,7 +56,7 @@ alpha = Constant(1e-4)
 J = Functional((0.5*inner(u-d, u-d))*dx + alpha/2*f**2*dx)
 control = Control(f)
 rf = ReducedFunctional(J, control)
-f_opt = minimize(rf, tol=1.0e-10, options={"jtol": 1.0e-4, "factr": 0.0})
+f_opt = minimize(rf, tol=1.0e-10)
 
 # Check that the functional is small enough. If that is not the case, we
 # nullspace handling is probably broken
