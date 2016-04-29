@@ -20,8 +20,7 @@ class Vector(libadjoint.Vector):
 
         self.data=data
         if not (self.data is None or isinstance(self.data, backend.Function) or isinstance(self.data, ufl.Form)):
-            backend.info_red("Got " + str(self.data.__class__) + " as input to the Vector() class. Don't know how to handle that.")
-            raise AssertionError
+            backend.error("Got " + str(self.data.__class__) + " as input to the Vector() class. Don't know how to handle that.")
 
         # self.zero is true if we can prove that the vector is zero.
         if data is None:
@@ -289,7 +288,7 @@ class Matrix(libadjoint.Matrix):
                 # This means we didn't get any contribution on the RHS of the adjoint system. This could be that the
                 # simulation ran further ahead than when the functional was evaluated, or it could be that the
                 # functional is set up incorrectly.
-                backend.info_red("Warning: got zero RHS for the solve associated with variable %s" % var)
+                backend.warning("Warning: got zero RHS for the solve associated with variable %s" % var)
             elif isinstance(b.data, backend.Function):
 
                 assembled_lhs = self.assemble_data()
@@ -325,7 +324,7 @@ class Matrix(libadjoint.Matrix):
             if isinstance(output.data, ufl.Form):
                 output = Vector(backend.Function(output.fn_space, backend.assemble(output.data)))
         elif b.data is None:
-            backend.info_red("Warning: got zero RHS for the solve associated with variable %s" % var)
+            backend.warning("Warning: got zero RHS for the solve associated with variable %s" % var)
             output = Vector(backend.Function(self.test_function().function_space()))
         else:
             dirichlet_bcs = [utils.homogenize(bc) for bc in self.bcs if isinstance(bc, backend.DirichletBC)]
