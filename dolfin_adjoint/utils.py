@@ -663,12 +663,13 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
         return min(convergence_order(with_gradient))
 
 
-def taylor_test_expression(exp, V):
+def taylor_test_expression(exp, V, seed=None):
     """
     Performs a Taylor test of an Expression with dependencies.
 
     exp: The expression to test
     V: A suitable function space on which the expression will be projected.
+    seed: The initial perturbation coefficient for the taylor test.
 
     Warning: This function resets the adjoint tape! """
 
@@ -705,7 +706,7 @@ def taylor_test_expression(exp, V):
 
         #HJ = hessian(J, controls[i], warn=False)
         #minconv = taylor_test(Jfunc, controls[i], J0, dJd0[i], HJm=HJ)
-        minconv = taylor_test(Jfunc, controls[i], J0, dJd0[i])
+        minconv = taylor_test(Jfunc, controls[i], J0, dJd0[i], seed=seed)
 
         if math.isnan(minconv):
             warning("Convergence order is not a number. Assuming that you \
