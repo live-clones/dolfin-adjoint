@@ -2,6 +2,7 @@ import coeffstore
 import expressions
 import caching
 import libadjoint
+from petsc_krylov_solver import reset_petsc_krylov_solvers
 from dolfin_adjoint import backend
 if backend.__name__ == "dolfin":
     import lusolver
@@ -74,6 +75,8 @@ def adj_reset_cache():
     if backend.__name__ == "dolfin":
         lusolver.lu_solvers = [None] * len(lusolver.lu_solvers)
         lusolver.adj_lu_solvers = [None] * len(lusolver.adj_lu_solvers)
+
+    reset_petsc_krylov_solvers()
 
 def adj_html(*args, **kwargs):
     '''This routine dumps the current state of the adjglobals.adjointer to a HTML visualisation.
