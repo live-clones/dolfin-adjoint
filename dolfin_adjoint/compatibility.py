@@ -1,5 +1,7 @@
 import backend
 import numpy
+if backend.__name__ == "dolfin":
+    from backend import cpp
 
 
 if backend.__name__ == "firedrake":
@@ -107,3 +109,26 @@ else:
     def _extract_args(*args, **kwargs):
         eq, u, bcs, _, _, _, _, solver_parameters, _, _, _ = backend.solving._extract_args(*args, **kwargs)
         return eq, u, bcs, None, None, None, None, solver_parameters
+
+
+def gather(vec):
+    """Parallel gather of distributed data (for optimisation algorithms, usually)"""
+    if backend.__name__ == "dolfin":
+        if isinstance(vec, cpp.Function):
+            vec = vec.vector()
+
+        if isinstance(vec, cpp.GenericVector):
+            try:
+                arr = cpp.DoubleArray(vec.size())
+                vec.gather(arr, numpy.arange(vec.size(), dtype='I'))
+                arr = arr.array().tolist()
+            except TypeError:
+                arr = vec.gather(numpy.arange(vec.size(), dtype='intc'))
+        elif isinstance(vec, list):
+            return map(gather, vec)
+        else:
+            arr = vec  # Assume it's a gathered numpy array already
+    else:
+        arr = vec.gather()
+
+    return arr
