@@ -140,10 +140,7 @@ class Function(backend.Function):
         backend.Function.__init__(self, *args, **kwargs)
 
         if hasattr(self, 'adj_name'):
-            if backend.__name__ == "dolfin":
-                self.rename(self.adj_name, "a Function from dolfin-adjoint")
-            else:
-                self.name = self.__str__
+            self.rename(self.adj_name, "a Function from dolfin-adjoint")
 
         if to_annotate:
             if not isinstance(args[0], compatibility.function_space_type):
