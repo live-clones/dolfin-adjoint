@@ -33,6 +33,8 @@ from optimization.ipopt_solver import *
 from optimization.optizelle_solver import *
 from optimization.riesz_maps import *
 
+from reduced_functional import ReducedFunctional
+from reduced_functional_numpy import ReducedFunctionalNumPy, ReducedFunctionalNumpy
 if backend.__name__ == "dolfin":
     from optimization.tao_solver import TAOSolver
     from newton_solver import NewtonSolver
@@ -41,8 +43,6 @@ if backend.__name__ == "dolfin":
     from linear_solver import LinearSolver
     from lusolver import LUSolver
     from localsolver import LocalSolver
-    from reduced_functional import ReducedFunctional
-    from reduced_functional_numpy import ReducedFunctionalNumPy, ReducedFunctionalNumpy
     from optimization.optimization import minimize, maximize, print_optimization_methods, minimise, maximise
     from optimization.multistage_optimization import minimize_multistage
     from optimization.constraints import InequalityConstraint, EqualityConstraint
