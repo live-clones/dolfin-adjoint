@@ -1,5 +1,5 @@
 import numpy as np
-import dolfin
+import backend
 from ..reduced_functional_numpy import ReducedFunctionalNumPy, get_global
 from ..reduced_functional import ReducedFunctional
 from ..utils import gather
@@ -56,8 +56,8 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
     m = [p.data() for p in rf_np.controls]
     m_global = rf_np.obj_to_array(m)
     J = rf_np.__call__
-    dJ = lambda m: rf_np.derivative(m, taylor_test=dolfin.parameters["optimization"]["test_gradient"],
-                                       seed=dolfin.parameters["optimization"]["test_gradient_seed"],
+    dJ = lambda m: rf_np.derivative(m, taylor_test=backend.parameters["optimization"]["test_gradient"],
+                                       seed=backend.parameters["optimization"]["test_gradient_seed"],
                                        forget=forget,
                                        project=project)
     H = rf_np.hessian
@@ -143,8 +143,8 @@ def minimize_custom(rf_np, bounds=None, **kwargs):
     m = [p.data() for p in rf_np.controls]
     m_global = rf_np.obj_to_array(m)
     J = rf_np.__call__
-    dJ = lambda m: rf_np.derivative(m, taylor_test=dolfin.parameters["optimization"]["test_gradient"],
-                                       seed=dolfin.parameters["optimization"]["test_gradient_seed"],
+    dJ = lambda m: rf_np.derivative(m, taylor_test=backend.parameters["optimization"]["test_gradient"],
+                                       seed=backend.parameters["optimization"]["test_gradient_seed"],
                                        forget=None)
     H = rf_np.hessian
 
