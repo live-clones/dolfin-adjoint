@@ -86,7 +86,7 @@ def dolfin_adjoint_assign(self, other, annotate=None, *args, **kwargs):
 def dolfin_adjoint_split(self, *args, **kwargs):
     out = dolfin_split(self, *args, **kwargs)
     for i, fn in enumerate(out):
-        fn.split = True
+        fn.split_da = True
         fn.split_fn = self
         fn.split_i  = i
         fn.split_args = args
