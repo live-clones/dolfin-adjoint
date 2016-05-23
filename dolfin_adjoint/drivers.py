@@ -164,10 +164,7 @@ def rename(J, dJdparam, param):
     if isinstance(dJdparam, list):
         [rename(J, dJdm, m) for (dJdm, m) in zip(dJdparam, param.controls)]
     elif isinstance(dJdparam, backend.Function):
-        if backend.__name__ == "dolfin":
-            dJdparam.rename("d(%s)/d(%s)" % (str(J), str(param)), "a Function from dolfin-adjoint")
-        else:
-            dJdparam.name = "d(%s)/d(%s)" % (str(J), str(param))
+        dJdparam.rename("d(%s)/d(%s)" % (str(J), str(param)), "a Function from dolfin-adjoint")
 
 def project_test(func):
     if isinstance(func, backend.Function):
