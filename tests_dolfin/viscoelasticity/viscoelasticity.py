@@ -183,7 +183,7 @@ def bdf2_step(Z, z_, z__, k_n, g, v_D, ds, params):
 
 # Quick testing for box:
 (mesh, boundaries) = get_box()
-p = Expression("sin(2*pi*t)*1.0/(100)*x[2]", t=0)
+p = Expression("sin(2*pi*t)*1.0/(100)*x[2]", t=0, degree=2)
 amplitude = Constant(0.05)
 
 # Semi-realistic stuff:
@@ -205,7 +205,7 @@ def main(ic, params, amplitude, T=1.0, dt=0.01, annotate=False):
     parameters["form_compiler"]["optimize"] = True
     parameters["form_compiler"]["cpp_optimize"] = True
 
-    ds = Measure("ds")[boundaries]
+    ds = Measure("ds")(subdomain_data=boundaries)
 
     # Define functions for previous timestep (z_), half-time (z_star)
     # and current (z)

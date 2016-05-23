@@ -68,11 +68,18 @@ Driver functions
 .. autoclass:: ReducedFunctional
 
    .. automethod:: __call__
+   .. automethod:: derivative
+   .. automethod:: hessian
+   .. automethod:: taylor_test
 
 .. autoclass:: ReducedFunctionalNumPy
 
    .. automethod:: __call__
+   .. automethod:: derivative
+   .. automethod:: hessian
    .. automethod:: pyopt_problem
+   .. automethod:: set_controls
+   .. automethod:: get_controls
 
 .. _parameter-label:
 

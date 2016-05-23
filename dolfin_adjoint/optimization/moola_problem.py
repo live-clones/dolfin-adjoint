@@ -91,7 +91,7 @@ def MoolaOptimizationProblem(rf, memoize=1):
                 assert isinstance(direction, (moola.DolfinPrimalVector,
                                               moola.DolfinPrimalVectorSet))
                 moola.events.increment("Hessian evaluation")
-                hes = rf.hessian(direction.data)[0]
+                hes = rf.hessian(direction.data)
                 return moola.DolfinDualVector(hes)
 
             return moola_hessian

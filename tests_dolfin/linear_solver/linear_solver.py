@@ -54,7 +54,7 @@ noslip = Constant((0.0, 0.0, 0.0))
 bc0 = DirichletBC(W.sub(0), noslip, top_bottom)
 
 # Inflow boundary condition for velocity
-inflow = Expression(("-sin(x[1]*pi)", "0.0", "0.0"))
+inflow = Expression(("-sin(x[1]*pi)", "0.0", "0.0"), degree=2)
 bc1 = DirichletBC(W.sub(0), inflow, right)
 
 # Boundary condition for pressure at outflow
@@ -81,7 +81,7 @@ A, bb = assemble_system(a, L, bcs)
 P, btmp = assemble_system(b, L, bcs)
 
 # Create Krylov solver and AMG preconditioner
-solver = LinearSolver("tfqmr", "amg")
+solver = LinearSolver(mpi_comm_world(), "tfqmr", "amg")
 
 # Associate operator (A) and preconditioner matrix (P)
 solver.set_operators(A, P)

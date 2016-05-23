@@ -100,7 +100,9 @@ else:
     solve = backend.solving.solve
     matrix_types = lambda: backend.op2.base.Mat
     function_type = backend.Function
-    function_space_type = (backend.FunctionSpace, backend.MixedFunctionSpace)
+    function_space_type = (backend.functionspaceimpl.FunctionSpace,
+                           backend.functionspaceimpl.WithGeometry,
+                           backend.functionspaceimpl.MixedFunctionSpace)
 
     def _extract_args(*args, **kwargs):
         eq, u, bcs, _, _, _, _, solver_parameters, _, _, _ = backend.solving._extract_args(*args, **kwargs)
