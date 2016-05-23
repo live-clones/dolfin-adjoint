@@ -50,13 +50,13 @@ def derivative_cb(j, dj, m):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])"),  V, annotate=False)
     u = Function(ic, name='Velocity')
 
     J = Functional(u*u*dx*dt[FINISH_TIME])
 
     # Run the model once to create the annotation
-    u.assign(ic)
+    u.assign(ic, annotate=False)
     main(u, annotate=True)
 
     # Run the optimisation
@@ -96,7 +96,7 @@ if __name__ == "__main__":
                "Powell": {"bounds": None}
               }
 
-    for method in ["SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Nelder-Mead", "Anneal", "CG"]: #, "Powell"]:
+    for method in ["SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Nelder-Mead", "CG"]: #, "Powell"]:
         print "\n === Solving problem with %s. ===\n" % method
         u_opt.assign(ic, annotate = False)
         reduced_functional(u_opt)

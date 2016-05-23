@@ -130,7 +130,14 @@ class ReducedFunctional(object):
             pickle.dump(self._cache, open(self.cache, "w"))
 
     def __call__(self, value):
-        ''' Evaluates the reduced functional for the given control value. '''
+        """ Evaluates the reduced functional for the given control value.
+
+	Args:
+	    value: The point in control space where to perform the Taylor test. Must be of the same type as the Control (e.g. Function, Constant or lists of latter).
+
+	Returns:
+	    float: The functional value.
+        """
 
         # Reset any cached data in dolfin-adjoint
         adj_reset_cache()
@@ -206,8 +213,22 @@ class ReducedFunctional(object):
         return self.scale*func_value
 
     def derivative(self, forget=True, project=False):
-        ''' Evaluates the derivative of the reduced functional for the most
-        recently evaluated control value. '''
+        """ Evaluates the derivative of the reduced functional at the most
+            recently evaluated control value.
+
+	Args:
+	    forget (Optional[bool]): Delete the forward state while solving the
+                adjoint equations. If you want to reevaluate derivative at the same
+                point (or the Hessian) you will need to set this to False or None. Defaults to True.
+	    project (Optional[bool]): If True, the returned value will be the L2
+                Riesz representer, if False it will be the l2 Riesz representative.
+                The L2 projection requires one additional linear solve.
+                Defaults to False.
+
+	Returns:
+	    The functional derivative. The returned type is the same as the control
+            type.
+        """
 
         # Check if we have the gradient already in the cash.
         # If so, return the cached value
@@ -256,7 +277,25 @@ class ReducedFunctional(object):
         return scaled_dfunc_value
 
     def hessian(self, m_dot, project=False):
-        ''' Evaluates the Hessian action in direction m_dot. '''
+        """ Evaluates the Hessian action at the most recently evaluated control
+        value in direction m_dot.
+
+	Args:
+            m_dot: The direction in control space in which to compute the
+                Hessian. Must be of the same type as the Control (e.g. Function,
+                Constant or lists of latter).
+
+            project (Optional[bool]): If True, the returned value will be the L2
+                Riesz representer, if False it will be the l2 Riesz representative.
+                The L2 projection requires one additional linear solve.  Defaults to
+                False.
+
+	Returns:
+	    The directional second derivative. The returned type is the same as the control
+            type.
+
+        Note: Hessian evaluations never delete the forward state.
+        """
 
         # Check if we have the gradient already in the cash.
         # If so, return the cached value
@@ -294,11 +333,32 @@ class ReducedFunctional(object):
 
         return scaled_Hm
 
-    def taylor_test(self, m, test_hessian=False, seed=None, perturbation_direction=None):
-        """ Check that the functional, gradient and Hessian are consistent by
-        running the Taylor test. """
+    def taylor_test(self, value, test_hessian=False, seed=None, perturbation_direction=None):
+        """ Run a Taylor test to check that the functional, gradient and
+        (optionally) Hessian are consistent by
+        running the Taylor test.
 
-        Jm = self(m)
+	Args:
+            value: The point in control space where to perform the Taylor test.
+                Must be of the same type as the Control (e.g. Function, Constant or
+                lists of latter).
+            test_hessian (Optional[boolean]): If True, the Taylor test also
+                includes the Hessian. Defaults to False.
+            seed (Optional[float]): The initial perturbation size for the Taylor
+                test.
+            perturbation_direction (Optional): The direction in which to perform
+                the Taylor test. Must be of the same type as the Control (e.g.
+                Function, Constant or lists of latter). Defaults to a random
+                direction.
+
+	Returns:
+	    float: The minimum (higher-order) convergence rate of all performed tests.
+
+	The Taylor test also prints out detailed information about the convergence rate
+	if the fenics.log_level is set INFO or higher.
+        """
+
+        Jm = self(value)
         dJdm = self.derivative(forget=False)
         if test_hessian:
             HJm = self.H

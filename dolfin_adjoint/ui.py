@@ -31,10 +31,10 @@ from optimization.optimization_solver import *
 from optimization.moola_problem import *
 from optimization.ipopt_solver import *
 from optimization.optizelle_solver import *
-from optimization.tao_solver import TAOSolver
 from optimization.riesz_maps import *
 
 if backend.__name__ == "dolfin":
+    from optimization.tao_solver import TAOSolver
     from newton_solver import NewtonSolver
     from krylov_solver import KrylovSolver
     from petsc_krylov_solver import PETScKrylovSolver
