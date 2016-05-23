@@ -2,7 +2,7 @@ from optimization_solver import OptimizationSolver
 from optimization_problem import MaximizationProblem
 from ..reduced_functional_numpy import ReducedFunctionalNumPy
 import constraints
-from ..misc import rank
+from ..compatibility import rank
 from ..enlisting import delist
 from ..utils import gather
 
@@ -58,7 +58,7 @@ class IPOPTSolver(OptimizationSolver):
 
         pyipopt.set_loglevel(1)                 # turn off annoying pyipopt logging
 
-        if rank() > 0:
+        if rank(self.problem.reduced_functional.mpi_comm()) > 0:
             nlp.int_option('print_level', 0)    # disable redundant IPOPT output in parallel
         else:
             nlp.int_option('print_level', 6)    # very useful IPOPT output

@@ -153,3 +153,10 @@ else:
 
         def solve(self, x, b):
             return self.solver.solve(x, b)
+
+
+def rank(comm):
+    if backend.__name__ == "dolfin":
+        return backend.MPI.rank(comm)
+    else:
+        return comm.rank()
