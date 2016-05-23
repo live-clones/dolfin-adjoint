@@ -132,3 +132,9 @@ def gather(vec):
         arr = vec.gather()
 
     return arr
+
+def rank(comm):
+    if backend.__name__ == "dolfin":
+        return backend.MPI.rank(comm)
+    else:
+        return comm.rank()

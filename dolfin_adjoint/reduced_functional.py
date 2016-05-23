@@ -368,6 +368,12 @@ class ReducedFunctional(object):
         return utils.taylor_test(self.__call__, self.controls, Jm, dJdm, HJm, seed=seed,
                 perturbation_direction=perturbation_direction)
 
+    def mpi_comm(self):
+        """ Return the MPI communicator associated with this reduced functional."""
+
+        # Nice!
+        return self.functional.timeform.terms[0].form.ufl_domain().ufl_cargo().mpi_comm()
+
 
 def value_hash(value):
     if isinstance(value, Constant):
