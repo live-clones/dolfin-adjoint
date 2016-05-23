@@ -159,4 +159,12 @@ def rank(comm):
     if backend.__name__ == "dolfin":
         return backend.MPI.rank(comm)
     else:
-        return comm.rank()
+        return comm.rank
+
+
+def form_comm(form):
+    """Return the communicator associated with a form."""
+    if backend.__name__ == "dolfin":
+        return form.ufl_domain().ufl_cargo().mpi_comm()
+    else:
+        return form.ufl_domain().comm

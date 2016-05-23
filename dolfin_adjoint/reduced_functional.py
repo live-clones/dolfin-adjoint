@@ -3,11 +3,12 @@ import hashlib
 import libadjoint
 import utils
 from backend import Function, Constant, info_red, info_green, File
-from dolfin_adjoint import drivers
+from dolfin_adjoint import drivers, compatibility
 from dolfin_adjoint.adjglobals import adjointer, mem_checkpoints, disk_checkpoints, adj_reset_cache
 from functional import Functional
 from enlisting import enlist, delist
 from controls import DolfinAdjointControl, ListControl
+
 
 class ReducedFunctional(object):
     ''' This class provides access to the reduced functional for given
@@ -372,7 +373,7 @@ class ReducedFunctional(object):
         """ Return the MPI communicator associated with this reduced functional."""
 
         # Nice!
-        return self.functional.timeform.terms[0].form.ufl_domain().ufl_cargo().mpi_comm()
+        return compatibility.form_comm(self.functional.timeform.terms[0].form)
 
 
 def value_hash(value):
@@ -387,6 +388,7 @@ def value_hash(value):
     else:
         raise Exception, "Don't know how to take a hash of %s" % value
 
+
 def cache_load(value, V):
     if isinstance(value, (list, tuple)):
         return [cache_load(value[i], V[i]) for i in range(len(value))]
@@ -395,6 +397,7 @@ def cache_load(value, V):
     elif isinstance(value, str):
         return Function(V, value)
     return
+
 
 def cache_store(value, cache):
     if isinstance(value, (list, tuple)):
