@@ -3,6 +3,8 @@
 from dolfin import *
 from dolfin_adjoint import *
 
+parameters["form_compiler"]["representation"] = "uflacs"
+
 n = 32
 mesh = UnitSquareMesh(n, n)
 
