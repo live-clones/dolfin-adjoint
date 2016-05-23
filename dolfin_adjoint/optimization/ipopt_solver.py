@@ -40,8 +40,8 @@ class IPOPTSolver(OptimizationSolver):
         constraints_nnz = nconstraints * ncontrols
 
         # A callback that evaluates the functional and derivative.
-        J  = self.rfn.__call__
-        dJ = partial (self.rfn.derivative, forget=False)
+        J = self.rfn.__call__
+        dJ = partial(self.rfn.derivative, forget=False)
 
         nlp = pyipopt.create(len(ub),           # length of control vector
                              lb,                # lower bounds on control vector

@@ -16,6 +16,7 @@ def continue_annotation(flag):
     backend.parameters["adjoint"]["stop_annotating"] = flag
 
 def rank():
+    return 0
     # No idea what to do with firedrake here, so I assume one of them will fix it!
     try:
         # DOLFIN 1.4 and onwards

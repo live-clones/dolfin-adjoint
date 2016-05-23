@@ -3,7 +3,6 @@ import numpy
 if backend.__name__ == "dolfin":
     from backend import cpp
 
-
 if backend.__name__ == "firedrake":
     class Timer(object):
         def __init__(self, name):
@@ -59,14 +58,15 @@ def randomise(x):
 
 
 if hasattr(backend.Function, 'sub'):
-    dolfin_sub    = backend.Function.sub
+    dolfin_sub = backend.Function.sub
+
     def dolfin_adjoint_sub(self, idx, deepcopy=False):
         if backend.__name__ == "dolfin":
             out = dolfin_sub(self, idx, deepcopy=deepcopy)
         else:
             out = dolfin_sub(self, idx)
         out.super_idx = idx
-        out.super_fn  = self
+        out.super_fn = self
         return out
 
 
@@ -132,3 +132,24 @@ def gather(vec):
         arr = vec.gather()
 
     return arr
+
+if backend.__name__ == "dolfin":
+    from backend import LUSolver
+else:
+    class LUSolver(object):
+        """LUSolver compatibility object"""
+        def __init__(self, A, method):
+            self.mat = A
+            self.method = method
+            self.parameters = {}
+            if method == "mumps":
+                solver_parameters = {"pc_factor_mat_solver_package": "mumps",
+                                     "ksp_type": "preonly",
+                                     "pc_type": "lu"}
+            else:
+                raise NotImplementedError("No idea how to solve with %s" % method)
+            self.solver = backend.LinearSolver(A,
+                                               solver_parameters=solver_parameters)
+
+        def solve(self, x, b):
+            return self.solver.solve(x, b)
