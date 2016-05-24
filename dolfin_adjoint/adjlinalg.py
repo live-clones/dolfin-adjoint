@@ -17,16 +17,15 @@ class Vector(libadjoint.Vector):
 
     def __init__(self, data, zero=False, fn_space=None):
 
-
-        self.data=data
+        self.data = data
         if not (self.data is None or isinstance(self.data, backend.Function) or isinstance(self.data, ufl.Form)):
             backend.error("Got " + str(self.data.__class__) + " as input to the Vector() class. Don't know how to handle that.")
 
         # self.zero is true if we can prove that the vector is zero.
         if data is None:
-            self.zero=True
+            self.zero = True
         else:
-            self.zero=zero
+            self.zero = zero
 
         if fn_space is not None:
             self.fn_space = fn_space
@@ -340,7 +339,10 @@ class Matrix(libadjoint.Matrix):
             elif isinstance(b.data, ufl.Form):
                 assembled_rhs = wrap_assemble(b.data, self.test_function())
             else:
-                assembled_rhs = b.data.vector()
+                if backend.__name__ == "dolfin":
+                    assembled_rhs = b.data.vector()
+                else:
+                    assembled_rhs = b.data
             [bc.apply(assembled_rhs) for bc in bcs]
 
             if not var in caching.lu_solvers:
@@ -354,7 +356,7 @@ class Matrix(libadjoint.Matrix):
                     assembled_lhs = self.assemble_data()
                     [bc.apply(assembled_lhs) for bc in bcs]
 
-                caching.lu_solvers[var] = backend.LUSolver(assembled_lhs, "mumps")
+                caching.lu_solvers[var] = compatibility.LUSolver(assembled_lhs, "mumps")
                 caching.lu_solvers[var].parameters["reuse_factorization"] = True
             else:
                 if backend.parameters["adjoint"]["debug_cache"]:

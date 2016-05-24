@@ -15,8 +15,9 @@ import compatibility
 import controls
 from enlisting import enlist
 from controls import ListControl, Control
-if backend.__name__  == "dolfin":
-    from backend import cpp
+from compatibility import gather  # NOQA
+from misc import noannotations
+
 
 def scale(obj, factor):
     """ A generic function to scale Functions,
@@ -58,24 +59,6 @@ def constant_to_array(c):
 
     return r
 
-def gather(vec):
-    """Parallel gather of distributed data (for optimisation algorithms, usually)"""
-    if isinstance(vec, cpp.Function):
-        vec = vec.vector()
-
-    if isinstance(vec, cpp.GenericVector):
-        try:
-            arr = cpp.DoubleArray(vec.size())
-            vec.gather(arr, numpy.arange(vec.size(), dtype='I'))
-            arr = arr.array().tolist()
-        except TypeError:
-            arr = vec.gather(numpy.arange(vec.size(), dtype='intc'))
-    elif isinstance(vec, list):
-        return map(gather, vec)
-    else:
-        arr = vec # Assume it's a gathered numpy array already
-
-    return arr
 
 def convergence_order(errors, base = 2):
     import math
@@ -446,6 +429,7 @@ def taylor_remainder_with_gradient(m, Jm, dJdm, functional_value, perturbation, 
         remainder = abs(functional_value - Jm - dJdm.vector().inner(perturbation.vector()))
     return remainder
 
+@noannotations
 def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None, value=None):
     '''J must be a function that takes in a parameter value m and returns the value
        of the functional:

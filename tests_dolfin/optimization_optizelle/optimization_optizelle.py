@@ -40,6 +40,7 @@ F = (inner(grad(u), grad(v)) - f*v)*dx
 bc = DirichletBC(V, 0.0, "on_boundary")
 solve(F == 0, u, bc)
 
+
 # Define functional of interest and the reduced functional
 x = SpatialCoordinate(mesh)
 d = 1/(2*pi**2)*sin(pi*x[0])

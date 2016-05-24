@@ -28,6 +28,8 @@ if __name__ == "__main__":
     z0 = interpolate(Constant((1, 2)), Z, name="State")
     v = main(z0)
 
+    parameters["adjoint"]["stop_annotating"] = True
+
     # Check that the function assignment worked
     assert tuple(v.vector()) == (1, 1, 1, 1, 1)
 
@@ -64,6 +66,7 @@ if __name__ == "__main__":
         dJdm_tlm_result.vector()[i] = dJdm_tlm.inner(test_vec.vector())
 
     print "dJdm_tlm: ", list(dJdm_tlm_result.vector())
+
 
 
     def Jhat(z):
