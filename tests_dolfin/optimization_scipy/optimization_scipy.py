@@ -90,7 +90,7 @@ if __name__ == "__main__":
                    "Powell": {"bounds": None}
                   }
 
-        for method in ["SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Newton-CG", "Nelder-Mead", "CG"]:
+        for method in ["Newton-CG", "SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Nelder-Mead", "CG"]:
             print "\n === Solving problem with %s. ===\n" % method
             reduced_functional(ic)
             u_opt = minimize(reduced_functional,
