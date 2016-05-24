@@ -308,7 +308,6 @@ class Functional(libadjoint.Functional):
         prev_levels = _time_levels(adjointer, max(timestep-1,0))
         integral_interval=slice(prev_levels[0],levels[1])
 
-        import IPython; IPython.embed()
         for term in self.timeform.terms:
             if isinstance(term.time, slice):
                 # Integral.

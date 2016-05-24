@@ -5,7 +5,6 @@ from ufl import *
 import ufl.algorithms
 import backend
 import hashlib
-from IPython import embed as key
 import numpy as np
 
 import dolfin_adjoint.functional as functional
