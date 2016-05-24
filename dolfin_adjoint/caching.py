@@ -1,37 +1,27 @@
 import re
 import ufl.algorithms
 from backend import Constant
+from collections import OrderedDict
+
 
 ### A general dictionary that applies a key function before lookup
-class KeyedDict(dict):
+class KeyedDict(OrderedDict):
     def __init__(self, keyfunc, *args, **kwargs):
         self.keyfunc = keyfunc
-        dict.__init__(self, *args, **kwargs)
+        super(KeyedDict, self).__init__(*args, **kwargs)
 
     def __getitem__(self, x):
-        return dict.__getitem__(self, self.keyfunc(x))
+        return super(KeyedDict, self).__getitem__(self.keyfunc(x))
 
     def __setitem__(self, x, y):
-        return dict.__setitem__(self, self.keyfunc(x), y)
+        return super(KeyedDict, self).__setitem__(self.keyfunc(x), y)
 
     def __delitem__(self, x):
-        return dict.__delitem__(self, self.keyfunc(x))
+        return super(KeyedDict, self).__delitem__(self.keyfunc(x))
 
     def __contains__(self, x):
-        return dict.__contains__(self, self.keyfunc(x))
+        return super(KeyedDict, self).__contains__(self.keyfunc(x))
 
-    def clear(self):
-        """ Delete all items.
-
-            We need to be careful here and delete items in a specific order.
-            This is crucial for MPI runs where destroying objects in different
-            orders might result in MPI deadlocks.
-        """
-        for k in sorted(self.keys()):
-            dict.__delitem__(self, k)
-
-    def __del__(self):
-        self.clear()
 
 ### Stuff for LU caching
 
@@ -61,6 +51,8 @@ def form_constants(form):
     return constants
 
 def form_key(form):
+    if isinstance(form, tuple):
+        return form
     constants = form_constants(form)
     return (form, constants)
 
