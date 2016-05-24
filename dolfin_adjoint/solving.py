@@ -408,7 +408,7 @@ def register_initial_conditions(coeffdeps, linear, var=None):
                     continue
 
             if hasattr(coeff, "split_da"):
-                if coeff.split is True:
+                if coeff.split_da is True:
                     errmsg = """
                     dolfin-adjoint does not support dolfin.Function.split().
 
