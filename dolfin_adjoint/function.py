@@ -140,7 +140,8 @@ class Function(backend.Function):
             adjglobals.function_names.add(self.adj_name)
             del kwargs["name"]
 
-        backend.Function.__init__(self, *args, **kwargs)
+        with misc.annotations(False):
+            backend.Function.__init__(self, *args, **kwargs)
 
         if hasattr(self, 'adj_name'):
             self.rename(self.adj_name, "a Function from dolfin-adjoint")
