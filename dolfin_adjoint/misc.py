@@ -1,4 +1,5 @@
 import backend
+from contextlib import contextmanager
 
 def uniq(seq):
     '''Remove duplicates from a list, preserving order'''
@@ -14,3 +15,13 @@ def pause_annotation():
 
 def continue_annotation(flag):
     backend.parameters["adjoint"]["stop_annotating"] = flag
+
+@contextmanager
+def annotations(flag):
+
+    orig = backend.parameters["adjoint"]["stop_annotating"]
+    backend.parameters["adjoint"]["stop_annotating"] = not flag
+
+    yield
+
+    backend.parameters["adjoint"]["stop_annotating"] = orig
