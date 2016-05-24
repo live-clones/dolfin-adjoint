@@ -37,8 +37,8 @@ from reduced_functional import ReducedFunctional
 from reduced_functional_numpy import ReducedFunctionalNumPy, ReducedFunctionalNumpy
 from optimization.constraints import InequalityConstraint, EqualityConstraint
 from optimization.optimization import minimize, maximize, print_optimization_methods, minimise, maximise
+from optimization.tao_solver import TAOSolver
 if backend.__name__ == "dolfin":
-    from optimization.tao_solver import TAOSolver
     from newton_solver import NewtonSolver
     from krylov_solver import KrylovSolver
     from petsc_krylov_solver import PETScKrylovSolver

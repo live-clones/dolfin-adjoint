@@ -1,9 +1,11 @@
-from dolfin import as_backend_type
+from backend import as_backend_type
 from dolfin_adjoint.controls import FunctionControl, ConstantControl
 from optimization_solver import OptimizationSolver
 import numpy as np
+from dolfin_adjoint import compatibility
 
 from backend import *
+
 
 class TAOSolver(OptimizationSolver):
     """Uses PETSc TAO to solve the given optimization problem.
@@ -141,7 +143,8 @@ class TAOSolver(OptimizationSolver):
 
             def mult(self, mat, x, y):
                 # TODO: Add multiple control support to Hessian stack and check for ConstantControl
-                x_wrap = Function(rf.controls[0].data().function_space(), PETScVector(x))
+                x_wrap = compatibility.petsc_vec_as_function(
+                    rf.controls[0].data().function_space(), x)
                 hes = rf.hessian(x_wrap)
                 hes_vec = as_backend_type(hes.vector()).vec()
 

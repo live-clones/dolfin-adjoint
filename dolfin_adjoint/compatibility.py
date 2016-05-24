@@ -168,3 +168,13 @@ def form_comm(form):
         return form.ufl_domain().ufl_cargo().mpi_comm()
     else:
         return form.ufl_domain().comm
+
+
+def petsc_vec_as_function(fs, petsc_vec):
+    if backend.__name__ == "dolfin":
+        return backend.Function(fs, backend.PETScVector(petsc_vec))
+    else:
+        f = backend.Function(fs)
+        with f.dat.vec as v:
+            petsc_vec.copy(v)
+        return f
