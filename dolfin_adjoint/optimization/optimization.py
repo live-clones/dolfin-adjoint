@@ -4,6 +4,7 @@ from ..reduced_functional_numpy import ReducedFunctionalNumPy, get_global
 from ..reduced_functional import ReducedFunctional
 from ..utils import gather
 from ..compatibility import rank
+from ..misc import noannotations
 
 def serialise_bounds(rf_np, bounds):
     ''' Converts bounds to an array of (min, max) tuples and serialises it in a parallel environment. '''
@@ -181,6 +182,7 @@ def print_optimization_methods():
     for function_name, (description, func) in optimization_algorithms_dict.iteritems():
         print function_name, ': ', description
 
+@noannotations
 def minimize(rf, method='L-BFGS-B', scale=1.0, **kwargs):
     ''' Solves the minimisation problem with PDE constraint:
 

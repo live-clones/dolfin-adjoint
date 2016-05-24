@@ -8,6 +8,7 @@ from dolfin_adjoint.adjglobals import adjointer, mem_checkpoints, disk_checkpoin
 from functional import Functional
 from enlisting import enlist, delist
 from controls import DolfinAdjointControl, ListControl
+from misc import noannotations
 
 
 class ReducedFunctional(object):
@@ -130,6 +131,7 @@ class ReducedFunctional(object):
         if hasattr(self, 'cache') and self.cache is not None:
             pickle.dump(self._cache, open(self.cache, "w"))
 
+    @noannotations
     def __call__(self, value):
         """ Evaluates the reduced functional for the given control value.
 
@@ -139,6 +141,8 @@ class ReducedFunctional(object):
 	Returns:
 	    float: The functional value.
         """
+
+        # Make sure we do not annotate
 
         # Reset any cached data in dolfin-adjoint
         adj_reset_cache()

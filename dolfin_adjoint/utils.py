@@ -16,6 +16,7 @@ import controls
 from enlisting import enlist
 from controls import ListControl, Control
 from compatibility import gather  # NOQA
+from misc import noannotations
 
 
 def scale(obj, factor):
@@ -428,6 +429,7 @@ def taylor_remainder_with_gradient(m, Jm, dJdm, functional_value, perturbation, 
         remainder = abs(functional_value - Jm - dJdm.vector().inner(perturbation.vector()))
     return remainder
 
+@noannotations
 def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None, value=None):
     '''J must be a function that takes in a parameter value m and returns the value
        of the functional:

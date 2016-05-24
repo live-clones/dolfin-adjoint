@@ -4,6 +4,7 @@ import constraints
 import numpy
 import math
 from ..enlisting import enlist, delist
+from ..misc import noannotations
 
 from backend import *
 
@@ -663,6 +664,7 @@ class OptizelleSolver(OptimizationSolver):
                     print("Error: unknown optizelle option %s." % key)
                     raise
 
+    @noannotations
     def solve(self):
         """Solve the optimization problem and return the optimized parameters."""
 

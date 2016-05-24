@@ -25,3 +25,13 @@ def annotations(flag):
     yield
 
     backend.parameters["adjoint"]["stop_annotating"] = orig
+
+def noannotations(func):
+
+   def func_wrapper(*args, **kwargs):
+       with annotations(False):
+           res = func(*args, **kwargs)
+       return res
+
+   return func_wrapper
+

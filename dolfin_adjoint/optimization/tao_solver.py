@@ -3,6 +3,7 @@ from dolfin_adjoint.controls import FunctionControl, ConstantControl
 from optimization_solver import OptimizationSolver
 import numpy as np
 from dolfin_adjoint import compatibility
+from ..misc import noannotations
 
 from backend import *
 
@@ -395,6 +396,7 @@ class TAOSolver(OptimizationSolver):
         """Returns the PETSc TAO instance associated with the solver"""
         return self.tao
 
+    @noannotations
     def solve(self):
         self.tao.solve()
         sol_vec = self.tao.getSolution()
