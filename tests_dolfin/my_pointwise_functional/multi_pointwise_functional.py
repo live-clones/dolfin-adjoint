@@ -39,7 +39,7 @@ def forward(cl, ct, Forward=True, Record=False, Annotate=False):
     dt = 1.e-8        # time step size
     DT = Constant(dt) # constant for UFL formulation
     t = dt            # initial time
-    T = 1.e-5         # final time
+    T = 1.e-7         # final time
     N = T/dt          # number of time steps
 
     # Test and trial functions
@@ -176,7 +176,7 @@ def optimize():
     # Prepare the objective function
     start = 1
     reg = Constant(0e-6)*(inner(cl, cl)+inner(grad(cl), grad(cl)))*dx
-    J = PointwiseFunctional(v, Refs, R, times[start:], u_ind=1, boost=1.e20, verbose=True, regform=reg)
+    J = PointwiseFunctional(v, Refs, R, times[start:], u_ind=[1]*recs.shape[0], boost=1.e20, verbose=True, regform=reg)
 
     Jr = ReducedFunctional(J, Control(cl), eval_cb_post=eval_cb)
     cl_opt = minimize(Jr, method = "L-BFGS-B",\

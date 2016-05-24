@@ -36,27 +36,30 @@ class PointwiseFunctional(functional.Functional):
         self.name     = kwargs.get("name", None)
         self.regform  = kwargs.get("regform", None)
         self.boost    = kwargs.get("boost", 1.0)
-        self.index    = kwargs.get("u_ind", None)
+        self.index    = kwargs.get("u_ind", [None])
         self.basis    = [None]*self.coords.shape[0]
         self.skip     = [False]*self.coords.shape[0]
 
-       # Some conformity checks
+        # Some conformity checks
         if self.times is None:
             self.times = ["FINISH_TIME"]
         elif len(self.times) < 1:
             raise RuntimeError("""The 'times' argument should be None,
                                     'FINISH_TIME' or a non-empty list""")
+
+        if self.coords.shape[0] > 1:
+            if len(self.index) != self.coords.shape[0]:
+                raise RuntimeError("""The 'index' argument should be of the,
+                                    same length as the 'coords argument'""")
+
         # Prep coords to be considerd as a matrix
         if self.coords.ndim == 1:
             self.coords = np.array([self.coords])
             self.refs = [self.refs]
 
-        # we prepare a ghost timeform. Only the time instant is important
+        # Prepare a ghost timeform. Only the time instant is important.
         if not self.timeform:
-            if self.index is None:
-                self.timeform = sum(u*dx*dt[t] for t in self.times)
-            else:
-                self.timeform = sum(u[self.index[0]]*dx*dt[t] for t in self.times)
+            self.timeform = sum(inner(u,u)*dx*dt[t] for t in self.times)
 
         # Add regularisation
         if self.regform is not None:
@@ -70,8 +73,6 @@ class PointwiseFunctional(functional.Functional):
             for self.ref in self.refs:
               if len(self.ref) != len(self.times): # check compatibility inputs
                 raise RuntimeError("Number of timesteps and observations doesn't match %4i vs %4i" %(len(self.times), len(self.refs)))
-        if len(self.index) != self.coords.shape[0]:
-            self.index = [self.index]*self.coords.shape[0]
 
         for i in range (self.coords.shape[0]):
             # Prepare pointwise evals for derivative

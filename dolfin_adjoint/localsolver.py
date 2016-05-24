@@ -46,7 +46,7 @@ class LocalSolverMatrix(adjlinalg.Matrix):
         return x_vec
 
 class LocalSolver(dolfin.LocalSolver):
-    def __init__(self, a, L = None, solver_type = dolfin.LocalSolver.SolverType_LU, **kwargs):
+    def __init__(self, a, L = None, solver_type = dolfin.LocalSolver.LU, **kwargs):
         dolfin.LocalSolver.__init__(self, a, L, solver_type)
         factorize = kwargs.pop("factorize", False)
         self.a = a
