@@ -66,6 +66,8 @@ if __name__ == "__main__":
     scheme = Scheme(form, u, time)
     (u, xs, ys) = main(u, form, time, scheme, dt=dt)
 
+    parameters["adjoint"]["stop_annotating"] = True
+
     ## Step 1. Check replay correctness
 
     replay = True

@@ -116,6 +116,8 @@ if __name__ == "__main__":
     ic = interpolate(T0, X, name="InitialCondition")
     T = main(ic, annotate=True)
 
+    parameters["adjoint"]["stop_annotating"] = True
+
     print "Running adjoint ... "
     J = Functional(T*T*dx*dt[FINISH_TIME])
     m = Control(ic)
