@@ -347,7 +347,7 @@ if __name__ == "__main__":
         return J
 
     info_blue("Checking adjoint correctness ... ")
-    minconv = test_scalar_parameter_adjoint(Jfunc, amplitude, dJdp, seed=0.05)
+    minconv = utils.test_scalar_parameter_adjoint(Jfunc, amplitude, dJdp, seed=0.05)
 
     if minconv < 1.8:
         sys.exit(1)
