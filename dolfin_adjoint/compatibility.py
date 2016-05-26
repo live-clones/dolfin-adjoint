@@ -107,7 +107,7 @@ else:
                            backend.functionspaceimpl.MixedFunctionSpace)
 
     def _extract_args(*args, **kwargs):
-        eq, u, bcs, _, _, _, _, solver_parameters, _, _, _ = backend.solving._extract_args(*args, **kwargs)
+        eq, u, bcs, _, _, _, _, solver_parameters, _, _, _, _ = backend.solving._extract_args(*args, **kwargs)
         return eq, u, bcs, None, None, None, None, solver_parameters
 
 
