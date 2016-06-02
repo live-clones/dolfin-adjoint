@@ -32,25 +32,9 @@ Optional dependencies:
 .. _Harwell Subroutine Library: http://www.hsl.rl.ac.uk/ipopt/
 .. _their installation instructions: http://fenicsproject.org/download
 
-Virtual machine
-===============
 
-If you'd like to try dolfin-adjoint out without any installation headaches,
-try out `the FENICS VirtualBox virtual machine with FEniCS and dolfin-adjoint pre-installed
-<http://fenicsproject.org/pub/virtual/fenics-latest.ova>`_. Here are
-the instructions:
-
-* Download and install VirtualBox from https://www.virtualbox.org, or from your operating system.
-* Download the `virtual machine <http://fenicsproject.org/pub/virtual/fenics-latest.ova>`_.
-* Start VirtualBox, click on "File -> Import Appliance", select the virtual machine image and click on "Import".
-* Select the "dolfin-adjoint VM" and click on "Start" to boot the machine.
-* For installing new software you need the login credentials:
-
-  * Username: fenics
-  * Password: fenics
-
-Binary packages
-===============
+Binary packages (Ubuntu)
+========================
 
 Binary packages are currently available for Ubuntu users through the
 `launchpad PPA`_.  To install dolfin-adjoint, do
@@ -66,21 +50,42 @@ Once that's done, why not try out the :doc:`tutorial <../documentation/tutorial>
 
 .. _launchpad PPA: https://launchpad.net/~libadjoint/+archive/ppa
 
-Docker container
-================
 
-A Docker container with dolfin-adjoint compiled against the latest FEniCS, PETSc and SLEPc
-is available on `Dockerhub<https://hub.docker.com/r/fenicsproject/dolfin-adjoint>`.
-Here are the instructions:
+Docker images (all platforms and versions)
+==========================================
 
-* Download and install Docker for your platform following the instructions at https://docker.com
-* To download and run a dolfin-adjoint container:
+`Docker <https://www.docker.com>`_ allows us to build and ship
+consistent high-performance FEniCS installations with dolfin-adjoint for almost any
+platform. To get started, follow these 2 steps:
 
-.. code-block:: bash
+#. Install Docker. Mac and Windows users should install the `Docker
+   Toolbox <https://www.docker.com/products/docker-toolbox>`_ (this is
+   a simple one-click install) and Linux users should `follow these
+   instructions <https://docs.docker.com/linux/step_one/>`_.
+#. Install the FEniCS Docker script::
 
-   docker run -ti fenicsproject/dolfin-adjoint
+    curl -s http://get.fenicsproject.org | sh
 
-You will be presented with a bash prompt where you can run dolfin-adjoint.
+If running on Mac or Windows, make sure you run this and other
+commands inside the Docker Quickstart Terminal.
+
+Once both Docker and the FEniCS Docker script have been installed, you can
+easily start a FEniCS session with dolfin-adjoint by running the following
+command::
+
+    fenicsproject run dolfin-adjoint
+
+The FEniCS Docker script can also be used to create persistent
+sessions (``fenicsproject create myproject`` followed by
+``fenicsproject run myproject``) or to run different versions of
+FEniCS (``fenicsproject run dev-dolfin-adjoint``). To see more options, run the
+following command::
+
+    fenicsproject help
+
+For more details and tips on how to work with FEniCS and Docker, see
+our `FEniCS Docker page
+<http://fenics-containers.readthedocs.org/en/latest/>`_.
 
 From source
 ===========
@@ -127,6 +132,23 @@ libadjoint needs to be compiled with:
 
 Contributions (such as handling new features of FEniCS, or new test
 cases or examples) are very welcome.
+
+Virtual machine
+===============
+
+If you'd like to try dolfin-adjoint out without any installation headaches,
+try out `the FENICS VirtualBox virtual machine with FEniCS and dolfin-adjoint pre-installed
+<http://fenicsproject.org/pub/virtual/fenics-latest.ova>`_. Here are
+the instructions:
+
+* Download and install VirtualBox from https://www.virtualbox.org, or from your operating system.
+* Download the `virtual machine <http://fenicsproject.org/pub/virtual/fenics-latest.ova>`_.
+* Start VirtualBox, click on "File -> Import Appliance", select the virtual machine image and click on "Import".
+* Select the "dolfin-adjoint VM" and click on "Start" to boot the machine.
+* For installing new software you need the login credentials:
+
+  * Username: fenics
+  * Password: fenics
 
 Older versions
 ==============
