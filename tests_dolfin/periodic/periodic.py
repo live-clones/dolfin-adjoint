@@ -53,6 +53,6 @@ if __name__ == "__main__":
         out = main(ic, annotate=False)
         return assemble(out*out*dx + ic*ic*dx)
 
-    minconv = test_initial_condition_adjoint(J, ic, dJdic)
+    minconv = utils.test_initial_condition_adjoint(J, ic, dJdic)
     if minconv < 1.9:
         sys.exit(1)

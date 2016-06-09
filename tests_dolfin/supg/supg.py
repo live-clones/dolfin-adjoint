@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
     info_blue("Verifying adjoint ... ")
 
-    minconv = test_scalar_parameter_adjoint(J, f, dJdf)
+    minconv = utils.test_scalar_parameter_adjoint(J, f, dJdf)
 
     if minconv < 1.9:
         sys.exit(1)

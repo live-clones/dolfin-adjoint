@@ -39,7 +39,7 @@ def compute_J(ic):
     state = sw_lib.timeloop_theta(M, G, ic, kelvin.params, annotate=False)
     return assemble(dot(state, state)*dx)
 
-minconv = test_initial_condition_adjoint(compute_J, ic, adj_state, seed=0.001)
+minconv = utils.test_initial_condition_adjoint(compute_J, ic, adj_state, seed=0.001)
 if minconv < 1.9:
     exit_code = 1
 else:
