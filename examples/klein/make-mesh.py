@@ -9,7 +9,7 @@ from dolfin import *
 import numpy
 
 n = 256
-mesh = RectangleMesh(0, 0, 4*pi, 2*pi, n, n)
+mesh = RectangleMesh(Point(0, 0), Point(4*pi, 2*pi), n, n)
 
 # First step: "wrap" the boundaries (right-to-left, top-to-bottom)
 # so that when we transform to the Klein bottle, the edges "join up"
@@ -156,6 +156,7 @@ def transform_mesh(mesh, coord_map):
     return new_mesh
 
 new_mesh = transform_mesh(wrapped_mesh, KleinMap)
-File("klein.xdmf") << new_mesh
+outfile = XDMFFile(mpi_comm_world(), 'klein.xdmf')
+outfile.write(new_mesh)
 
 plot(new_mesh, wireframe=True, interactive=True)
