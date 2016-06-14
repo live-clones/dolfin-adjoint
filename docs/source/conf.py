@@ -355,4 +355,4 @@ epub_copyright = u'2012, The dolfin-adjoint team'
 #                       'dolfin': ('http://fenicsproject.org/', None)}
 intersphinx_mapping = {'dolfin': ('http://fenicsproject.org/', None)}
 
-pngmath_dvipng_args = ['-gamma 1.5', '-D 110', '-bg Transparent']
+#pngmath_dvipng_args = ['-gamma 1.5', '-D 110', '-bg Transparent']
