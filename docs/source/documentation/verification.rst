@@ -63,7 +63,7 @@ Running this program yields the following output:
 
     $ python tutorial4.py
     ...
-    Taylor remainder without adjoint information: 
+    Taylor remainder without gradient information: 
       [0.0023634768826859553, 0.001219686435181555, 0.0006197555788530762, 
       0.0003124116082189321, 0.0001568463925042951]
 
@@ -71,7 +71,7 @@ The first line gives the values computed for the first-order Taylor remainder. A
 
 .. code-block:: none
 
-    Convergence orders for Taylor remainder without adjoint information (should all be 1): 
+    Convergence orders for Taylor remainder without gradient information (should all be 1): 
       [0.9544004555219242, 0.9767390399645689, 0.9882512926546192, 0.9940957131087177]
 
 The second line shows the convergence orders of the first-order Taylor remainders: these should
@@ -80,7 +80,7 @@ use a smaller perturbation.)
 
 .. code-block:: none
 
-    Taylor remainder with adjoint information: 
+    Taylor remainder with gradient information: 
       [0.00015639195264909554, 4.0247982485970384e-05, 1.0211629980686528e-05, 
       2.5719961979492594e-06, 6.454097041455739e-07]
 
@@ -89,7 +89,7 @@ the first line.
 
 .. code-block:: none
 
-    Convergence orders for Taylor remainder with adjoint information (should all be 2): 
+    Convergence orders for Taylor remainder with gradient information (should all be 2): 
       [1.9581779067535698, 1.9787032993204938, 1.9892527525050359, 1.9946013350664813]
 
 The fourth line shows the convergence orders of the second-order Taylor remainders: if the gradient has been computed correctly with the adjoint, then
