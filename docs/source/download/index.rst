@@ -73,12 +73,12 @@ Once both Docker and the FEniCS Docker script have been installed, you can
 easily start a FEniCS session with dolfin-adjoint by running the following
 command::
 
-    fenicsproject run dolfin-adjoint
+    fenicsproject run quay.io/dolfinadjoint/dolfin-adjoint
 
-The FEniCS Docker script can also be used to create persistent
-sessions (``fenicsproject create myproject`` followed by
-``fenicsproject run myproject``) or to run different versions of
-FEniCS (``fenicsproject run dev-dolfin-adjoint``). To see more options, run the
+The FEniCS Docker script can also be used to create persistent sessions
+(``fenicsproject create myproject`` followed by ``fenicsproject run
+myproject``) or to run different versions of FEniCS (``fenicsproject run
+quay.io/dolfinadjoint/dev-dolfin-adjoint``). To see more options, run the
 following command::
 
     fenicsproject help
