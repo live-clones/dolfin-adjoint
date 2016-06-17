@@ -1,4 +1,7 @@
-1.4 [expected: 30-06-2014]:
-- New feature: XXX
+dolfin-adjoint 1.7
+- New feature: Support for multiple controls in Hessian computations
 - Bug fixes
-0.6 [25-04-2012]:
+dolfin-adjoint 1.6
+dolfin-adjoint 1.5
+dolfin-adjoint 1.4
+dolfin-adjoint 0.6 [25-04-2012]:

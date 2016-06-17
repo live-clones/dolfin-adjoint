@@ -10,6 +10,7 @@
 
 from dolfin import *
 from dolfin_adjoint import *
+from dolfin_adjoint.utils import homogenize
 import ufl.algorithms
 
 if dolfin.__version__ == "1.2.0":

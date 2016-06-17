@@ -92,7 +92,7 @@ if dolfin.__version__ > '1.2.0':
 
             # FIXME: This form should actually be from before the solve.
             out = adjlinalg.Vector(self.scheme.solution())
-            out.nonlinear_form = self.scheme.rhs_form()
+            out.nonlinear_form = -self.dt*self.scheme.rhs_form()
             out.nonlinear_u = self.scheme.solution()
             out.nonlinear_bcs = []
             out.nonlinear_J = ufl.derivative(out.nonlinear_form, out.nonlinear_u)

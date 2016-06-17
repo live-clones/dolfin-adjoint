@@ -1,9 +1,12 @@
-from dolfin import as_backend_type
+from backend import as_backend_type
 from dolfin_adjoint.controls import FunctionControl, ConstantControl
 from optimization_solver import OptimizationSolver
 import numpy as np
+from dolfin_adjoint import compatibility
+from ..misc import noannotations
 
 from backend import *
+
 
 class TAOSolver(OptimizationSolver):
     """Uses PETSc TAO to solve the given optimization problem.
@@ -141,8 +144,9 @@ class TAOSolver(OptimizationSolver):
 
             def mult(self, mat, x, y):
                 # TODO: Add multiple control support to Hessian stack and check for ConstantControl
-                x_wrap = Function(rf.controls[0].data().function_space(), PETScVector(x))
-                hes = rf.hessian(x_wrap)[0]
+                x_wrap = compatibility.petsc_vec_as_function(
+                    rf.controls[0].data().function_space(), x)
+                hes = rf.hessian(x_wrap)
                 hes_vec = as_backend_type(hes.vector()).vec()
 
                 y.set(0.0)
@@ -216,13 +220,17 @@ class TAOSolver(OptimizationSolver):
         OptDB = self.PETSc.Options(prefix=self.prefix + "tao_")
 
         # Some defaults, these will be overridden by user parameters
-        if self.problem.bounds is not None:
-            OptDB.setValue("type", "blmvm")
-        else:
-            OptDB.setValue("type", "lmvm")
-        OptDB.setValue("fatol", 0.0)
-        OptDB.setValue("frtol", 0.0)
-        OptDB.setValue("gatol", 1.0e-9)
+        if "type" not in OptDB:
+            if self.problem.bounds is not None:
+                OptDB.setValue("type", "blmvm")
+            else:
+                OptDB.setValue("type", "lmvm")
+        if "fatol" not in OptDB:
+            OptDB.setValue("fatol", 0.0)
+        if "frtol" not in OptDB:
+            OptDB.setValue("frtol", 0.0)
+        if "gatol" not in OptDB:
+            OptDB.setValue("gatol", 1.0e-9)
 
         if self.parameters is not None:
             for param in self.parameters:
@@ -247,15 +255,15 @@ class TAOSolver(OptimizationSolver):
         self.tao.setOptionsPrefix(self.prefix)
         self.tao.setFromOptions()
 
-        def default_monitor(tao):
-            info_blue("Iteration: %3d\tFunctional value: %15.15e\tGradient norm: %15.15e" % (tao.its, tao.objective, tao.gnorm))
-        self.tao.setMonitor(default_monitor)
+        #def default_monitor(tao):
+        #    info_blue("Iteration: %3d\tFunctional value: %15.15e\tGradient norm: %15.15e" % (tao.its, tao.objective, tao.gnorm))
+        #self.tao.setMonitor(default_monitor)
 
         self.tao.setObjectiveGradient(self.__user.objective_and_gradient)
         self.tao.setInitial(self.initial_vec)
 
         if self.riesz_map is not None:
-            self.tao.setGradientNormMat(self.riesz_map)
+            self.tao.setGradientNorm(self.riesz_map)
             if self.tao.getType() in ["lmvm", "blmvm"]:
                 self.tao.setLMVMH0(self.riesz_map)
 
@@ -388,6 +396,7 @@ class TAOSolver(OptimizationSolver):
         """Returns the PETSc TAO instance associated with the solver"""
         return self.tao
 
+    @noannotations
     def solve(self):
         self.tao.solve()
         sol_vec = self.tao.getSolution()

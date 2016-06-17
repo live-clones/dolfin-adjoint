@@ -108,6 +108,6 @@ if __name__ == "__main__":
         return assemble((1.0/(4*eps)) * (pow( (-1.0/eps) * u[1], 2))*dx)
 
     dJ = assemble(derivative((1.0/(4*eps)) * (pow( (-1.0/eps) * forward_copy[1], 2))*dx, forward_copy))
-    minconv = test_initial_condition_tlm(J, dJ, ic, seed=1.0e-5)
+    minconv = utils.test_initial_condition_tlm(J, dJ, ic, seed=1.0e-5)
     if minconv < 1.9:
         sys.exit(1)

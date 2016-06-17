@@ -1,103 +1,132 @@
-"""This demo solves the Stokes equations using an iterative linear solver.
-Note that the sign for the pressure has been flipped for symmetry."""
+"""
+Very stupid scheme for decoupled stationary Stokes + heat equation:
 
-# Copyright (C) 2010 Garth N. Wells
-#
-# This file is part of DOLFIN.
-#
-# DOLFIN is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# DOLFIN is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with DOLFIN. If not, see <http://www.gnu.org/licenses/>.
-#
-# First added:  2010-08-08
-# Last changed: 2010-08-08
+Given nu and f, find (u, p) such that
 
-# Begin demo
+  (nu grad(u), grad(v)) + (p, div(v)) = (f, v)
+                          (div(u), q) = 0
+
+for all (v, q).
+
+Given velocity u, find T such that
+
+  (Dt(T), s) + (s*div(v) + (grad(T), grad(s)) = (1, s)
+
+for all s
+
+"""
 
 import sys
 
 from dolfin import *
-from dolfin_adjoint import *
 
-import numpy; numpy.set_printoptions(threshold='nan')
+def stokes(W, nu, f):
+    (u, p) = TrialFunctions(W)
+    (v, q) = TestFunctions(W)
+    a = (nu*inner(grad(u), grad(v)) +
+         p*div(v) + q*div(u))*dx
+    L = inner(f, v)*dx
+    return (a, L)
 
+def temperature(X, kappa, v, t_, k):
+    t = TrialFunction(X)
+    s = TestFunction(X)
 
-dolfin.parameters["adjoint"]["record_all"] = True
-dolfin.parameters["adjoint"]["fussy_replay"] = True
+    F = ((t - t_)/k*s + inner(kappa*grad(t), grad(s))
+         + dot(v, grad(t))*s)*dx - s*dx
+    (a, L) = system(F)
+    return (a, L)
 
-# Test for PETSc or Epetra
-if not has_linear_algebra_backend("PETSc") and not has_linear_algebra_backend("Epetra"):
-    info_red("DOLFIN has not been configured with Trilinos or PETSc. Exiting.")
-    sys.exit(0)
+def flow_boundary_conditions(W):
+    u0 = Constant((0.0,0.0))
+    bottom = DirichletBC(W.sub(0), (0.0, 0.0), "near(x[1], 0.0)")
+    top = DirichletBC(W.sub(0), (0.0, 0.0), "near(x[1], 1.0)")
+    left = DirichletBC(W.sub(0).sub(0), 0.0, "near(x[0], 0.0)")
+    right = DirichletBC(W.sub(0).sub(0), 0.0, "near(x[0], 1.0)")
+    bcs = [bottom, top, left, right]
+    return bcs
 
-# Load mesh
-mesh = UnitCubeMesh(4, 4, 4)
+def temperature_boundary_conditions(Q):
+    bc = DirichletBC(Q, 0.0, "near(x[1], 1.0)")
+    return [bc]
 
-# Define function spaces
-V = VectorFunctionSpace(mesh, "CG", 2)
-Q = FunctionSpace(mesh, "CG", 1)
-W = V * Q
+n = 4
+mesh = UnitSquareMesh(n, n)
+X = FunctionSpace(mesh, "CG", 1)
 
-# Boundaries
-def right(x, on_boundary): return x[0] > (1.0 - DOLFIN_EPS)
-def left(x, on_boundary): return x[0] < DOLFIN_EPS
-def top_bottom(x, on_boundary):
-    return x[1] > 1.0 - DOLFIN_EPS or x[1] < DOLFIN_EPS
+def main(ic, annotate=False):
 
-# No-slip boundary condition for velocity
-noslip = Constant((0.0, 0.0, 0.0))
-bc0 = DirichletBC(W.sub(0), noslip, top_bottom)
+    # Define meshes and function spaces
+    V = VectorFunctionSpace(mesh, "CG", 2)
+    Q = FunctionSpace(mesh, "CG", 1)
+    W = V * Q
 
-# Inflow boundary condition for velocity
-inflow = Expression(("-sin(x[1]*pi)", "0.0", "0.0"))
-bc1 = DirichletBC(W.sub(0), inflow, right)
+    # Define boundary conditions
+    flow_bcs = flow_boundary_conditions(W)
+    temp_bcs = temperature_boundary_conditions(X)
 
-# Boundary condition for pressure at outflow
-zero = Constant(0)
-bc2 = DirichletBC(W.sub(1), zero, left)
+    # Temperature variables
+    T_ = Function(ic, name="T_", annotate=annotate)
+    T = Function(ic, name="T", annotate=annotate)
 
-# Collect boundary conditions
-bcs = [bc0, bc1, bc2]
+    # Flow variable(s)
+    w = Function(W)
+    (u, p) = split(w)
 
-# Define variational problem
-(u, p) = TrialFunctions(W)
-(v, q) = TestFunctions(W)
-f = Constant((0.0, 0.0, 0.0))
-a = inner(grad(u), grad(v))*dx + div(v)*p*dx + q*div(u)*dx
-L = inner(f, v)*dx
+    # Some parameters
+    Ra = Constant(1.e4)
+    nu = Constant(1.0)
+    kappa = Constant(1.0)
+    timestep = 0.1
 
-# Form for use in constructing preconditioner matrix
-b = inner(grad(u), grad(v))*dx + p*q*dx
+    # Define flow equation
+    g = as_vector((Ra*T_, 0))
+    flow_eq = stokes(W, nu, g)
 
-# Assemble system
-A, bb = assemble_system(a, L, bcs)
+    # Define temperature equation
+    temp_eq = temperature(X, kappa, u, T_, timestep)
 
-# Assemble preconditioner system
-P, btmp = assemble_system(b, L, bcs)
+    # Assemble flow operator
+    A_flow = assemble(flow_eq[0])
+    [bc.apply(A_flow) for bc in flow_bcs]
+    ksp_flow = KrylovSolver("gmres", "none")
+    ksp_flow.set_operator(A_flow)
+    ksp_flow.parameters.relative_tolerance = 1.0e-9
 
-# Create Krylov solver and AMG preconditioner
-solver = KrylovSolver("tfqmr", "amg")
+    # Time loop
+    t = 0.0
+    end = 1.0
+    while (t <= end):
 
-# Associate operator (A) and preconditioner matrix (P)
-solver.set_operators(A, P)
+        b_flow = assemble(flow_eq[1])
+        [bc.apply(b_flow) for bc in flow_bcs]
+        ksp_flow.solve(w.vector(), b_flow, annotate=annotate)
 
-# Solve
-U = Function(W)
-U.vector()[:] = 1.0
-#solver.parameters["monitor_convergence"] = True
-solver.parameters["relative_tolerance"] = 1.0e-14
-solver.parameters["nonzero_initial_guess"] = True
-solver.solve(U.vector(), bb)
+        solve(temp_eq[0] == temp_eq[1], T, temp_bcs, annotate=annotate)
+        T_.assign(T, annotate=annotate)
+        #plot(T)
 
-success = replay_dolfin(tol=1.0e-10)
-if not success:
-    sys.exit(1)
+        t += timestep
+
+    return T_
+
+if __name__ == "__main__":
+
+    from dolfin_adjoint import *
+
+    # Run model
+    T0_expr = "0.5*(1.0 - x[1]*x[1]) + 0.01*cos(pi*x[0]/l)*sin(pi*x[1]/h)"
+    T0 = Expression(T0_expr, l=1.0, h=1.0)
+    ic = interpolate(T0, X, name="InitialCondition")
+    T = main(ic, annotate=True)
+
+    J = Functional(T*T*dx*dt[FINISH_TIME])
+    Jic = assemble(T*T*dx)
+    dJdic = compute_gradient(J, Control(T), forget=False)
+
+    def Jhat(ic):
+        T = main(ic, annotate=False)
+        return assemble(T*T*dx)
+
+    minconv = taylor_test(Jhat, Control(T), Jic, dJdic, seed=1.0e-1)
+    assert minconv > 1.9

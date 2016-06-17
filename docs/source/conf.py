@@ -35,7 +35,7 @@ class Mock(object):
     __mul__ = None
     __neg__ = None
     get_gst = None
-    LU  = None
+    SolverType_LU  = None
 
     def __init__(self, *args, **kwargs):
         pass
@@ -66,6 +66,10 @@ for mod_name in MOCK_MODULES:
         sys.modules[mod_name] = Mock()
 import backend
 backend.__name__ = "dolfin"
+
+# Add path to dolfin_adjoint module
+sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('..'))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = '1.1'
@@ -351,4 +355,4 @@ epub_copyright = u'2012, The dolfin-adjoint team'
 #                       'dolfin': ('http://fenicsproject.org/', None)}
 intersphinx_mapping = {'dolfin': ('http://fenicsproject.org/', None)}
 
-pngmath_dvipng_args = ['-gamma 1.5', '-D 110', '-bg Transparent']
+#pngmath_dvipng_args = ['-gamma 1.5', '-D 110', '-bg Transparent']

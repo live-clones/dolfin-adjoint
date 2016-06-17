@@ -17,17 +17,15 @@ class Vector(libadjoint.Vector):
 
     def __init__(self, data, zero=False, fn_space=None):
 
-
-        self.data=data
+        self.data = data
         if not (self.data is None or isinstance(self.data, backend.Function) or isinstance(self.data, ufl.Form)):
-            backend.info_red("Got " + str(self.data.__class__) + " as input to the Vector() class. Don't know how to handle that.")
-            raise AssertionError
+            backend.error("Got " + str(self.data.__class__) + " as input to the Vector() class. Don't know how to handle that.")
 
         # self.zero is true if we can prove that the vector is zero.
         if data is None:
-            self.zero=True
+            self.zero = True
         else:
-            self.zero=zero
+            self.zero = zero
 
         if fn_space is not None:
             self.fn_space = fn_space
@@ -289,7 +287,7 @@ class Matrix(libadjoint.Matrix):
                 # This means we didn't get any contribution on the RHS of the adjoint system. This could be that the
                 # simulation ran further ahead than when the functional was evaluated, or it could be that the
                 # functional is set up incorrectly.
-                backend.info_red("Warning: got zero RHS for the solve associated with variable %s" % var)
+                backend.warning("Warning: got zero RHS for the solve associated with variable %s" % var)
             elif isinstance(b.data, backend.Function):
 
                 assembled_lhs = self.assemble_data()
@@ -297,7 +295,7 @@ class Matrix(libadjoint.Matrix):
                 assembled_rhs = compatibility.assembled_rhs(b)
                 [bc.apply(assembled_rhs) for bc in bcs]
 
-                wrap_solve(assembled_lhs, x.data.vector(), assembled_rhs, self.solver_parameters)
+                wrap_solve(assembled_lhs, x.data, assembled_rhs, self.solver_parameters)
             else:
                 if hasattr(b, 'nonlinear_form'): # was a nonlinear solve
                     x = compatibility.assign_function_to_vector(x, b.nonlinear_u, function_space = test.function_space())
@@ -314,10 +312,7 @@ class Matrix(libadjoint.Matrix):
                     assembled_rhs = wrap_assemble(b.data, test)
                     [bc.apply(assembled_rhs) for bc in bcs]
 
-                    if backend.__name__ == "dolfin":
-                        wrap_solve(assembled_lhs, x.data.vector(), assembled_rhs, self.solver_parameters)
-                    else:
-                        wrap_solve(assembled_lhs, x.data, assembled_rhs, self.solver_parameters)
+                    wrap_solve(assembled_lhs, x.data, assembled_rhs, self.solver_parameters)
 
         return x
 
@@ -328,7 +323,7 @@ class Matrix(libadjoint.Matrix):
             if isinstance(output.data, ufl.Form):
                 output = Vector(backend.Function(output.fn_space, backend.assemble(output.data)))
         elif b.data is None:
-            backend.info_red("Warning: got zero RHS for the solve associated with variable %s" % var)
+            backend.warning("Warning: got zero RHS for the solve associated with variable %s" % var)
             output = Vector(backend.Function(self.test_function().function_space()))
         else:
             dirichlet_bcs = [utils.homogenize(bc) for bc in self.bcs if isinstance(bc, backend.DirichletBC)]
@@ -344,7 +339,10 @@ class Matrix(libadjoint.Matrix):
             elif isinstance(b.data, ufl.Form):
                 assembled_rhs = wrap_assemble(b.data, self.test_function())
             else:
-                assembled_rhs = b.data.vector()
+                if backend.__name__ == "dolfin":
+                    assembled_rhs = b.data.vector()
+                else:
+                    assembled_rhs = b.data
             [bc.apply(assembled_rhs) for bc in bcs]
 
             if not var in caching.lu_solvers:
@@ -358,7 +356,7 @@ class Matrix(libadjoint.Matrix):
                     assembled_lhs = self.assemble_data()
                     [bc.apply(assembled_lhs) for bc in bcs]
 
-                caching.lu_solvers[var] = backend.LUSolver(assembled_lhs, "mumps")
+                caching.lu_solvers[var] = compatibility.LUSolver(assembled_lhs, "mumps")
                 caching.lu_solvers[var].parameters["reuse_factorization"] = True
             else:
                 if backend.parameters["adjoint"]["debug_cache"]:
@@ -441,6 +439,8 @@ def wrap_solve(A, x, b, solver_parameters):
                 method = newton_options.get("linear_solver", method)
                 pc = newton_options.get("preconditioner", pc)
 
+        # We get passed in a Function, turn it into a Vector
+        x = x.vector()
         if method in lu_solvers or method == "default":
             if method == "lu": method = "default"
             solver = backend.LUSolver(method)

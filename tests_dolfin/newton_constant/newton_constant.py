@@ -44,7 +44,7 @@ if __name__ == "__main__":
         u = main(ic, nu)
         return assemble(inner(u, u)*dx + inner(nu, nu)*dx)
 
-    minconv = test_scalar_parameter_adjoint(Jhat, nu, dJdnu)
+    minconv = utils.test_scalar_parameter_adjoint(Jhat, nu, dJdnu)
 
     if minconv < 1.9:
         sys.exit(1)

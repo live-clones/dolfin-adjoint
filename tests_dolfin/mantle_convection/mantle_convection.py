@@ -207,7 +207,7 @@ if __name__ == "__main__":
     direction = Function(ic_copy)
     direction.vector()[:] = 1.0
 
-    minconv = test_initial_condition_adjoint(J, ic_copy, adjoint, seed=5.0e-1, perturbation_direction=direction)
+    minconv = utils.test_initial_condition_adjoint(J, ic_copy, adjoint, seed=5.0e-1, perturbation_direction=direction)
 
     if minconv < 1.8:
         sys.exit(1)

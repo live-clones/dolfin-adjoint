@@ -8,6 +8,7 @@ import adjglobals
 from adjrhs import adj_get_forward_equation
 import adjresidual
 from constant import get_constant
+from enlisting import enlist
 import constant
 import types
 import adjrhs
@@ -68,7 +69,7 @@ class DolfinAdjointControl(libadjoint.Parameter):
         raise NotImplementedError
 
     def set_perturbation(self, m_dot):
-        '''Return another instance of the same class, representing the Parameter perturbed in a particular
+        '''Return another instance of the same class, representing the Control perturbed in a particular
         direction m_dot.'''
         raise NotImplementedError
 
@@ -152,6 +153,8 @@ class FunctionControl(DolfinAdjointControl):
         global_eqn_list[eqn_nb] = eqn
 
     def set_perturbation(self, m_dot):
+        '''Return another instance of the same class, representing the Control perturbed in a particular
+        direction m_dot.'''
         return FunctionControl(self.coeff, perturbation=m_dot, value=self.value)
 
 class ConstantControl(DolfinAdjointControl):
@@ -234,19 +237,16 @@ class ConstantControl(DolfinAdjointControl):
 
             # Check if the coefficient is an expression with user-defined
             # derivatives
-            if not hasattr(coeff, "deval"):
-                continue
 
             if not hasattr(coeff, "dependencies"):
-                raise ValueError, "An expression with deval() must also \
-                                   implement the dependencies() function."
-
-            if not hasattr(coeff, "copy"):
-                raise ValueError, "An expression with deval() must also \
-                                   implement the copy() function."
+                continue
+            if not hasattr(coeff, "user_defined_derivatives"):
+                raise ValueError, "An expression with dependencies must also \
+provide the user_defined_derivatives \
+dictionary."
 
             # Check that that expression depends on self.a
-            elif self.a not in coeff.dependencies():
+            elif self.a not in coeff.dependencies:
                 continue
 
             else:
@@ -261,12 +261,8 @@ class ConstantControl(DolfinAdjointControl):
         # expressions
         for c in expr_deriv_coeffs:
 
-            dc = c.copy()
-            eval_deriv_a = lambda expr, value, x: expr.deval(value, x, self.a)
-            dc.eval = types.MethodType(eval_deriv_a, dc)
-
             diff_form += ufl.algorithms.expand_derivatives(
-                backend.derivative(form, c, dc))
+                backend.derivative(form, c, c.user_defined_derivatives[self.a]))
 
         return diff_form
 
@@ -506,8 +502,11 @@ class ListControl(DolfinAdjointControl):
         [c.update(v) for c, v in zip(self.controls, value)]
 
     def set_perturbation(self, m_dot):
-        '''Return another instance of the same class, representing the Parameter perturbed in a particular
+        '''Return another instance of the same class, representing the Control perturbed in a particular
         direction m_dot.'''
+        m_dot = enlist(m_dot)
+        if not len(self.controls) == len(m_dot):
+            raise ValueError, "The perturbation m_dot must be a list of the same shape as the control list"
         return ListControl([p.set_perturbation(m) for (p, m) in zip(self.controls, m_dot)])
 
     def __getitem__(self, i):

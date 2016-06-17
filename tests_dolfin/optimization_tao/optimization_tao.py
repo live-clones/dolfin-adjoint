@@ -78,5 +78,5 @@ if __name__ == "__main__":
 
     # Check that values are below the threshold
     tao_p = solver.get_tao()
-    assert tao_p.getGradientNorm() < 1e-9
+    assert tao_p.gnorm < 1e-9
     assert tao_p.getIterationNumber() <= 20

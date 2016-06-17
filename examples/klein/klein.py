@@ -80,8 +80,9 @@ from dolfin import *
 from dolfin_adjoint import *
 
 # Next we load a triangulation of the Klein bottle as a mesh file.
-
-mesh = Mesh("klein.xdmf")
+mesh = Mesh()
+infile = XDMFFile(mpi_comm_world(), 'klein.xdmf')
+infile.read(mesh)
 
 # FEniCS natively supports solving partial differential equations on manifolds
 # :cite:`rognes2013`, so nothing else needs to be done here.  The code for
@@ -107,7 +108,7 @@ u_old = Function(V)
 v = TestFunction(V)
 
 # Initial condition
-g = interpolate(Expression("sin(x[2])*cos(x[1])"), V)
+g = interpolate(Expression("sin(x[2])*cos(x[1])", degree=2), V)
 
 # Thermal diffusivity
 nu = 1.0

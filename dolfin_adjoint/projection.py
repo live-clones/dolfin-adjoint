@@ -36,12 +36,14 @@ def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="cg", preconditio
 
         if V is None:
             V = backend.fem.projection._extract_function_space(v, mesh)
+        if mesh is None:
+            mesh = V.mesh()
 
         # Define variational problem for projection
         w = backend.TestFunction(V)
         Pv = backend.TrialFunction(V)
-        a = backend.inner(w, Pv)*backend.dx
-        L = backend.inner(w, v)*backend.dx
+        a = backend.inner(w, Pv)*backend.dx(domain=mesh)
+        L = backend.inner(w, v)*backend.dx(domain=mesh)
 
         solving.annotate(a == L, out, bcs, solver_parameters={"linear_solver": solver_type, "preconditioner": preconditioner_type, "symmetric": True})
 

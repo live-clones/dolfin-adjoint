@@ -115,7 +115,6 @@ class ReducedFunctionalNumPy(ReducedFunctional):
                     adjointer.forget_adjoint_values(i)
 
             self.set_local(m, m_array)
-        self.H.update(m)
 
         m_dot = [copy_data(p.data()) for p in self.controls]
         self.set_local(m_dot, m_dot_array)

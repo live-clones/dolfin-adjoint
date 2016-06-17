@@ -64,7 +64,7 @@ if __name__ == "__main__":
         perturbed_u0 = run_forward(initial_condition=ic, annotate=False, dump=False)
         return assemble(perturbed_u0*perturbed_u0*dx)
 
-    minconv = test_initial_condition_adjoint(J, Function(V), dJdic, seed=10.0)
+    minconv = utils.test_initial_condition_adjoint(J, Function(V), dJdic, seed=10.0)
 
     if minconv < 1.9:
         sys.exit(1)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     ic = final_forward
     ic.vector()[:] = 0
 
-    minconv = test_initial_condition_tlm(J, dJ, ic, seed=10.0)
+    minconv = utils.test_initial_condition_tlm(J, dJ, ic, seed=10.0)
 
     if minconv < 1.9:
         sys.exit(1)

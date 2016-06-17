@@ -4,6 +4,7 @@ import constraints
 import numpy
 import math
 from ..enlisting import enlist, delist
+from ..misc import noannotations
 
 from backend import *
 
@@ -412,7 +413,7 @@ try:
         @optizelle_callback
         def hessvec(self, x, dx, H_dx):
             self.eval(x)
-            H = self.rf.hessian(dx, project=True)
+            H = enlist(self.rf.hessian(dx, project=True))
             DolfinVectorSpace.scal(self.scale, H)
             DolfinVectorSpace.copy(H, H_dx)
 
@@ -663,6 +664,7 @@ class OptizelleSolver(OptimizationSolver):
                     print("Error: unknown optizelle option %s." % key)
                     raise
 
+    @noannotations
     def solve(self):
         """Solve the optimization problem and return the optimized parameters."""
 

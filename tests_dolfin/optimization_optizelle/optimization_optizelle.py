@@ -21,7 +21,7 @@ except ImportError:
 
 set_log_level(ERROR)
 
-parameters["adjoint"]["cache_factorizations"] = True
+parameters["adjoint"]["cache_factorizations"] = False
 
 # Create mesh
 n = 50
@@ -39,6 +39,7 @@ v = TestFunction(V)
 F = (inner(grad(u), grad(v)) - f*v)*dx
 bc = DirichletBC(V, 0.0, "on_boundary")
 solve(F == 0, u, bc)
+
 
 # Define functional of interest and the reduced functional
 x = SpatialCoordinate(mesh)

@@ -13,7 +13,7 @@ def main(c, annotate=False):
     U = FunctionSpace(mesh, "DG", 2)
 
     # Set some expressions
-    uinit = Expression("cos(pi*x[0])")
+    uinit = Expression("cos(pi*x[0])", degree=2)
     ubdr = Constant(1.0)
 
     # Set initial values
@@ -40,7 +40,7 @@ def main(c, annotate=False):
     u_ls = Function(U, name="u_ls")
 
     # Prepare LocalSolver
-    local_solver = LocalSolver(a, solver_type = LocalSolver.Cholesky, factorize = True)
+    local_solver = LocalSolver(a, solver_type=LocalSolver.SolverType_Cholesky, factorize=True)
     local_solver.factorize()
 
     # The acutal timestepping

@@ -24,7 +24,6 @@ class LinearSolver(dolfin.LinearSolver):
         self.operators = (A, P)
 
     def set_nullspace(self, nsp):
-        dolfin.LinearSolver.set_nullspace(self, nsp)
         self.nsp = nsp
 
     def set_operator(self, A):
@@ -38,6 +37,7 @@ class LinearSolver(dolfin.LinearSolver):
         for the purposes of visualisation).'''
 
         to_annotate = utils.to_annotate(kwargs.pop("annotate", None))
+        nsp = self.nsp
 
         if to_annotate:
             if len(args) == 3:
@@ -71,7 +71,6 @@ class LinearSolver(dolfin.LinearSolver):
             parameters = self.parameters.to_dict()
             fn_space = u.function_space()
             has_preconditioner = P is not None
-            nsp = self.nsp
 
             class LinearSolverMatrix(adjlinalg.Matrix):
                 def __init__(self, *args, **kwargs):
@@ -104,13 +103,6 @@ class LinearSolver(dolfin.LinearSolver):
                     solver = dolfin.LinearSolver(*solver_parameters)
                     solver.parameters.update(parameters)
 
-                    if nsp is not None and self.adjoint is False:
-                        solver.set_nullspace(nsp)
-                    if nsp is not None and self.adjoint:
-                        # maybe add a LinearSolver.set_adjoint_nullspace?
-                        dolfin.info_red("Warning: setting nullspace for adjoint solve to be the same for the forward solve. May not be the actual basis for the nullspace.")
-                        solver.set_nullspace(nsp)
-
                     x = dolfin.Function(fn_space)
                     if self.initial_guess is not None and var.type == 'ADJ_FORWARD':
                         x.vector()[:] = self.initial_guess.vector()
@@ -138,6 +130,12 @@ class LinearSolver(dolfin.LinearSolver):
                         else: # we called assemble
                             A = dolfin.assemble(operators[0])
                             [bc.apply(A) for bc in self.bcs]
+
+                            # Set nullspace
+                            if nsp:
+                                dolfin.as_backend_type(A).set_nullspace(nsp)
+                                nsp.orthogonalize(b);
+
                             if has_preconditioner:
                                 P = dolfin.assemble(operators[1])
                                 [bc.apply(P) for bc in self.bcs]
@@ -158,6 +156,12 @@ class LinearSolver(dolfin.LinearSolver):
                             rhs = dolfin.assemble(b.data)
                             [bc.apply(A) for bc in self.bcs]
                             [bc.apply(rhs) for bc in self.bcs]
+
+                            # Set nullspace
+                            if nsp:
+                                dolfin.as_backend_type(A).set_nullspace(nsp)
+                                nsp.orthogonalize(rhs);
+
                             if has_preconditioner:
                                 P = dolfin.assemble(operators[1])
                                 [bc.apply(P) for bc in self.bcs]
@@ -168,7 +172,8 @@ class LinearSolver(dolfin.LinearSolver):
                     solver.solve(x.vector(), rhs)
                     return adjlinalg.Vector(x)
 
-            solving.annotate(A == b, u, bcs, matrix_class=LinearSolverMatrix, initial_guess=parameters['nonzero_initial_guess'], replace_map=True)
+            nonzero_initial_guess = parameters['nonzero_initial_guess'] if 'nonzero_initial_guess' in parameters.keys() else False
+            solving.annotate(A == b, u, bcs, matrix_class=LinearSolverMatrix, initial_guess=nonzero_initial_guess, replace_map=True)
 
         out = dolfin.LinearSolver.solve(self, *args, **kwargs)
 
