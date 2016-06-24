@@ -1,6 +1,6 @@
 import backend
 from assembly import assemble, assemble_system
-
+from multimesh_assembly import assemble_multimesh
 # Functional
 from functional import Functional
 

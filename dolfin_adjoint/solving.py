@@ -16,6 +16,7 @@ import os.path
 import random
 
 import assembly
+import multimesh_assembly
 import expressions
 import constant
 import coeffstore
@@ -87,10 +88,18 @@ def annotate(*args, **kwargs):
             eq_rhs = args[2].form
         except (KeyError, AttributeError) as e:
             raise libadjoint.exceptions.LibadjointErrorInvalidInputs("dolfin_adjoint did not assemble your form, and so does not recognise your right-hand side. Did you from dolfin_adjoint import *?")
-
+        
         u = args[1]
+        print type(u)
+        from IPython import embed
+        embed()
+        print type(u.function)
+        
+        raw_input('start')
+        print u.function
         u = u.function
-
+        
+        raw_input('stop')
         solver_parameters = {}
 
         try:
