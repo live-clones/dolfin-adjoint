@@ -66,12 +66,17 @@ def solve_poisson():
     solve(A, u.vector(), b)
 
     adj_html("forward.html", "forward")
-    plot(u.part(0), title='u0')
-    interactive()
-    plot(u.part(1), title='u1')
-    interactive()
-    plot(multimesh)
-    interactive()
+    #plot(u.part(0), title='u0')
+    #interactive()
+    #plot(u.part(1), title='u1')
+    #interactive()
+    #plot(multimesh)
+    #interactive()
+
+    j = Functional(u*dx)
+    c = Control(f)
+
+    print compute_gradient(J, f)
 
 
 if __name__ == '__main__':
