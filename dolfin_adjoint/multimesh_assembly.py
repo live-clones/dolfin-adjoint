@@ -31,7 +31,7 @@ def assemble_multimesh(*args, **kwargs):
 # TODO: Overload MultiMeshPeriodicBC once it is implemented in DOLFIN
 
 if hasattr(backend, 'MultiMeshDirichletBC'):
-    multimesh_dirichlet_bc_apply = backend.MultiMeshDirichletBC.apply
+    multimesh_adjoint_dirichlet_bc_apply = backend.MultiMeshDirichletBC.apply
     def adjoint_multimesh_dirichlet_bc_apply(self, *args, **kwargs):
         for arg in args:
             if not hasattr(arg, 'bcs'):
