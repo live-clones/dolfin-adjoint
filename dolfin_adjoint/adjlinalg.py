@@ -10,7 +10,7 @@ import compatibility
 import utils
 
 class Vector(libadjoint.Vector):
-    '''This class implements the libadjoint.Vector abstract base class for the Dolfin adjoint.
+    '''This class implements the libadjoint.Vector abstract base class for dolfin-adjoint.
     In particular, it must implement the data callbacks for tasks such as adding two vectors
     together, duplicating vectors, taking norms, etc., that occur in the process of constructing
     the adjoint equations.'''
@@ -18,7 +18,9 @@ class Vector(libadjoint.Vector):
     def __init__(self, data, zero=False, fn_space=None):
 
         self.data = data
-        if not (self.data is None or isinstance(self.data, backend.Function) or isinstance(self.data, ufl.Form)):
+        if not (self.data is None or isinstance(self.data, backend.Function) or
+                isinstance(self.data, ufl.Form) or isinstance(self.data,
+                    backend.MultiMeshFunction)):
             backend.error("Got " + str(self.data.__class__) + " as input to the Vector() class. Don't know how to handle that.")
 
         # self.zero is true if we can prove that the vector is zero.
@@ -65,6 +67,10 @@ class Vector(libadjoint.Vector):
             # self is an empty form.
             if isinstance(x.data, backend.Function):
                 self.data = backend.Function(x.data)
+                self.data.vector()._scale(alpha)
+            if isinstance(x.data, backend.MultiMeshFunction):
+                self.data = backend.MultiMeshFunction(x.data.function_space(),
+                        x.data.vector())
                 self.data.vector()._scale(alpha)
             else:
                 self.data=alpha*x.data
