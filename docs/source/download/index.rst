@@ -4,6 +4,52 @@
 Downloading dolfin-adjoint
 **************************
 
+Docker images (all platforms and versions)
+==========================================
+
+`Docker <https://www.docker.com>`_ allows us to build and ship
+consistent high-performance dolfin-adjoint installations with FEniCS for almost any
+platform. To get started, follow these 2 steps:
+
+#. Install Docker. Mac and Windows users should install the `Docker
+   Toolbox <https://www.docker.com/products/docker-toolbox>`_ (this is
+   a simple one-click install) and Linux users should `follow these
+   instructions <https://docs.docker.com/linux/step_one/>`_.
+#. Install the FEniCS Docker script::
+
+    curl -s https://get.fenicsproject.org | bash
+
+If running on Mac or Windows, make sure you run this and other
+commands inside the Docker Quickstart Terminal.
+
+Once both Docker and the FEniCS Docker script have been installed, you can
+easily start a FEniCS session with dolfin-adjoint by running the following
+command::
+
+    fenicsproject run quay.io/dolfinadjoint/dolfin-adjoint
+
+A Jupyter notebook instance with a user defined name (here myproject) can be started with::
+
+    fenicsproject notebook myproject quay.io/dolfinadjoint/dolfin-adjoint
+    fenicsproject start myproject
+
+
+The FEniCS Docker script can also be used to create persistent sessions
+(``fenicsproject create myproject`` followed by ``fenicsproject run
+myproject``) or to run different versions of FEniCS (``fenicsproject-adjoint run
+quay.io/dolfinadjoint/dev-dolfin-adjoint``). To see more options, run the
+following command::
+
+    fenicsproject help
+
+The development version of dolfin-adjoint and FEniCS is available with
+``quay.io/dolfinadjoint/dev-dolfin-adjoint``. To update this container after some time,
+run ``fenicsproject pull quay.io/dolfinadjoint/dev-dolfin-adjoint``.
+
+For more details and tips on how to work with FEniCS and Docker, see
+our `FEniCS Docker page
+<http://fenics-containers.readthedocs.org/en/latest/>`_.
+
 Dependencies
 ============
 
@@ -33,6 +79,7 @@ Optional dependencies:
 .. _their installation instructions: http://fenicsproject.org/download
 
 
+
 Binary packages (Ubuntu)
 ========================
 
@@ -50,42 +97,6 @@ Once that's done, why not try out the :doc:`tutorial <../documentation/tutorial>
 
 .. _launchpad PPA: https://launchpad.net/~libadjoint/+archive/ppa
 
-
-Docker images (all platforms and versions)
-==========================================
-
-`Docker <https://www.docker.com>`_ allows us to build and ship
-consistent high-performance FEniCS installations with dolfin-adjoint for almost any
-platform. To get started, follow these 2 steps:
-
-#. Install Docker. Mac and Windows users should install the `Docker
-   Toolbox <https://www.docker.com/products/docker-toolbox>`_ (this is
-   a simple one-click install) and Linux users should `follow these
-   instructions <https://docs.docker.com/linux/step_one/>`_.
-#. Install the FEniCS Docker script::
-
-    curl -s https://bitbucket.org/dolfin-adjoint/virtual/raw/master/bin/get.fenicsproject-adjoint | sh
-
-If running on Mac or Windows, make sure you run this and other
-commands inside the Docker Quickstart Terminal.
-
-Once both Docker and the FEniCS Docker script have been installed, you can
-easily start a FEniCS session with dolfin-adjoint by running the following
-command::
-
-    fenicsproject-adjoint run quay.io/dolfinadjoint/dolfin-adjoint
-
-The FEniCS Docker script can also be used to create persistent sessions
-(``fenicsproject-adjoint create myproject`` followed by ``fenicsproject-adjoint run
-myproject``) or to run different versions of FEniCS (``fenicsproject-adjoint run
-quay.io/dolfinadjoint/dev-dolfin-adjoint``). To see more options, run the
-following command::
-
-    fenicsproject-adjoint help
-
-For more details and tips on how to work with FEniCS and Docker, see
-our `FEniCS Docker page
-<http://fenics-containers.readthedocs.org/en/latest/>`_.
 
 From source
 ===========
