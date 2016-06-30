@@ -291,7 +291,7 @@ def set_local(m_list, m_global_array):
             offset += m.vector().size()
         # Parameters of type dolfin.Constant
         elif hasattr(m, "value_size"):
-            m.assign(constant.Constant(np.reshape(m_global_array[offset:offset+m.value_size()], m.shape())))
+            m.assign(constant.Constant(np.reshape(m_global_array[offset:offset+m.value_size()], m.ufl_shape)))
             offset += m.value_size()
         elif isinstance(m, np.ndarray):
             m[:] = m_global_array[offset:offset+len(m)]
