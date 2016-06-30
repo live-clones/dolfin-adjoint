@@ -10,9 +10,9 @@ Dependencies
 Mandatory dependencies:
 -----------------------
 
-- `FEniCS`_, version 1.6. For installation instructions for FEniCS, see `their installation instructions`_.
+- `FEniCS`_. For installation instructions for FEniCS, see `their installation instructions`_.
 
-- `libadjoint`_, version 1.6. This is a library written in C that manipulates the tape of the forward model to derive the associated adjoint equations.
+- `libadjoint`_. This is a library written in C that manipulates the tape of the forward model to derive the associated adjoint equations.
 
 Optional dependencies:
 ----------------------
@@ -90,19 +90,19 @@ our `FEniCS Docker page
 From source
 ===========
 
-The latest stable release of dolfin-adjoint and libadjoint is **version 1.6** which is compatible with FEniCS 1.6. Download links:
+The latest stable release of dolfin-adjoint and libadjoint is **version 2016.1** which is compatible with FEniCS 2016.1. Download links:
 
 * libadjoint:
 
 .. code-block:: bash
 
-   git clone -b libadjoint-1.6 https://bitbucket.org/dolfin-adjoint/libadjoint
+   git clone -b libadjoint-2016.1.0 https://bitbucket.org/dolfin-adjoint/libadjoint
 
 * dolfin-adjoint:
 
 .. code-block:: bash
 
-   git clone -b dolfin-adjoint-1.6 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
+   git clone -b dolfin-adjoint-2016.1.0 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
 
 The **development version** is available with the following
 command:
@@ -153,9 +153,9 @@ the instructions:
 Older versions
 ==============
 
-An older version compatible with FEniCS 1.5 can be downloaded with:
+An older version compatible with FEniCS 1.6 can be downloaded with:
 
 .. code-block:: bash
 
-   git clone -b dolfin-adjoint-1.5 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
-   git clone -b libadjoint-1.5 https://bitbucket.org/dolfin-adjoint/libadjoint
+   git clone -b dolfin-adjoint-1.6 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
+   git clone -b libadjoint-1.6 https://bitbucket.org/dolfin-adjoint/libadjoint
