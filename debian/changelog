@@ -1,8 +1,8 @@
-dolfin-adjoint (2016.1.0~vivid) vivid; urgency=low
+dolfin-adjoint (2016.1.0~trusty) trusty; urgency=low
 
   * Release dolfin-adjoint version 2016.1.0.
 
- -- Simon Funke <simon@simula.no>  Thu, 30 June 2016 16:37:05 +0100
+ -- Simon Funke <simon@simula.no>  Thu, 30 Jun 2016 16:37:05 +0100
 
 dolfin-adjoint (1.6~vivid) vivid; urgency=low
 
