@@ -1,3 +1,5 @@
+dolfin-adjoint 2016.1.0 [30-06-2016]
+- Support for FEniCS 2016.1.0
 dolfin-adjoint 1.7
 - New feature: Support for multiple controls in Hessian computations
 - Bug fixes

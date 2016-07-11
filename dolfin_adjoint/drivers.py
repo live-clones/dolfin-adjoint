@@ -109,7 +109,20 @@ def compute_gradient(J, param, forget=True, ignore=[], callback=lambda var, outp
 
     enlisted_controls = enlist(param)
     param = ListControl(enlisted_controls)
-    dJdparam = enlisted_controls.__class__([None] * len(enlisted_controls))
+
+    if backend.parameters["adjoint"]["allow_zero_derivatives"]:
+        dJ_init = []
+        for c in enlisted_controls:
+            if isinstance(c.data(), backend.Constant):
+                dJ_init.append(backend.Constant(0))
+            elif isinstance(c.data(), backend.Function):
+                space = c.data().function_space()
+                dJ_init.append(backend.Function(space))
+
+    else:
+        dJ_init = [None] * len(enlisted_controls)
+
+    dJdparam = enlisted_controls.__class__(dJ_init)
 
     last_timestep = adjglobals.adjointer.timestep_count
 
