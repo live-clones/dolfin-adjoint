@@ -55,7 +55,7 @@ def constant_to_array(c):
         r = a[0]
 
     # Make sure input and output have the same shape
-    assert c.shape() == r.shape
+    assert c.ufl_shape == r.shape
 
     return r
 
