@@ -128,35 +128,41 @@ class Function(backend.Function):
 
     def __init__(self, *args, **kwargs):
 
-        annotate = kwargs.pop("annotate", None)
-        to_annotate = utils.to_annotate(annotate)
-
         if "name" in kwargs:
             self.adj_name = kwargs["name"]
-
-            #if self.adj_name in adjglobals.function_names and to_annotate:
-            #  backend.info_red("Warning: got duplicate function name %s" % self.adj_name)
-
             adjglobals.function_names.add(self.adj_name)
             del kwargs["name"]
 
-        with misc.annotations(False):
-            backend.Function.__init__(self, *args, **kwargs)
+        backend.Function.__init__(self, *args, **kwargs)
 
         if hasattr(self, 'adj_name'):
             self.rename(self.adj_name, "a Function from dolfin-adjoint")
 
-        if to_annotate:
-            if not isinstance(args[0], compatibility.function_space_type):
-                if isinstance(args[0], backend.Function):
-                    known = adjglobals.adjointer.variable_known(adjglobals.adj_variables[args[0]])
-                else:
-                    known = True
+    def copy(self, *args, **kwargs):
 
-                if known or (annotate is True):
-                    assignment.register_assign(self, args[0])
-                else:
-                    adjglobals.adj_variables.forget(args[0])
+        name = kwargs.pop("name", None)
+        annotate = kwargs.pop("annotate", None)
+        to_annotate = utils.to_annotate(annotate)
+
+        with misc.annotations(False):
+            copy = backend.Function.copy(self, *args, **kwargs)
+            # Wrap copy into a dolfin_adjoint.Function
+            copy = Function(copy.function_space(), copy.vector())
+
+        if name is not None:
+            copy.adj_name = name
+            copy.rename(name, "a Function from dolfin-adjoint")
+            adjglobals.function_names.add(name)
+
+        if to_annotate:
+            known = adjglobals.adjointer.variable_known(adjglobals.adj_variables[self])
+
+            if known or (annotate is True):
+                assignment.register_assign(self, self)
+            else:
+                adjglobals.adj_variables.forget(self)
+
+        return copy
 
     def project(self, other, annotate=None, *args, **kwargs):
         '''To disable the annotation, just pass :py:data:`annotate=False` to this routine, and it acts exactly like the

@@ -64,7 +64,7 @@ class Vector(libadjoint.Vector):
         if (self.data is None):
             # self is an empty form.
             if isinstance(x.data, backend.Function):
-                self.data = backend.Function(x.data)
+                self.data = x.data.copy(deepcopy=True)
                 self.data.vector()._scale(alpha)
             else:
                 self.data=alpha*x.data
