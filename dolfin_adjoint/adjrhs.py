@@ -176,10 +176,13 @@ class NonlinearRHS(RHS):
     def __call__(self, dependencies, values):
         assert isinstance(self.form, ufl.form.Form)
 
-        ic = self.u.function_space() # by default, initialise with a blank function in the solution FunctionSpace
 
         if hasattr(self, "ic_copy"):
             ic = self.ic_copy
+        else: 
+            # by default, initialise with a blank function in the solution FunctionSpace
+            V = self.u.function_space()
+            ic = backend.Function(V)
 
         replace_map = {}
 

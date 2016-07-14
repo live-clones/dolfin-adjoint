@@ -59,14 +59,11 @@ def main(ic, annotate=False):
 if __name__ == "__main__":
 
     ic = project(Expression("sin(2*pi*x[0])"),  V)
-    ic_copy = ic.copy(deepcopy=True)
+    ic_copy = ic.copy(deepcopy=True, annotate=False)
     j, forward = main(ic, annotate=True)
-    forward_copy = Function(forward, annotate=False)
+    forward_copy = forward.copy(deepcopy=True, annotate=False)
     ic = forward
     ic.vector()[:] = ic_copy.vector()
-
-    adj_html("burgers_newton_forward.html", "forward")
-    adj_html("burgers_newton_adjoint.html", "adjoint")
 
     print "Running forward replay .... "
     replay_dolfin(forget=False)
