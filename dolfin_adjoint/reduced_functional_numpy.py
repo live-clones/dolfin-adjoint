@@ -245,7 +245,7 @@ def get_global(m_list):
     for m in m_list:
 
         # Parameters of type float
-        if m == None or type(m) == float:
+        if m is None or type(m) == float:
             m_global.append(m)
 
         elif hasattr(m, "tolist"):
