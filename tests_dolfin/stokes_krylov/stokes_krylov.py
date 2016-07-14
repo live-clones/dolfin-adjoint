@@ -57,17 +57,18 @@ X = FunctionSpace(mesh, "CG", 1)
 def main(ic, annotate=False):
 
     # Define meshes and function spaces
-    V = VectorFunctionSpace(mesh, "CG", 2)
-    Q = FunctionSpace(mesh, "CG", 1)
-    W = V * Q
+    cg2 = VectorElement("CG", triangle, 2)
+    cg1 = FiniteElement("CG", triangle, 1) 
+    ele = MixedElement([cg2, cg1])
+    W = FunctionSpace(mesh, ele)
 
     # Define boundary conditions
     flow_bcs = flow_boundary_conditions(W)
     temp_bcs = temperature_boundary_conditions(X)
 
     # Temperature variables
-    T_ = Function(ic, name="T_", annotate=annotate)
-    T = Function(ic, name="T", annotate=annotate)
+    T_ = ic.copy(deepcopy=True, name="T_", annotate=annotate)
+    T = ic.copy(deepcopy=True, name="T", annotate=annotate)
 
     # Flow variable(s)
     w = Function(W)

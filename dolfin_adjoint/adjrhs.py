@@ -193,7 +193,7 @@ class NonlinearRHS(RHS):
 
         current_F    = backend.replace(self.F, replace_map)
         current_J    = backend.replace(self.J, replace_map)
-        u = backend.Function(ic)
+        u = ic.copy(deepcopy=True)
         current_F    = backend.replace(current_F, {self.u: u})
         current_J    = backend.replace(current_J, {self.u: u})
 

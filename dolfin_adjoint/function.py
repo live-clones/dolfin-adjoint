@@ -146,8 +146,7 @@ class Function(backend.Function):
 
         with misc.annotations(False):
             copy = backend.Function.copy(self, *args, **kwargs)
-            # Wrap copy into a dolfin_adjoint.Function
-            copy = Function(copy.function_space(), copy.vector())
+            copy = utils.function_to_da_function(copy)
 
         if name is not None:
             copy.adj_name = name
@@ -155,12 +154,7 @@ class Function(backend.Function):
             adjglobals.function_names.add(name)
 
         if to_annotate:
-            known = adjglobals.adjointer.variable_known(adjglobals.adj_variables[self])
-
-            if known or (annotate is True):
-                assignment.register_assign(self, self)
-            else:
-                adjglobals.adj_variables.forget(self)
+            assignment.register_assign(copy, self)
 
         return copy
 

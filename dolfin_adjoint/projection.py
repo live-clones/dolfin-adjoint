@@ -26,6 +26,7 @@ def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="cg", preconditio
         to_annotate = False
 
     out = backend.project(v=v, V=V, bcs=bcs, mesh=mesh, solver_type=solver_type, preconditioner_type=preconditioner_type, form_compiler_parameters=form_compiler_parameters)
+    out = utils.function_to_da_function(out)
 
     if name is not None:
         out.adj_name = name

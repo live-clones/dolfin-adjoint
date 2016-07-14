@@ -72,7 +72,7 @@ if hasattr(backend.Function, 'sub'):
 
 def assembled_rhs(b):
     if backend.__name__ == "dolfin":
-        assembled_rhs = backend.Function(b.data).vector()
+        assembled_rhs = b.data.copy(deepcopy=True).vector()
     else:
         assembled_rhs = backend.Function(b.data)
     return assembled_rhs

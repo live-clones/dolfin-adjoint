@@ -16,6 +16,7 @@ def interpolate(v, V, annotate=None, name=None):
     visualisation).'''
 
     out = backend.interpolate(v, V)
+    out = utils.function_to_da_function(out)
     if name is not None:
         out.adj_name = name
 

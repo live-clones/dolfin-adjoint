@@ -38,8 +38,10 @@ parameters["std_out_all_processes"] = False;
 mesh = UnitSquareMesh(2, 2)
 
 # Define function spaces (P2-P1)
-V = VectorFunctionSpace(mesh, "CG", 2)
-Q = FunctionSpace(mesh, "CG", 1)
+cg2 = VectorElement("CG", triangle, 2)
+cg1 = FiniteElement("CG", triangle, 1)
+V = FunctionSpace(mesh, cg2)
+Q = FunctionSpace(mesh, cg1)
 
 # Define trial and test functions
 u = TrialFunction(V)
@@ -67,7 +69,7 @@ def main(ic):
     bcp = [inflow, outflow]
 
     # Create functions
-    u0 = Function(ic, name="Velocity")
+    u0 = ic.copy(deepcopy=True, name="Velocity")
     u1 = Function(V, name="VelocityNext")
     p1 = Function(Q, name="Pressure")
 

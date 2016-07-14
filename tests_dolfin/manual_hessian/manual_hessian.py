@@ -174,9 +174,9 @@ def little_taylor_test_dlambdadm(m):
     with_gradient = []
     Jm = J_adj_m(m)
     for h in [seed * 2**-i for i in range(5)]:
-        m_ptb = Function(m_dot)
+        m_ptb = m_dot.copy(deepcopy=True)
         m_ptb.vector()[:] *= h
-        m_tilde = Function(m)
+        m_tilde = m.copy(deepcopy=True)
         m_tilde.vector()[:] += m_ptb.vector()
         without_gradient.append(J_adj_m(m_tilde) - Jm)
         with_gradient.append(without_gradient[-1] - grad_J_adj_m(m, m_ptb))
@@ -206,10 +206,10 @@ def little_taylor_test_dudm(m):
     with_gradient = []
     Jm = Jhat(m)
     for h in [seed * 2**-i for i in range(5)]:
-        m_ptb = Function(m_dot)
+        m_ptb = m_dot.copy(deepcopy=True)
         m_ptb.vector()[:] *= h
         #print "m_ptb.vector(): ", m_ptb.vector().array()
-        m_tilde = Function(m)
+        m_tilde = m.copy(deepcopy=True)
         m_tilde.vector()[:] += m_ptb.vector()
         #print "m_tilde.vector(): ", m_tilde.vector().array()
         without_gradient.append(Jhat(m_tilde) - Jm)

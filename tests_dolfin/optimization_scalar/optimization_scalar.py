@@ -10,7 +10,7 @@ mesh = UnitIntervalMesh(n)
 V = FunctionSpace(mesh, "CG", 2)
 
 ic = project(Expression("sin(2*pi*x[0])"),  V)
-u = Function(ic)
+u = ic.copy(deepcopy=True)
 
 def main(nu):
     u_next = Function(V)

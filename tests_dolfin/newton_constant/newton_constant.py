@@ -11,7 +11,7 @@ if LooseVersion(dolfin.__version__) > LooseVersion('1.3.0'):
 V = FunctionSpace(mesh, "CG", 2)
 
 def main(ic, nu):
-    u = Function(ic)
+    u = ic.copy(deepcopy=True)
     u_next = Function(V)
     v = TestFunction(V)
 

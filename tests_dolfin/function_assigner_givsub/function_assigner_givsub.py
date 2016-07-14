@@ -7,9 +7,10 @@ if not hasattr(dolfin, "FunctionAssigner"):
     sys.exit(0)
 
 mesh = UnitIntervalMesh(2)
-V = VectorFunctionSpace(mesh, "CG", 2)
-P = FunctionSpace(mesh, "CG", 1)
-Z = MixedFunctionSpace([V, P])
+cg2 = VectorElement("CG", triangle, 2)
+cg1 = FiniteElement("CG", triangle, 1)
+ele = MixedElement([cg2, cg1])
+Z = FunctionSpace(mesh, ele)
 
 def main(z0):
     """ Maps

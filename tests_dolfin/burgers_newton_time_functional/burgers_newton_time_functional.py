@@ -20,7 +20,7 @@ def Dt(u, u_, timestep):
 
 def main(ic, annotate=False):
 
-    u_ = Function(ic, name="Velocity")
+    u_ = ic.copy(deepcopy=True, name="Velocity")
     u = Function(V, name="VelocityNext")
     v = TestFunction(V)
 
@@ -59,7 +59,7 @@ def main(ic, annotate=False):
 if __name__ == "__main__":
 
     ic = project(Expression("sin(2*pi*x[0])"),  V)
-    ic_copy = Function(ic)
+    ic_copy = ic.copy(deepcopy=True)
     j, forward = main(ic, annotate=True)
     forward_copy = Function(forward, annotate=False)
     ic = forward

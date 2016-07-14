@@ -17,7 +17,7 @@ def center_func(x):
 center_domain = VertexFunction("size_t", mesh, 0)
 center = AutoSubDomain(center_func)
 center.mark(center_domain, 1)
-dPP = dP[center_domain]
+dPP = dP(subdomain_data=center_domain)
 
 # Define boundary condition
 bc = DirichletBC(V, Constant(0), boundary)

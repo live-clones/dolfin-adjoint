@@ -85,17 +85,19 @@ def test_initial_condition_adjoint(J, ic, final_adjoint, seed=0.01, perturbation
        series remainder, which should be 2 if the adjoint is working
        correctly.'''
 
+    import function
+
     # We will compute the gradient of the functional with respect to the initial condition,
     # and check its correctness with the Taylor remainder convergence test.
     info_blue("Running Taylor remainder convergence analysis for the adjoint model ... ")
 
     # First run the problem unperturbed
-    ic_copy = backend.Function(ic)
+    ic_copy = ic.copy(deepcopy=True)
     f_direct = J(ic_copy)
 
     # Randomise the perturbation direction:
     if perturbation_direction is None:
-        perturbation_direction = backend.Function(ic.function_space())
+        perturbation_direction = function.Function(ic.function_space())
         compatibility.randomise(perturbation_direction)
 
     # Run the forward problem for various perturbed initial conditions
@@ -103,12 +105,12 @@ def test_initial_condition_adjoint(J, ic, final_adjoint, seed=0.01, perturbation
     perturbations = []
     perturbation_sizes = [seed/(2**i) for i in range(5)]
     for perturbation_size in perturbation_sizes:
-        perturbation = backend.Function(perturbation_direction)
+        perturbation = perturbation_direction.copy(deepcopy=True)
         vec = perturbation.vector()
         vec *= perturbation_size
         perturbations.append(perturbation)
 
-        perturbed_ic = backend.Function(ic)
+        perturbed_ic = ic.copy(deepcopy=True)
         vec = perturbed_ic.vector()
         vec += perturbation.vector()
 
@@ -476,7 +478,7 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
     m_cpy = []
     for c in m:
         if isinstance(c.data(), backend.Function):
-            m_cpy.append(backend.Function(c.data()))
+            m_cpy.append(c.data().copy(deepcopy=True))
         else:
             m_cpy.append(backend.Constant(c.data()))
 
@@ -506,6 +508,8 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
 
 
 def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value):
+    import function
+
     # Check inputs
     if not isinstance(m, libadjoint.Parameter):
         raise ValueError, "m must be a valid control instance."
@@ -552,7 +556,7 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
             perturbation_direction = numpy.array([get_const(x)/5.0 for x in m.v])
         elif isinstance(m, controls.FunctionControl):
             ic = get_value(m, value)
-            perturbation_direction = backend.Function(ic.function_space())
+            perturbation_direction = function.Function(ic.function_space())
             compatibility.randomise(perturbation_direction)
         else:
             raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to compute a perturbation direction")
@@ -568,7 +572,7 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
     else:
         perturbations = []
         for x in perturbation_sizes:
-            perturbation = backend.Function(perturbation_direction)
+            perturbation = perturbation_direction.copy(deepcopy=True)
             vec = perturbation.vector()
             vec *= x
             perturbations.append(perturbation)
@@ -586,7 +590,7 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
     elif isinstance(m, controls.FunctionControl):
         pinputs = []
         for x in perturbations:
-            pinput = backend.Function(x)
+            pinput = x.copy(deepcopy=True)
             vec = pinput.vector()
             vec += ic.vector()
             pinputs.append(pinput)
@@ -787,3 +791,10 @@ def get_identity_block(fn_space):
     identity_block.action = identity_action_cb
 
     return identity_block
+
+def function_to_da_function(f):
+    import function
+    if not isinstance(f, function.Function):
+        # Wrap copy into a dolfin_adjoint.Function
+        return function.Function(f.function_space(), f.vector())
+    return f

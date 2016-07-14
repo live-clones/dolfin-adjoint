@@ -6,9 +6,11 @@ import libadjoint
 import sys
 
 mesh = UnitSquareMesh(2, 2)
-V2 = FunctionSpace(mesh, "CG", 2)
-V1 = FunctionSpace(mesh, "CG", 1)
-Z = MixedFunctionSpace([V2, V1])
+cg2 = FiniteElement("CG", triangle, 2)
+cg1 = FiniteElement("CG", triangle, 1)
+ele = MixedElement([cg2, cg1])
+Z = FunctionSpace(mesh, ele)
+V2 = FunctionSpace(mesh, cg2)
 
 def main(ic, fnsplit=True, annotate=False):
     u = Function(V2)

@@ -39,9 +39,10 @@ if not has_linear_algebra_backend("PETSc") and not has_linear_algebra_backend("E
 mesh = UnitCubeMesh(4, 4, 4)
 
 # Define function spaces
-V = VectorFunctionSpace(mesh, "CG", 2)
-Q = FunctionSpace(mesh, "CG", 1)
-W = V * Q
+cg2 = VectorElement("CG", tetrahedron, 2)
+cg1 = FiniteElement("CG", tetrahedron, 1)
+ele = MixedElement([cg2, cg1])
+W = FunctionSpace(mesh, ele)
 
 # Boundaries
 def right(x, on_boundary): return x[0] > (1.0 - DOLFIN_EPS)

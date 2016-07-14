@@ -385,7 +385,7 @@ class TAOSolver(OptimizationSolver):
     def __control_as_vec(self, control):
         """Return a PETSc Vec representing the supplied Control"""
         if isinstance(control, FunctionControl):
-            as_vec = as_backend_type(Function(control.data()).vector()).vec()
+            as_vec = as_backend_type(control.data().copy(deepcopy=True).vector()).vec()
         elif isinstance(control, ConstantControl):
             as_vec = self.__constant_as_vec(Constant(control.data()))
         else:

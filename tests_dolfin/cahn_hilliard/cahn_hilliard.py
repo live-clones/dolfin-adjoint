@@ -32,8 +32,8 @@ parameters["std_out_all_processes"] = False;
 # Create mesh and define function spaces
 nodes = 32*32
 mesh = UnitSquareMesh(int(sqrt(nodes)), int(sqrt(nodes)))
-V = FunctionSpace(mesh, "Lagrange", 1)
-ME = V*V
+cg1 = FiniteElement("Lagrange", triangle, 1)
+ME = FunctionSpace(mesh, MixedElement([cg1, cg1]))
 
 steps = 5
 
