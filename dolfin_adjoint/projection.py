@@ -58,11 +58,7 @@ def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="cg", preconditio
 # that the inner solve is annotated.
 def project_firedrake(*args, **kwargs):
 
-    try:
-        annotate = kwargs["annotate"]
-        kwargs.pop("annotate")
-    except KeyError:
-        annotate = None
+    annotate = kwargs.pop("annotate", None)
 
     to_annotate = utils.to_annotate(annotate)
 
@@ -79,7 +75,7 @@ def project_firedrake(*args, **kwargs):
         result = backend.project(*args, **kwargs)
         misc.continue_annotation(flag)
 
-    return result
+    return utils.function_to_da_function(result)
 
 
 if backend.__name__ == "dolfin":
