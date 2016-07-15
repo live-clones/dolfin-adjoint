@@ -56,26 +56,33 @@ def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="cg", preconditio
 # In Firedrake, project wraps an actual variational solve, so there is
 # no need for dolfin-adjoint to treat it specially. It is sufficient
 # that the inner solve is annotated.
-def project_firedrake(*args, **kwargs):
+def project_firedrake(v, V, **kwargs):
 
     annotate = kwargs.pop("annotate", None)
 
     to_annotate = utils.to_annotate(annotate)
 
-    if isinstance(args[0], backend.Expression) and (annotate is not True):
+    if isinstance(v, backend.Expression) and (annotate is not True):
         to_annotate = False
 
-    if isinstance(args[0], backend.Constant) and (annotate is not True):
+    if isinstance(v, backend.Constant) and (annotate is not True):
         to_annotate = False
 
-    if to_annotate:
-        result = backend.project(*args, **kwargs)
+    if isinstance(V, backend.functionspaceimpl.WithGeometry):
+        result = utils.function_to_da_function(backend.Function(V, name=None))
+    elif isinstance(V, backend.function.Function):
+        result = utils.function_to_da_function(V)
     else:
-        flag = misc.pause_annotation()
-        result = backend.project(*args, **kwargs)
-        misc.continue_annotation(flag)
+        raise ValueError("Can't project into a '%r'" % V)
 
-    return utils.function_to_da_function(result)
+    name = kwargs.pop("name", None)
+    if name is not None:
+        result.adj_name = name
+        result.rename(name, "a Function from dolfin-adjoint")
+    with misc.annotations(to_annotate):
+        result = backend.project(v, result, **kwargs)
+
+    return result
 
 
 if backend.__name__ == "dolfin":
