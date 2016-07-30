@@ -93,7 +93,7 @@
 # .. math::
 #       {\max}_{\epsilon}(0, y) =
 #       \begin{cases}
-#       y - \frac{\epsilon}{2} & \mbox{if } y \ge 0, \\
+#       y - \frac{\epsilon}{2} & \mbox{if } y \ge \epsilon, \\
 #                     \frac{y^2}{2\epsilon}  & \mbox{if } y \in (0, \epsilon), \\
 #                     0                  & \mbox{if } y \le 0.
 #       \end{cases}
@@ -118,6 +118,9 @@
 from dolfin import *
 from dolfin_adjoint import *
 set_log_level(ERROR)
+
+# Needed to have a nested conditional
+parameters["form_compiler"]["representation"] = "uflacs"
 
 # Next, we define the smooth approximation :math:`\max_{\epsilon}` of
 # the maximum operator:
@@ -156,7 +159,7 @@ solve(F == 0, y, bcs=bc)
 # interest, the optimisation parameter and creating the :doc:`reduced
 # functional <../maths/2-problem>` object:
 
-yd = Function(f, name="Data")
+yd = f.copy(deepcopy=True, name="Data")
 nu = 0.01
 J = Functional(0.5*inner(y - yd, y - yd)*dx + nu/2*inner(u, u)*dx)
 
