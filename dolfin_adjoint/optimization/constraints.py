@@ -90,7 +90,8 @@ class MergedConstraints(Constraint):
     def jacobian_adjoint_action(self, m, dp, result):
 
         result.vector().zero()
-        tmp = result.__class__(result)
+        #tmp = result.__class__(result)
+        tmp = result.copy(deepcopy=True)
 
         for (i, c) in enumerate(self.constraints):
             c.jacobian_adjoint_action(m, dp[i], tmp)
@@ -99,7 +100,8 @@ class MergedConstraints(Constraint):
     def hessian_action(self, m, dm, dp, result):
 
         result.vector().zero()
-        tmp = result.__class__(result)
+        #tmp = result.__class__(result)
+        tmp = result.copy(deepcopy=True)
 
         for (i, c) in enumerate(self.constraints):
             c.hessian_action(m, dm, dp[i], tmp)

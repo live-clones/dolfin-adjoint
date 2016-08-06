@@ -48,6 +48,7 @@ alpha = Constant(1e-6)
 J = Functional((0.5*inner(u-d, u-d))*dx + alpha/2*f**2*dx)
 control = Control(f)
 rf = ReducedFunctional(J, control)
+#rf.taylor_test(f)
 
 # Volume constraints
 class VolumeConstraint(InequalityConstraint):

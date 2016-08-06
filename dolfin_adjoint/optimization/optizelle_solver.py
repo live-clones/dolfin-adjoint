@@ -59,7 +59,7 @@ class OptizelleBoundConstraint(constraints.InequalityConstraint):
         if isinstance(self.m, Constant):
             return [self.scale*(float(m) - float(self.bound))]
         elif isinstance(self.m, Function):
-            out = Function(m)
+            out = m.copy(deepcopy=True)
 
             if isinstance(self.bound, float):
                 out_vec = out.vector()
@@ -103,7 +103,7 @@ class DolfinVectorSpace(object):
     def __deep_copy_obj(x):
         if isinstance(x, GenericFunction):
             x.vector().apply("")
-            return Function(x)
+            return x.copy(deepcopy=True)
         elif isinstance(x, Constant):
             return Constant(float(x))
         elif isinstance(x, numpy.ndarray):
