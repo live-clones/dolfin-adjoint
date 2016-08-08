@@ -192,12 +192,6 @@ class Function(backend.Function):
 
         return dolfin_adjoint_interpolate(self, other, annotate)
 
-    def copy(self, deepcopy, name, annotate=None):
-        out = backend.Function.copy(self, deepcopy)
-        out.rename(name, name)
-        dolfin_adjoint_assign(self, out, annotate=annotate)
-        return out
-
     if hasattr(backend.Function, 'sub'):
         def sub(self, idx, deepcopy=False):
             return dolfin_adjoint_sub(self, idx, deepcopy=deepcopy)
