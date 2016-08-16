@@ -11,11 +11,14 @@ class Noslip(SubDomain):
 
 def solve_poisson():
     # Creating two intersecting meshes
-    mesh_0 = RectangleMesh(Point(-1.5, -0.75), Point(1.5, 0.75), 40, 20)
+    #mesh_0 = RectangleMesh(Point(-1.5, -0.75), Point(1.5, 0.75), 40, 20)
+    mesh_0 = RectangleMesh(Point(0,0), Point(1,1), 20, 20) 
     mesh_1 = RectangleMesh(Point(0.5, -1.5),  Point(2,1.5),25,40)
+    # mesh_2 = RectangleMesh(Point(-1.5,-1.5),  Point(0,0),10,10)
     multimesh = MultiMesh()
     multimesh.add(mesh_0)
     multimesh.add(mesh_1)
+    # multimesh.add(mesh_2)
     multimesh.build()
 
     # Create function space for the temperature
@@ -27,7 +30,8 @@ def solve_poisson():
     # Define intial guess for controll-function f (This could be zero)
     # Issue 675: We can't interpolate f into a multimeshfunctionspace
     #f = interpolate(Expression('x[0]+x[1]'), W, name='Control')
-    f = Constant(1)
+    # f = Constant(1)
+
 
     # Define trial and test functions and right-hand side
     u = TrialFunction(V)
@@ -51,12 +55,11 @@ def solve_poisson():
         + beta*dot(jump(grad(u)), jump(grad(v)))*dO # \
         # - (f*v)*dX
     # Define linear form
-    L= f*v*dX
+    L= Constant(1)*v*dX
     # L = Constant(0)*v*dX
     # Assemble linear system
     A = assemble_multimesh(a)
     b = assemble_multimesh(L)
-
 
     noslip=Noslip()
     bc0 = MultiMeshDirichletBC(V, Constant(0), noslip)
@@ -64,20 +67,25 @@ def solve_poisson():
     bc0.apply(A,b)
     u = MultiMeshFunction(V)
     solve(A, u.vector(), b)
+    
+    # adj_html("forward.html", "forward")
+    # domains = CellFunction("size_t", multimesh)
+    J = Functional(u*u*dX)
+    c = Control(u)
+    assemble_multimesh(u*v*dX)
+    # q= compute_gradient(J, c)
+    # plot(q.part(0), title='der0')
 
-    adj_html("forward.html", "forward")
+
     # plot(u.part(0), title='u0')
-    # interactive()
-    # plot(u.part(1), title='u1')
+    # # plot(u.part(1), title='u1')
     # interactive()
     # plot(multimesh)
     # interactive()
 
-    j = Functional(u*dx)
-    c = Control(f)
-
-    # print compute_gradient(J, f)
 
 
+    
 if __name__ == '__main__':
     solve_poisson()
+

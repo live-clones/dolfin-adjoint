@@ -81,8 +81,9 @@ class FunctionControl(DolfinAdjointControl):
         '''coeff: the variable whose initial condition you wish to perturb.
            perturbation: the perturbation direction in which you wish to compute the gradient. Must be a Function.'''
 
-        if not (isinstance(coeff, backend.Function) or isinstance(coeff, str)):
-            raise TypeError, "The coefficient must be a Function or a String"
+        if not (isinstance(coeff, backend.Function) or isinstance(coeff, str)
+            or isinstance(coeff, backend.MultiMeshFunction)):
+            raise TypeError, "The coefficient must be a Function,MultiMeshFunction or a String"
 
         self.coeff = coeff
         self.value = value

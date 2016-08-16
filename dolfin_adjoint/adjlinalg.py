@@ -43,6 +43,14 @@ class Vector(libadjoint.Vector):
             except:
                 fn_space = self.data.function_space()
             data = backend.Function(fn_space)
+
+        elif isinstance(self.data, backend.MultiMeshFunction):
+            try:
+                fn_space = self.data.function_space().collapse()
+            except:
+                fn_space = self.data.function_space()
+            data = backend.MultiMeshFunction(fn_space)
+
         else:
             data = None
 
@@ -112,6 +120,8 @@ class Vector(libadjoint.Vector):
             new_fn.vector()[:] = self_vec
             self.data = new_fn
             self.fn_space = self.data.function_space()
+        elif isinstance(self.data, backend.MultiMeshFunction):
+            raise NotImplementedError
 
         else:
             print "self.data.__class__: ", self.data.__class__
@@ -126,6 +136,8 @@ class Vector(libadjoint.Vector):
             return (abs(backend.assemble(backend.inner(self.data, self.data)*backend.dx)))**0.5
         elif isinstance(self.data, ufl.form.Form):
             return backend.assemble(self.data).norm("l2")
+        elif isinstance(self.data, backend.MultiMeshFunction):
+            raise NotImplementedError
 
     def dot_product(self,y):
 
@@ -141,8 +153,10 @@ class Vector(libadjoint.Vector):
             raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to dot anything else.")
 
     def set_random(self):
-        assert isinstance(self.data, backend.Function) or hasattr(self, "fn_space")
+        if isinstance(self.data, backend.MultiMeshFunction):
+            raise NotImplementedError
 
+        assert isinstance(self.data, backend.Function) or hasattr(self, "fn_space")
         if self.data is None:
             self.data = backend.Function(self.fn_space)
 
@@ -165,6 +179,8 @@ class Vector(libadjoint.Vector):
         raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to get the size.")
 
     def set_values(self, array):
+        if isinstance(self.data, backend.MultiMeshFunction):
+            raise NotImplementedError
         if isinstance(self.data, backend.Function):
             vec = self.data.vector()
             vec.set_local(array)
@@ -266,12 +282,14 @@ class Matrix(libadjoint.Matrix):
             else:
                 if backend.parameters["adjoint"]["debug_cache"]:
                     backend.info_red("Got an assembly cache miss")
-                M = backend.assemble(self.data)
+                if hasattr(self.data.arguments()[0], '_V_multi'):
+                    M = backend.assemble_multimesh(self.data)
+                else:
+                    M = backend.assemble(self.data)
                 caching.assembled_adj_forms[self.data] = M
                 return M
 
     def basic_solve(self, var, b):
-
         if isinstance(self.data, IdentityMatrix):
             x=b.duplicate()
             x.axpy(1.0, b)
@@ -286,7 +304,13 @@ class Matrix(libadjoint.Matrix):
                 bcs = self.bcs
 
             test = self.test_function()
-            x = Vector(backend.Function(test.function_space()))
+
+            #FIXME: This is a hack, the test and trial function should carry
+            # the MultiMeshFunctionSpace as an attribute
+            if hasattr(test, '_V_multi'):
+                x = Vector(backend.MultiMeshFunction(test._V_multi))
+            else:
+                x = Vector(backend.Function(test.function_space()))
 
             #print "b.data is a %s in the solution of %s" % (b.data.__class__, var)
             if b.data is None and not hasattr(b, 'nonlinear_form'):
@@ -481,7 +505,11 @@ def wrap_assemble(form, test):
     '''
 
     try:
-        b = backend.assemble(form)
+        import pdb; pdb.set_trace()
+        if hasattr(form.arguments()[0], '_V_multi'):
+            b = backend.assemble_multimesh(form)
+        else:
+            b = backend.assemble(form)
     except RuntimeError:
         assert len(form.integrals()) == 0
         b = backend.Function(test.function_space()).vector()
