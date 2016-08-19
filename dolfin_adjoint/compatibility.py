@@ -100,15 +100,18 @@ if backend.__name__ == "dolfin":
 
 else:
     solve = backend.solving.solve
-    matrix_types = lambda: backend.op2.base.Mat
+    matrix_types = lambda: backend.matrix.MatrixBase
     function_type = backend.Function
     function_space_type = (backend.functionspaceimpl.FunctionSpace,
                            backend.functionspaceimpl.WithGeometry,
                            backend.functionspaceimpl.MixedFunctionSpace)
 
     def _extract_args(*args, **kwargs):
-        eq, u, bcs, _, _, _, _, solver_parameters, _, _, _, _ = backend.solving._extract_args(*args, **kwargs)
-        return eq, u, bcs, None, None, None, None, solver_parameters
+        # FIXME: need to track all of these things, currently only
+        # return the dolfin-compatible ones.
+        eq, u, bcs, J, Jp, M, form_compiler_parameters, solver_parameters, \
+            nullspace, transpose_nullspace, options_prefix = backend.solving._extract_args(*args, **kwargs)
+        return eq, u, bcs, J, None, None, form_compiler_parameters, solver_parameters
 
 
 def gather(vec):
