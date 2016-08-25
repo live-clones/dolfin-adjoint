@@ -8,7 +8,7 @@ import solving
 import adjglobals
 import adjlinalg
 from timeforms import NoTime, StartTimeConstant, FinishTimeConstant, dt
-from timeforms import FINISH_TIME, LastOnTapeTimeConstant
+from timeforms import FINISH_TIME
 
 
 class Functional(libadjoint.Functional):
@@ -306,7 +306,6 @@ class Functional(libadjoint.Functional):
         integral_deps = set()
         final_deps = set()
         start_deps = set()
-        other_deps = set()
 
         levels = _time_levels(adjointer, timestep)
         point_interval=slice(levels[0],levels[1])
@@ -326,20 +325,8 @@ class Functional(libadjoint.Functional):
 
             else:
 
-                # "Last on tape" evaluation
-                if isinstance(term.time, LastOnTapeTimeConstant):
-                    vars = _vars(adjointer, term.form)
-                    v = [v for v in vars if v.var.timestep == timestep]
-                    print "Dep variables for timestep ", timestep, " is ", v
-                    if len(v) == 1:
-                        print v[0].var.name
-                        print v[0].var.timestep
-                        print v[0].var.iteration
-
-                    other_deps.update(v)
-
                 # Point evaluation.
-                elif point_interval.start < term.time < point_interval.stop:
+                if point_interval.start < term.time < point_interval.stop:
                     point_deps.update(_vars(adjointer, term.form))
 
                 # Special case for evaluation at the end of time: we can't pass over to the
@@ -355,7 +342,6 @@ class Functional(libadjoint.Functional):
         point_deps = list(point_deps)
         final_deps = list(final_deps)
         start_deps = list(start_deps)
-        other_deps = list(other_deps)
 
         # Set the time level of the dependencies:
 
@@ -399,7 +385,7 @@ class Functional(libadjoint.Functional):
         for i in range(len(start_deps)):
             start_deps[i] = self.get_vars(adjointer, timestep, start_deps[i])[0]
 
-        deps=set(point_deps).union(set(integral_deps)).union(set(final_deps)).union(set(start_deps)).union(set(other_deps))
+        deps=set(point_deps).union(set(integral_deps)).union(set(final_deps)).union(set(start_deps))
 
         return list(deps)
 
