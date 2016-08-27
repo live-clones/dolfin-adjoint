@@ -250,8 +250,15 @@ class Matrix(libadjoint.Matrix):
 
     def assemble_data(self):
         assert not isinstance(self.data, IdentityMatrix)
+        if backend.__name__ == "firedrake":
+            # Firedrake specifies assembled matrix type as part of the
+            # solver parameters.
+            mat_type = self.solver_parameters.get("mat_type")
+            assemble = lambda x: backend.assemble(self.data, mat_type=mat_type)
+        else:
+            assemble = backend.assemble
         if not self.cache:
-            return backend.assemble(self.data)
+            return assemble(self.data)
         else:
             if self.data in caching.assembled_adj_forms:
                 if backend.parameters["adjoint"]["debug_cache"]:
@@ -260,7 +267,7 @@ class Matrix(libadjoint.Matrix):
             else:
                 if backend.parameters["adjoint"]["debug_cache"]:
                     backend.info_red("Got an assembly cache miss")
-                M = backend.assemble(self.data)
+                M = assemble(self.data)
                 caching.assembled_adj_forms[self.data] = M
                 return M
 

@@ -6,6 +6,7 @@ from dolfin_adjoint import compatibility
 from ..misc import noannotations
 
 from backend import *
+from ..constant import Constant
 
 
 class TAOSolver(OptimizationSolver):
@@ -110,10 +111,14 @@ class TAOSolver(OptimizationSolver):
                 j = self.objective(x)
                 # TODO: Concatenated gradient vector
                 gradient = rf.derivative(forget=False)[0]
-                gradient_vec = as_backend_type(gradient.vector()).vec()
 
-                G.set(0)
-                G.axpy(1, gradient_vec)
+                if isinstance(gradient, dolfin.Constant):
+                    G.set(float(gradient))
+                else:
+                    gradient_vec = as_backend_type(gradient.vector()).vec()
+                    G.set(0)
+                    G.axpy(1, gradient_vec)
+
                 return j
 
             def hessian(self, tao, x, H, HP):
@@ -206,8 +211,8 @@ class TAOSolver(OptimizationSolver):
                                 val.append(val_inner)
 
                         # Replace control in rf
-                        cons = Constant(val) # Loss of information? No coeff in init
-                        rf.controls[i] = ConstantControl(cons)
+                        cons = Constant(val)
+                        rf.controls[i].update(Constant(cons))
                         nvec += vsize
 
         # create user application context

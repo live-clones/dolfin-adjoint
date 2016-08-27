@@ -9,6 +9,7 @@ import adjresidual
 import ufl.algorithms
 from enlisting import enlist, delist
 from numpy import ndarray
+from functional import Functional
 import misc
 
 def replay_dolfin(forget=False, tol=0.0, stop=False):
@@ -105,6 +106,9 @@ def compute_tlm(parameter, forget=False):
 
 
 def compute_gradient(J, param, forget=True, ignore=[], callback=lambda var, output: None, project=False):
+    if not isinstance(J, Functional):
+        raise ValueError, "J must be of type dolfin_adjoint.Functional."
+
     flag = misc.pause_annotation()
 
     enlisted_controls = enlist(param)
@@ -379,6 +383,10 @@ class compute_gradient_tlm(object):
     for testing tangent linear models, and might be useful in future where
     you have many functionals and few parameters.'''
     def __init__(self, J, m, forget=True, callback=lambda var, output: None, project=False):
+        if not isinstance(J, Functional):
+            raise ValueError, "J must be of type dolfin_adjoint.Functional."
+
+
         self.J = J
 
         if isinstance(m, (list, tuple)):

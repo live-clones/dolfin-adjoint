@@ -92,6 +92,7 @@ U = Function(W)
 U.vector()[:] = 1.0
 #solver.parameters["monitor_convergence"] = True
 solver.parameters["relative_tolerance"] = 1.0e-14
+solver.parameters["absolute_tolerance"] = 1.0e-12
 solver.parameters["nonzero_initial_guess"] = True
 solver.solve(U.vector(), bb)
 

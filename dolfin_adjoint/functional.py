@@ -7,7 +7,9 @@ import hashlib
 import solving
 import adjglobals
 import adjlinalg
-from timeforms import NoTime, StartTimeConstant, FinishTimeConstant, dt, FINISH_TIME
+from timeforms import NoTime, StartTimeConstant, FinishTimeConstant, dt
+from timeforms import FINISH_TIME
+
 
 class Functional(libadjoint.Functional):
     '''This class implements the :py:class:`libadjoint.Functional` abstract base class for dolfin-adjoint.
@@ -281,8 +283,12 @@ class Functional(libadjoint.Functional):
             end.timestep = 0
             end.iteration = end.iteration_count(adjointer) - 1
         else:
-            start.timestep = timestep - 1
-            start.iteration = start.iteration_count(adjointer) - 1
+            try:
+                start.timestep = timestep - 1
+                start.iteration = start.iteration_count(adjointer) - 1
+            except libadjoint.exceptions.LibadjointErrorInvalidInputs:
+                start = None
+
             end.timestep = timestep
             end.iteration = end.iteration_count(adjointer) - 1
 
@@ -318,8 +324,8 @@ class Functional(libadjoint.Functional):
                     integral_deps.update(_vars(adjointer, term.form))
 
             else:
-                # Point evaluation.
 
+                # Point evaluation.
                 if point_interval.start < term.time < point_interval.stop:
                     point_deps.update(_vars(adjointer, term.form))
 
@@ -371,7 +377,7 @@ class Functional(libadjoint.Functional):
                 integral_deps[i].var.timestep = timestep
                 integral_deps[i].var.iteration = integral_deps[i].iteration_count(adjointer) - 1
 
-        # Final deps depend only at the very last value.
+        # Final deps depend only on the very last value.
         for i in range(len(final_deps)):
             final_deps[i] = self.get_vars(adjointer, timestep, final_deps[i])[1]
 
