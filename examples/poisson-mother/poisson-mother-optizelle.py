@@ -108,3 +108,20 @@ solver = OptizelleSolver(problem, inner_product="L2", parameters=parameters)
 f_opt = solver.solve()
 plot(f_opt, interactive=True)
 print "Volume: ", assemble(f_opt*dx)
+
+
+# Define the expressions of the analytical solution
+
+f_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
+u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])")
+
+# We can then compute the errors between numerical and analytical
+# solutions.
+
+f.assign(f_opt)
+solve(F == 0, u, bc)
+control_error = errornorm(f_analytic, f_opt)
+state_error = errornorm(u_analytic, u)
+print "h(min):           %e." % mesh.hmin()
+print "Error in state:   %e." % state_error
+print "Error in control: %e." % control_error

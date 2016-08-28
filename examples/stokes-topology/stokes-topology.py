@@ -117,9 +117,11 @@ V = Constant(1.0/3) * delta  # want the fluid to occupy 1/3 of the domain
 
 mesh = RectangleMesh(mpi_comm_world(), Point(0.0, 0.0), Point(delta, 1.0), N, N)
 A = FunctionSpace(mesh, "CG", 1)        # control function space
-U = VectorFunctionSpace(mesh, "CG", 2)  # velocity function space
-P = FunctionSpace(mesh, "CG", 1)        # pressure function space
-W = MixedFunctionSpace([U, P])          # mixed Taylor-Hood function space
+#U = VectorFunctionSpace(mesh, "CG", 2)  # velocity function space
+#P = FunctionSpace(mesh, "CG", 1)        # pressure function space
+U_h = VectorElement("CG", mesh.ufl_cell(), 2)
+P_h = FiniteElement("CG", mesh.ufl_cell(), 1)
+W = FunctionSpace(mesh, U_h*P_h)          # mixed Taylor-Hood function space
 
 # Define the boundary condition on velocity
 
@@ -250,7 +252,8 @@ if __name__ == "__main__":
     solver = IPOPTSolver(problem, parameters=parameters)
     rho_opt = solver.solve()
 
-    File("output/control_solution_guess.xdmf") << rho_opt
+    rho_opt_xdmf = XDMFFile(mpi_comm_world(), "output/control_solution_guess.xdmf")
+    rho_opt_xdmf.write(rho_opt)
 
 # With the optimised value for :math:`q=0.01` in hand, we *reset* the
 # dolfin-adjoint state, clearing its tape, and configure the new problem
@@ -268,7 +271,8 @@ if __name__ == "__main__":
 # save the optimisation iterations to
 # ``output/control_iterations_final.pvd``.
 
-    File("intermediate-guess-%s.xdmf" % N) << rho
+    rho_intrm = XDMFFile(mpi_comm_world(), "intermediate-guess-%s.xdmf" % N)
+    rho_intrm.write(rho)
 
     w = forward(rho)
     (u, p) = split(w)
@@ -294,7 +298,8 @@ if __name__ == "__main__":
     solver = IPOPTSolver(problem, parameters=parameters)
     rho_opt = solver.solve()
 
-    File("output/control_solution_final.xdmf") << rho_opt
+    rho_opt_final = XDMFFile(mpi_comm_world(), "output/control_solution_final.xdmf")
+    rho_opt_final.write(rho_opt)
 
 # The example code can be found in ``examples/stokes-topology/`` in the
 # ``dolfin-adjoint`` source tree, and executed as follows:

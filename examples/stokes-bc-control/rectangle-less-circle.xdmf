@@ -1,13 +1,12 @@
 <?xml version="1.0"?>
-<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
-<Xdmf Version="2.0" xmlns:xi="http://www.w3.org/2001/XInclude">
-  <Domain>
+<Xdmf Version="3.0">
+  <Domain Name="Mesh produced by DOLFIN">
     <Grid Name="mesh" GridType="Uniform">
-      <Topology NumberOfElements="3519" TopologyType="Triangle">
-        <DataItem Format="HDF" Dimensions="3519 3">rectangle-less-circle.h5:/Mesh/mesh/topology</DataItem>
+      <Topology NumberOfElements="3490" TopologyType="Triangle" NodesPerElement="3">
+        <DataItem Dimensions="3490 3" NumberType="UInt" Format="HDF">rectangle-less-circle.h5:/Mesh/mesh/topology</DataItem>
       </Topology>
       <Geometry GeometryType="XY">
-        <DataItem Format="HDF" Dimensions="1863 2">rectangle-less-circle.h5:/Mesh/mesh/coordinates</DataItem>
+        <DataItem Dimensions="1851 2" Format="HDF">rectangle-less-circle.h5:/Mesh/mesh/geometry</DataItem>
       </Geometry>
     </Grid>
   </Domain>
