@@ -8,4 +8,5 @@ N = 50
 
 mesh = generate_mesh(domain, N)
 
-File("rectangle-less-circle.xdmf") << mesh
+filename_xdmf = XDMFFile(mpi_comm_world(), "rectangle-less-circle.xdmf")
+filename_xdmf.write(mesh)
