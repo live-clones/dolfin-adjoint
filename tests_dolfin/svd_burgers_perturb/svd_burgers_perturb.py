@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     ic_norm = v.vector().norm("l2")
 
-    perturbed_ic = Function(ic)
+    perturbed_ic = ic.copy(deepcopy=True)
     perturbed_ic.vector().axpy(factor, v.vector())
     perturbed_soln = main(perturbed_ic, annotate=False)
 
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     ic_norm = sqrt(assemble(inner(v, v)*dx))
 
-    perturbed_ic = Function(ic)
+    perturbed_ic = ic.copy(deepcopy=True)
     perturbed_ic.vector().axpy(factor, v.vector())
     perturbed_soln = main(perturbed_ic, annotate=False)
 
