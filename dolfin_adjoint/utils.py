@@ -25,8 +25,11 @@ def scale(obj, factor):
     """
 
     if hasattr(obj, "function_space"):
-        # dolfin.Function
-        scaled_obj = backend.Function(obj.function_space(), factor * obj.vector())
+        # dolfin.Function of dolfin.MultiMeshFunctionSpace
+        if isinstance(obj.function_space(), backend.cpp.function.MultiMeshFunctionSpace):
+            scaled_obj = backend.MultiMeshFunction(obj.function_space(), factor * obj.vector())
+        else:
+            scaled_obj = backend.Function(obj.function_space(), factor * obj.vector())
     elif isinstance(obj, backend.Constant):
         # dolfin.Constant
         scaled_obj = backend.Constant(factor * constant_to_array(obj))
@@ -479,6 +482,8 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
     for c in m:
         if isinstance(c.data(), backend.Function):
             m_cpy.append(c.data().copy(deepcopy=True))
+        elif isinstance(c.data(), backend.MultiMeshFunction):
+            m_cpy.append(c.data().copy(deepcopy=True))
         else:
             m_cpy.append(backend.Constant(c.data()))
 
@@ -557,7 +562,15 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
         elif isinstance(m, controls.FunctionControl):
             ic = get_value(m, value)
             perturbation_direction = function.Function(ic.function_space())
+
+            # Check for MultiMeshFunction_space
+            if isinstance(ic.function_space(), backend.cpp.MultiMeshFunctionSpace):
+                perturbation_direction = backend.MultiMeshFunction(ic.function_space())
+            else:
+                perturbation_direction = backend.Function(ic.function_space())
+
             compatibility.randomise(perturbation_direction)
+
         else:
             raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to compute a perturbation direction")
     else:
@@ -567,7 +580,7 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
             perturbation_direction = float(perturbation_direction)
 
     # So now compute the perturbations:
-    if not isinstance(perturbation_direction, backend.Function):
+    if not isinstance(perturbation_direction, (backend.Function, backend.MultiMeshFunction)):
         perturbations = [x*perturbation_direction for x in perturbation_sizes]
     else:
         perturbations = []
@@ -779,8 +792,10 @@ def get_identity_block(fn_space):
 
     def identity_assembly_cb(variables, dependencies, hermitian, coefficient, context):
         assert coefficient == 1
-        return (adjlinalg.Matrix(adjlinalg.IdentityMatrix()), adjlinalg.Vector(backend.Function(fn_space)))
-
+        if isinstance(fn_space, backend.FunctionSpace):
+            return (adjlinalg.Matrix(adjlinalg.IdentityMatrix()), adjlinalg.Vector(backend.Function(fn_space)))
+        else:
+            return (adjlinalg.Matrix(adjlinalg.IdentityMatrix()), adjlinalg.Vector(backend.MultiMeshFunction(fn_space)))
     identity_block.assemble = identity_assembly_cb
 
     def identity_action_cb(variables, dependencies, hermitian, coefficient, input, context):

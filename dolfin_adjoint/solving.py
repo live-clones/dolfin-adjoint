@@ -16,6 +16,7 @@ import os.path
 import random
 
 import assembly
+import multimesh_assembly
 import expressions
 import constant
 import coeffstore
