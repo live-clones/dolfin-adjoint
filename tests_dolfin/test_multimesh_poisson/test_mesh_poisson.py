@@ -25,10 +25,9 @@ def solve_poisson():
     solve(A, u.vector(), b)
 
     adj_html("forward.html", "forward")
-    J = Functional(u*dx)
+    J = Functional(u*u*u*dx)
     c = Control(u)
     q= compute_gradient(J, c)
-    print q.vector().array()
     plot(u)
     plot(q)
     interactive()

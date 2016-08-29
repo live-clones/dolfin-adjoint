@@ -20,7 +20,7 @@ def find_previous_variable(var):
 
 def _extract_function_coeffs(form):
     for c in ufl.algorithms.extract_coefficients(form):
-        if isinstance(c, backend.Function):
+        if isinstance(c, (backend.Function, backend.MultiMeshFunction)):
             yield c
 
 class RHS(libadjoint.RHS):

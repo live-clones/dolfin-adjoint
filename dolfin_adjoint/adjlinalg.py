@@ -1,4 +1,4 @@
-import libadjoint
+ import libadjoint
 import backend
 import ufl
 import adjglobals
@@ -91,7 +91,11 @@ class Vector(libadjoint.Vector):
             else:
                 # This occurs when adding a RHS derivative to an adjoint equation
                 # corresponding to the initial conditions.
-                self.data.vector().axpy(alpha, backend.assemble(x.data))
+                if hasattr(x.data.coefficients()[0], '_V'):
+                    self.data.vector().axpy(alpha,
+                                            backend.assemble_multimesh(x.data))
+                else:
+                    self.data.vector().axpy(alpha, backend.assemble(x.data))
                 self.data.form = alpha * x.data
         elif isinstance(x.data, ufl.form.Form) and isinstance(self.data, ufl.form.Form):
 
@@ -273,7 +277,10 @@ class Matrix(libadjoint.Matrix):
     def assemble_data(self):
         assert not isinstance(self.data, IdentityMatrix)
         if not self.cache:
-            return backend.assemble(self.data)
+            if hasattr(self.data.arguments()[0], '_V_multi'):
+                return backend.assemble_multimesh(self.data)
+            else:
+                return backend.assemble(self.data)
         else:
             if self.data in caching.assembled_adj_forms:
                 if backend.parameters["adjoint"]["debug_cache"]:
@@ -505,7 +512,6 @@ def wrap_assemble(form, test):
     '''
 
     try:
-        import pdb; pdb.set_trace()
         if hasattr(form.arguments()[0], '_V_multi'):
             b = backend.assemble_multimesh(form)
         else:
