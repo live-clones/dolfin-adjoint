@@ -9,7 +9,7 @@ ic = project(Expression(("sin(2*pi*x[0])", "cos(2*pi*x[1])")),  V)
 nu = Constant(0.0001, name="nu")
 
 def main(ic):
-    u = Function(ic, name="Velocity")
+    u = ic.copy(deepcopy=True, name="Velocity")
     u_next = Function(V, name="VelocityNext")
     v = TestFunction(V)
 
