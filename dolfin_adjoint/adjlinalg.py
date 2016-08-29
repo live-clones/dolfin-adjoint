@@ -73,7 +73,15 @@ class Vector(libadjoint.Vector):
             pass
         elif isinstance(self.data, backend.Coefficient):
             if isinstance(x.data, backend.Coefficient):
-                self.data.vector().axpy(alpha, x.data.vector())
+                try:
+                    self.data.vector().axpy(alpha, x.data.vector())
+                except:
+                    # Handle subfunctions
+                    # Fixme: use FunctionAssigner instead of a projection
+                    #assigner = backend.FunctionAssigner(self.data.function_space,
+                    #        x.data.function_space()
+                    x = backend.project(x.data, self.data.function_space())
+                    self.data.vector().axpy(alpha, x.vector())
             else:
                 # This occurs when adding a RHS derivative to an adjoint equation
                 # corresponding to the initial conditions.

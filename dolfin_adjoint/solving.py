@@ -420,6 +420,12 @@ def register_initial_conditions(coeffdeps, linear, var=None):
             register_initial_condition(coeff, dep)
 
 def register_initial_condition(coeff, dep):
+    # For subfunctions, always register the super space
+    if hasattr(coeff, "super_fn"):
+        coeff = coeff.super_fn
+        dep.name = dep.name[:-2]
+        dep.var.name = dep.var.name[:-2]
+
     fn_space = coeff.function_space()
     identity_block = utils.get_identity_block(fn_space)
 
