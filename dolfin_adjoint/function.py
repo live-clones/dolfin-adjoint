@@ -9,10 +9,10 @@ import utils
 import misc
 import compatibility
 
-dolfin_assign = backend.Function.assign
-dolfin_split  = backend.Function.split
+dolfin_assign = misc.noannotations(backend.Function.assign)
+dolfin_split  = misc.noannotations(backend.Function.split)
 dolfin_str    = backend.Function.__str__
-dolfin_interpolate = backend.Function.interpolate
+dolfin_interpolate = misc.noannotations(backend.Function.interpolate)
 if backend.__name__ != 'dolfin':
     firedrake_project = backend.Function.project
 
