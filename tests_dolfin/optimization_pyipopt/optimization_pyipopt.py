@@ -52,7 +52,7 @@ def derivative_cb(j, dj, m):
 if __name__ == "__main__":
 
     ic = project(Expression("sin(2*pi*x[0])"),  V)
-    u = Function(ic, name='Velocity')
+    u = ic.copy(deepcopy=True, name='Velocity')
 
     J = Functional(u*u*dx*dt[FINISH_TIME])
 
