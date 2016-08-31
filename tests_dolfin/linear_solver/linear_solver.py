@@ -97,4 +97,4 @@ solver.parameters["nonzero_initial_guess"] = True
 solver.solve(U.vector(), bb)
 
 assert adjglobals.adjointer.equation_count > 0
-assert replay_dolfin(tol=1.0e-10)
+assert replay_dolfin(tol=5.0e-9)

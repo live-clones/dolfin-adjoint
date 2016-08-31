@@ -16,19 +16,15 @@ test_cmds = {'tlm_simple': 'mpirun -n 2 python tlm_simple.py',
              'optimization_optizelle': 'mpirun -n 2 python optimization_optizelle.py',
              'optimal_control_mms': 'mpirun -n 2 python optimal_control_mms.py',
              'preassembly_efficiency': 'mpirun -n 1 python preassembly_efficiency.py --ignore; mpirun -n 1 python preassembly_efficiency.py',
-             'differentiability-dg-upwind': None,
              'differentiability-stokes': None,
              'checkpoint_online': None,
-             'changing_vector': None,
              'matrix_free_burgers': None,
              'matrix_free_heat': None,
              'matrix_free_simple': None,
-             'ode_tentusscher': None,
              'svd_burgers': None,
-             'rush_larsen': None,
              'function_assigner': None,
              'mantle_convection': None,
-             'nullspace': None}
+             'test_multimesh_poisson': None}
 
 parser = OptionParser()
 parser.add_option("-n", type="int", dest="num_procs", default = 1, help = "To run on N cores, use -n N; to use all processors available, run test.py -n 0.")
