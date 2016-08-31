@@ -561,13 +561,12 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
             perturbation_direction = numpy.array([get_const(x)/5.0 for x in m.v])
         elif isinstance(m, controls.FunctionControl):
             ic = get_value(m, value)
-            perturbation_direction = function.Function(ic.function_space())
 
             # Check for MultiMeshFunction_space
             if isinstance(ic.function_space(), backend.cpp.MultiMeshFunctionSpace):
                 perturbation_direction = backend.MultiMeshFunction(ic.function_space())
             else:
-                perturbation_direction = backend.Function(ic.function_space())
+                perturbation_direction = function.Function(ic.function_space())
 
             compatibility.randomise(perturbation_direction)
 
