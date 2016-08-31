@@ -26,7 +26,7 @@ def scale(obj, factor):
 
     if hasattr(obj, "function_space"):
         # dolfin.Function of dolfin.MultiMeshFunctionSpace
-        if isinstance(obj.function_space(), backend.cpp.function.MultiMeshFunctionSpace):
+        if isinstance(obj.function_space(), compatibility.multi_mesh_function_space_type):
             scaled_obj = backend.MultiMeshFunction(obj.function_space(), factor * obj.vector())
         else:
             scaled_obj = backend.Function(obj.function_space(), factor * obj.vector())
@@ -564,7 +564,7 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
             perturbation_direction = function.Function(ic.function_space())
 
             # Check for MultiMeshFunction_space
-            if isinstance(ic.function_space(), backend.cpp.MultiMeshFunctionSpace):
+            if isinstance(ic.function_space(), compatibility.multi_mesh_function_space_type):
                 perturbation_direction = backend.MultiMeshFunction(ic.function_space())
             else:
                 perturbation_direction = backend.Function(ic.function_space())
@@ -792,7 +792,7 @@ def get_identity_block(fn_space):
 
     def identity_assembly_cb(variables, dependencies, hermitian, coefficient, context):
         assert coefficient == 1
-        if isinstance(fn_space, backend.FunctionSpace):
+        if isinstance(fn_space, compatibility.function_space_type):
             return (adjlinalg.Matrix(adjlinalg.IdentityMatrix()), adjlinalg.Vector(backend.Function(fn_space)))
         else:
             return (adjlinalg.Matrix(adjlinalg.IdentityMatrix()), adjlinalg.Vector(backend.MultiMeshFunction(fn_space)))

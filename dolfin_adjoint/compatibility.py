@@ -19,6 +19,16 @@ if backend.__name__ == "firedrake":
 
     backend.Timer = Timer
 
+    class MultiMeshFunction(object):
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("Should never happen (firedrake doesn't support multimesh)")
+
+    backend.MultiMeshFunction = MultiMeshFunction
+
+    class MultiMeshFunctionSpace(object):
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("Should never happen (firedrake doesn't support multimesh)")
+
 
 def to_dict(d):
     if isinstance(d, dict):
@@ -97,7 +107,7 @@ if backend.__name__ == "dolfin":
     _extract_args = backend.fem.solving._extract_args
     function_type = backend.cpp.Function
     function_space_type = backend.cpp.FunctionSpace
-
+    multi_mesh_function_space_type = backend.cpp.MultiMeshFunctionSpace
 else:
     solve = backend.solving.solve
     matrix_types = lambda: backend.matrix.MatrixBase
@@ -105,6 +115,7 @@ else:
     function_space_type = (backend.functionspaceimpl.FunctionSpace,
                            backend.functionspaceimpl.WithGeometry,
                            backend.functionspaceimpl.MixedFunctionSpace)
+    multi_mesh_function_space_type = MultiMeshFunctionSpace
 
     def _extract_args(*args, **kwargs):
         # FIXME: need to track all of these things, currently only
