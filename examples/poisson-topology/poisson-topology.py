@@ -257,27 +257,28 @@ if __name__ == "__main__":
 
 #   $ mpiexec -n 4 python poisson-topology.py
 #   ...
-#   Number of Iterations....: 28
+# Number of Iterations....: 30
+#
+#                                    (scaled)                 (unscaled)
+# Objective...............:   1.3911443093658383e-04    1.3911443093658383e-04
+# Dual infeasibility......:   5.5344657856725436e-08    5.5344657856725436e-08
+# Constraint violation....:   0.0000000000000000e+00    0.0000000000000000e+00
+# Complementarity.........:   3.7713488091294136e-09    3.7713488091294136e-09
+# Overall NLP error.......:   5.5344657856725436e-08    5.5344657856725436e-08
+#
+#
+# Number of objective function evaluations             = 31
+# Number of objective gradient evaluations             = 31
+# Number of equality constraint evaluations            = 0
+# Number of inequality constraint evaluations          = 31
+# Number of equality constraint Jacobian evaluations   = 0
+# Number of inequality constraint Jacobian evaluations = 31
+# Number of Lagrangian Hessian evaluations             = 0
+# Total CPU secs in IPOPT (w/o function evaluations)   =      5.012
+# Total CPU secs in NLP function evaluations           =     47.108
+#
+# EXIT: Solved To Acceptable Level.
 
-#                                      (scaled)                 (unscaled)
-#   Objective...............:   8.5918769312525156e-05    8.5918769312525156e-05
-#   Dual infeasibility......:   6.2885905846597543e-08    6.2885905846597543e-08
-#   Constraint violation....:   0.0000000000000000e+00    0.0000000000000000e+00
-#   Complementarity.........:   3.1475629953894822e-09    3.1475629953894822e-09
-#   Overall NLP error.......:   6.2885905846597543e-08    6.2885905846597543e-08
-
-
-#   Number of objective function evaluations             = 29
-#   Number of objective gradient evaluations             = 29
-#   Number of equality constraint evaluations            = 0
-#   Number of inequality constraint evaluations          = 29
-#   Number of equality constraint Jacobian evaluations   = 0
-#   Number of inequality constraint Jacobian evaluations = 29
-#   Number of Lagrangian Hessian evaluations             = 0
-#   Total CPU secs in IPOPT (w/o function evaluations)   =      2.628
-#   Total CPU secs in NLP function evaluations           =     27.790
-
-#   EXIT: Solved To Acceptable Level.
 
 # The optimisation iterations can be visualised by opening
 # ``output/control_iterations.pvd`` in paraview. The resulting solution
