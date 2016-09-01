@@ -1,7 +1,4 @@
-import sys
-import os
 import random
-import pytest
 import dolfin
 import dolfin_adjoint
 
