@@ -52,3 +52,16 @@ parameters = None
 solver = IPOPTSolver(problem, parameters=parameters)
 f_opt = solver.solve()
 plot(f_opt, interactive=True)
+
+# Define the expressions of the analytical solution
+
+f_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
+u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])")
+
+f.assign(f_opt)
+solve(F == 0, u, bc)
+control_error = errornorm(f_analytic, f_opt)
+state_error = errornorm(u_analytic, u)
+print "h(min):           %e." % mesh.hmin()
+print "Error in state:   %e." % state_error
+print "Error in control: %e." % control_error
