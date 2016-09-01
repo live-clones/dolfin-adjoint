@@ -149,9 +149,6 @@ if __name__ == "__main__":
     fwd_time = fwd_timer.stop()
     parameters["adjoint"]["stop_annotating"] = True
 
-    adj_html("forward.html", "forward")
-    adj_html("adjoint.html", "adjoint")
-
     replay_timer = Timer("Replay")
     success = replay_dolfin(tol=1.0e-6)
     replay_time = replay_timer.stop()
