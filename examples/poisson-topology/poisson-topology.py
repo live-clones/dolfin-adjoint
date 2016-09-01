@@ -218,7 +218,7 @@ if __name__ == "__main__":
             self.tmpvec = Function(A)
 
         def function(self, m):
-            reduced_functional_numpy.set_local(self.tmpvec.vector().array(), m)
+            reduced_functional_numpy.set_local(self.tmpvec, m)
 
 # Compute the integral of the control over the domain
 
@@ -243,12 +243,12 @@ if __name__ == "__main__":
 # this and pass it to :py:mod:`pyipopt` to solve:
 
     problem = MinimizationProblem(Jhat, bounds=(lb, ub), constraints=VolumeConstraint(V))
-    parameters = {"acceptable_tol": 1.0e-200, "maximum_iterations": 100}
 
+    parameters = {"acceptable_tol": 1.0e-3, "maximum_iterations": 100}
     solver = IPOPTSolver(problem, parameters=parameters)
     a_opt = solver.solve()
 
-    File("output/control_solution.xdmf") << a_opt
+    File("output/final_control.pvd") << a_opt
 
 # The example code can be found in ``examples/poisson-topology/`` in the
 # ``dolfin-adjoint`` source tree, and executed as follows:

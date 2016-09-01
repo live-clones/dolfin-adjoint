@@ -223,7 +223,7 @@ if __name__ == "__main__":
             self.tmpvec = Function(A)
 
         def function(self, m):
-            self.tmpvec.vector()[:] = m
+            reduced_functional_numpy.set_local(self.tmpvec, m)
 
 # Compute the integral of the control over the domain
 

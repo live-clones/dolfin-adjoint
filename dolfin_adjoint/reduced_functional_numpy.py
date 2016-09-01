@@ -273,31 +273,34 @@ def get_global(m_list):
 
     return np.array(m_global, dtype='d')
 
-def set_local(m_list, m_global_array):
-    ''' Sets the local values of one or a list of distributed object(s) to the values contained in the global array m_global_array '''
+def set_local(coeffs, global_array):
+    ''' Updates the values of coeffs (a list of dolfin.Coefficients) from a
+        global array
+    '''
 
-    if not isinstance(m_list, (list, tuple)):
-        m_list = [m_list]
+    if not isinstance(coeffs, (list, tuple)):
+        coeffs = [coeffs]
 
     offset = 0
-    for m in m_list:
+    for m in coeffs:
         # Control of type dolfin.Function
         if hasattr(m, "vector"):
 
             range_begin, range_end = m.vector().local_range()
-            m_a_local = m_global_array[offset + range_begin:offset + range_end]
+            m_a_local = global_array[offset + range_begin:offset + range_end]
             m.vector().set_local(m_a_local)
             m.vector().apply('insert')
             offset += m.vector().size()
         # Parameters of type dolfin.Constant
         elif hasattr(m, "value_size"):
-            m.assign(constant.Constant(np.reshape(m_global_array[offset:offset+m.value_size()], m.ufl_shape)))
+            m.assign(constant.Constant(np.reshape(global_array[offset:offset+m.value_size()], m.ufl_shape)))
             offset += m.value_size()
         elif isinstance(m, np.ndarray):
-            m[:] = m_global_array[offset:offset+len(m)]
+            m[:] = global_array[offset:offset+len(m)]
             offset += len(m)
         else:
-            raise TypeError, 'Unknown control type %s' % m.__class__
+            print "Argument coeffs must be a list of Coefficients."
+            raise TypeError, 'Unknown type %s' % m.__class__
 
 
 ReducedFunctionalNumpy = ReducedFunctionalNumPy
