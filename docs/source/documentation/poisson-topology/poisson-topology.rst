@@ -242,7 +242,7 @@ calculating the integral each time without re-assembling.
               self.tmpvec = Function(A)
   
           def function(self, m):
-              reduced_functional_numpy.set_local(self.tmpvec.vector().array(), m)
+              reduced_functional_numpy.set_local(self.tmpvec, m)
   
 Compute the integral of the control over the domain
 
@@ -271,12 +271,12 @@ this and pass it to :py:mod:`pyipopt` to solve:
 ::
 
       problem = MinimizationProblem(Jhat, bounds=(lb, ub), constraints=VolumeConstraint(V))
-      parameters = {"acceptable_tol": 1.0e-200, "maximum_iterations": 100}
   
+      parameters = {"acceptable_tol": 1.0e-3, "maximum_iterations": 100}
       solver = IPOPTSolver(problem, parameters=parameters)
       a_opt = solver.solve()
   
-      File("output/control_solution.xdmf") << a_opt
+      File("output/final_control.pvd") << a_opt
   
 The example code can be found in ``examples/poisson-topology/`` in the
 ``dolfin-adjoint`` source tree, and executed as follows:
@@ -285,27 +285,28 @@ The example code can be found in ``examples/poisson-topology/`` in the
 
   $ mpiexec -n 4 python poisson-topology.py
   ...
-  Number of Iterations....: 28
+  Number of Iterations....: 30
 
-                                     (scaled)                 (unscaled)
-  Objective...............:   8.5918769312525156e-05    8.5918769312525156e-05
-  Dual infeasibility......:   6.2885905846597543e-08    6.2885905846597543e-08
+                                   (scaled)                 (unscaled)
+  Objective...............:   1.3911443093658383e-04    1.3911443093658383e-04
+  Dual infeasibility......:   5.5344657856725436e-08    5.5344657856725436e-08
   Constraint violation....:   0.0000000000000000e+00    0.0000000000000000e+00
-  Complementarity.........:   3.1475629953894822e-09    3.1475629953894822e-09
-  Overall NLP error.......:   6.2885905846597543e-08    6.2885905846597543e-08
+  Complementarity.........:   3.7713488091294136e-09    3.7713488091294136e-09
+  Overall NLP error.......:   5.5344657856725436e-08    5.5344657856725436e-08
 
 
-  Number of objective function evaluations             = 29
-  Number of objective gradient evaluations             = 29
+  Number of objective function evaluations             = 31
+  Number of objective gradient evaluations             = 31
   Number of equality constraint evaluations            = 0
-  Number of inequality constraint evaluations          = 29
+  Number of inequality constraint evaluations          = 31
   Number of equality constraint Jacobian evaluations   = 0
-  Number of inequality constraint Jacobian evaluations = 29
+  Number of inequality constraint Jacobian evaluations = 31
   Number of Lagrangian Hessian evaluations             = 0
-  Total CPU secs in IPOPT (w/o function evaluations)   =      2.628
-  Total CPU secs in NLP function evaluations           =     27.790
+  Total CPU secs in IPOPT (w/o function evaluations)   =      5.012
+  Total CPU secs in NLP function evaluations           =     47.108
 
   EXIT: Solved To Acceptable Level.
+
 
 The optimisation iterations can be visualised by opening
 ``output/control_iterations.pvd`` in paraview. The resulting solution

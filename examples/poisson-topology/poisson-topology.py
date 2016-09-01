@@ -257,27 +257,27 @@ if __name__ == "__main__":
 
 #   $ mpiexec -n 4 python poisson-topology.py
 #   ...
-# Number of Iterations....: 30
+#   Number of Iterations....: 30
 #
 #                                    (scaled)                 (unscaled)
-# Objective...............:   1.3911443093658383e-04    1.3911443093658383e-04
-# Dual infeasibility......:   5.5344657856725436e-08    5.5344657856725436e-08
-# Constraint violation....:   0.0000000000000000e+00    0.0000000000000000e+00
-# Complementarity.........:   3.7713488091294136e-09    3.7713488091294136e-09
-# Overall NLP error.......:   5.5344657856725436e-08    5.5344657856725436e-08
+#   Objective...............:   1.3911443093658383e-04    1.3911443093658383e-04
+#   Dual infeasibility......:   5.5344657856725436e-08    5.5344657856725436e-08
+#   Constraint violation....:   0.0000000000000000e+00    0.0000000000000000e+00
+#   Complementarity.........:   3.7713488091294136e-09    3.7713488091294136e-09
+#   Overall NLP error.......:   5.5344657856725436e-08    5.5344657856725436e-08
 #
 #
-# Number of objective function evaluations             = 31
-# Number of objective gradient evaluations             = 31
-# Number of equality constraint evaluations            = 0
-# Number of inequality constraint evaluations          = 31
-# Number of equality constraint Jacobian evaluations   = 0
-# Number of inequality constraint Jacobian evaluations = 31
-# Number of Lagrangian Hessian evaluations             = 0
-# Total CPU secs in IPOPT (w/o function evaluations)   =      5.012
-# Total CPU secs in NLP function evaluations           =     47.108
+#   Number of objective function evaluations             = 31
+#   Number of objective gradient evaluations             = 31
+#   Number of equality constraint evaluations            = 0
+#   Number of inequality constraint evaluations          = 31
+#   Number of equality constraint Jacobian evaluations   = 0
+#   Number of inequality constraint Jacobian evaluations = 31
+#   Number of Lagrangian Hessian evaluations             = 0
+#   Total CPU secs in IPOPT (w/o function evaluations)   =      5.012
+#   Total CPU secs in NLP function evaluations           =     47.108
 #
-# EXIT: Solved To Acceptable Level.
+#   EXIT: Solved To Acceptable Level.
 
 
 # The optimisation iterations can be visualised by opening
