@@ -99,7 +99,8 @@ class Vector(libadjoint.Vector):
             else:
                 # This occurs when adding a RHS derivative to an adjoint equation
                 # corresponding to the initial conditions.
-                if hasattr(x.data.coefficients()[0], '_V'):
+                if ((len(x.data.coefficients())>0) and
+                    hasattr(x.data.coefficients()[0], '_V')):
                     self.data.vector().axpy(alpha,
                                             backend.assemble_multimesh(x.data))
                 else:
