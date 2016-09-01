@@ -6,6 +6,7 @@ from dolfin_adjoint import compatibility
 from ..misc import noannotations
 
 from backend import *
+import backend
 from ..constant import Constant
 
 
@@ -112,7 +113,7 @@ class TAOSolver(OptimizationSolver):
                 # TODO: Concatenated gradient vector
                 gradient = rf.derivative(forget=False)[0]
 
-                if isinstance(gradient, dolfin.Constant):
+                if isinstance(gradient, backend.Constant):
                     G.set(float(gradient))
                 else:
                     gradient_vec = as_backend_type(gradient.vector()).vec()

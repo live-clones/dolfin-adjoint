@@ -16,7 +16,6 @@ import os.path
 import random
 
 import assembly
-import multimesh_assembly
 import expressions
 import constant
 import coeffstore
@@ -26,6 +25,7 @@ import adjlinalg
 import misc
 if backend.__name__ == "dolfin":
     import lusolver
+    import multimesh_assembly
 import utils
 import caching
 
