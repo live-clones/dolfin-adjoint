@@ -36,6 +36,12 @@ Optional dependencies:
   still experimental.
   [https://github.com/funsim/moola]
 
+Docker images
+=============
+Docker images are available for the the stable and development version
+of dolfin-adjoint. Please see the online documentation for more information
+about how to install the docker images.
+
 Binary packages
 ===============
 
