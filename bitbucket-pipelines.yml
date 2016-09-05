@@ -4,7 +4,7 @@ pipelines:
   default:
     - step:
         script:
-          - source dolfin-adjoint.conf
+          - source ~/dolfin-adjoint.conf
           - update_libadjoint
           - update_dolfin-adjoint
           - py.test -v tests_dolfin/
