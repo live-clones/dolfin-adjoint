@@ -4,6 +4,7 @@ pipelines:
   default:
     - step:
         script:
+          - sudo su fenics
           - source ~/dolfin-adjoint.conf
           - update_libadjoint
           - update_dolfin-adjoint
