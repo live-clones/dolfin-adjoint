@@ -7,7 +7,7 @@
 # Simon W. Funke <simon@simula.no>
 # Jack S. Hale <jack.hale@uni.lu>
 
-FROM quay.io/fenicsproject/dev:latest
+FROM quay.io/fenicsproject/dev-env:latest
 MAINTAINER Simon W. Funke <simon@simula.no>
 
 USER root
@@ -17,6 +17,9 @@ RUN apt-get -qq update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 USER fenics
+ENV FENICS_BUILD_TYPE=Release
+RUN bash -c "source ~/fenics.env.conf && \
+             PIP_NO_CACHE_DIR=off fenics-update"
 ENV DOLFIN_ADJOINT_VERSION master
 ENV IPOPT_VER=3.12.6
 COPY dolfin-adjoint.conf $FENICS_HOME/dolfin-adjoint.conf
