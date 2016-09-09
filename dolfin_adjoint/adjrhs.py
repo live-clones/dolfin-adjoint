@@ -20,7 +20,7 @@ def find_previous_variable(var):
 
 def _extract_function_coeffs(form):
     for c in ufl.algorithms.extract_coefficients(form):
-        if isinstance(c, backend.Function):
+        if isinstance(c, (backend.Function, backend.MultiMeshFunction)):
             yield c
 
 class RHS(libadjoint.RHS):
@@ -176,10 +176,13 @@ class NonlinearRHS(RHS):
     def __call__(self, dependencies, values):
         assert isinstance(self.form, ufl.form.Form)
 
-        ic = self.u.function_space() # by default, initialise with a blank function in the solution FunctionSpace
 
         if hasattr(self, "ic_copy"):
             ic = self.ic_copy
+        else: 
+            # by default, initialise with a blank function in the solution FunctionSpace
+            V = self.u.function_space()
+            ic = backend.Function(V)
 
         replace_map = {}
 
@@ -193,7 +196,7 @@ class NonlinearRHS(RHS):
 
         current_F    = backend.replace(self.F, replace_map)
         current_J    = backend.replace(self.J, replace_map)
-        u = backend.Function(ic)
+        u = ic.copy(deepcopy=True)
         current_F    = backend.replace(current_F, {self.u: u})
         current_J    = backend.replace(current_J, {self.u: u})
 

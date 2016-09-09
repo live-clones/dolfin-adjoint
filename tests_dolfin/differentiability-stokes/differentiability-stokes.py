@@ -30,8 +30,12 @@ parameters["form_compiler"]["log_level"] = INFO
 parameters["form_compiler"]["representation"] = "quadrature"
 
 mesh = Mesh("mesh.xml.gz")
-V = FunctionSpace(mesh, "CG", 1)
-W = VectorFunctionSpace(mesh, "CG", 2) * FunctionSpace(mesh, "CG", 1)
+cg2 = VectorElement("CG", triangle, 2)
+cg1 = FiniteElement("CG", triangle, 1)
+cg2cg1 = MixedElement([cg2, cg1])
+
+V = FunctionSpace(mesh, cg1)
+W = FunctionSpace(mesh, cg2cg1)
 
 T = Function(V, "temperature.xml.gz")
 w = Function(W, "velocity.xml.gz")
@@ -103,7 +107,7 @@ if __name__ == "__main__":
         dT.vector()[:] = h * dT_dir.vector()
 
         # Compute the perturbed result
-        TdT = Function(T) # T + dT
+        TdT = T.copy(deepcopy=True)
         TdT.vector()[:] += dT.vector()
         perturbed = form_action(TdT)
 

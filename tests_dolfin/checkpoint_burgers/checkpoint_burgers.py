@@ -26,7 +26,7 @@ def main(ic, annotate=False):
     if annotate:
         adj_checkpointing('multistage', int(ceil(end/float(timestep))), 5, 10, verbose=True)
 
-    u_ = Function(ic, annotate=annotate)
+    u_ = ic.copy(deepcopy=True, annotate=annotate)
     u = TrialFunction(V)
     v = TestFunction(V)
     nu = Constant(0.0001)

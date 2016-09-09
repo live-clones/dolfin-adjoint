@@ -5,7 +5,7 @@ mesh = UnitSquareMesh(n, n)
 V = VectorFunctionSpace(mesh, "CG", 2)
 
 ic = project(Expression(("sin(2*pi*x[0])", "cos(2*pi*x[1])")),  V)
-u = Function(ic)
+u = ic.copy(deepcopy=True)
 u_next = Function(V)
 v = TestFunction(V)
 

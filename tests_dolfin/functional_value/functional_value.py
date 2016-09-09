@@ -5,8 +5,8 @@ mesh = UnitSquareMesh(50, 50)
 V = FunctionSpace(mesh, "CG", 1)
 
 def main(ic, annotate=False):
-    u_prev = Function(ic, name="Temperature")
-    u_next = Function(ic, name="TemperatureNext")
+    u_prev = ic.copy(deepcopy=True, name="Temperature")
+    u_next = ic.copy(deepcopy=True, name="TemperatureNext")
     u_mid  = Constant(0.5)*u_prev + Constant(0.5)*u_next
 
     dt = 0.001
@@ -15,7 +15,7 @@ def main(ic, annotate=False):
 
     v = TestFunction(V)
 
-    states = [Function(ic)]
+    states = [ic.copy(deepcopy=True)]
     times  = [float(t)]
 
     if annotate: adj_start_timestep(time=t)
@@ -29,7 +29,7 @@ def main(ic, annotate=False):
 
         t += dt
         timestep += 1
-        states.append(Function(u_next, name="TemperatureT%s" % timestep, annotate=False))
+        states.append(u_next.copy(deepcopy=True, name="TemperatureT%s" % timestep, annotate=False))
         times.append(float(t))
 
         if annotate: adj_inc_timestep(time=t, finished=t>=T)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     success = replay_dolfin(tol=0.0, stop=True)
     assert success
 
-    data = Function(true_states[-1])
+    data = true_states[-1].copy(deepcopy=True, annotate=False)
     combined = zip(times, true_states, computed_states)
     J_orig = assemble(inner(u - data, u - data)*dx)
     print "Base functional value: ", J_orig

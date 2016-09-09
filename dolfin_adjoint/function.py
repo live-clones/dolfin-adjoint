@@ -6,12 +6,15 @@ import assignment
 import adjlinalg
 import adjglobals
 import utils
+import misc
 import compatibility
 
-dolfin_assign = backend.Function.assign
-dolfin_split  = backend.Function.split
+dolfin_assign = misc.noannotations(backend.Function.assign)
+dolfin_split  = misc.noannotations(backend.Function.split)
 dolfin_str    = backend.Function.__str__
-dolfin_interpolate = backend.Function.interpolate
+dolfin_interpolate = misc.noannotations(backend.Function.interpolate)
+if backend.__name__ != 'dolfin':
+    firedrake_project = backend.Function.project
 
 def dolfin_adjoint_assign(self, other, annotate=None, *args, **kwargs):
     '''We also need to monkeypatch the Function.assign method, as it is often used inside
@@ -86,7 +89,7 @@ def dolfin_adjoint_assign(self, other, annotate=None, *args, **kwargs):
 def dolfin_adjoint_split(self, *args, **kwargs):
     out = dolfin_split(self, *args, **kwargs)
     for i, fn in enumerate(out):
-        fn.split = True
+        fn.split_da = True
         fn.split_fn = self
         fn.split_i  = i
         fn.split_args = args
@@ -125,37 +128,51 @@ class Function(backend.Function):
 
     def __init__(self, *args, **kwargs):
 
-        annotate = kwargs.pop("annotate", None)
-        to_annotate = utils.to_annotate(annotate)
-
         if "name" in kwargs:
             self.adj_name = kwargs["name"]
-
-            #if self.adj_name in adjglobals.function_names and to_annotate:
-            #  backend.info_red("Warning: got duplicate function name %s" % self.adj_name)
-
             adjglobals.function_names.add(self.adj_name)
             del kwargs["name"]
 
         backend.Function.__init__(self, *args, **kwargs)
 
         if hasattr(self, 'adj_name'):
-            if backend.__name__ == "dolfin":
-                self.rename(self.adj_name, "a Function from dolfin-adjoint")
-            else:
-                self.name = self.__str__
+            self.rename(self.adj_name, "a Function from dolfin-adjoint")
+
+    def copy(self, *args, **kwargs):
+
+        name = kwargs.pop("name", None)
+        annotate = kwargs.pop("annotate", None)
+        to_annotate = utils.to_annotate(annotate)
+
+        with misc.annotations(False):
+            copy = backend.Function.copy(self, *args, **kwargs)
+            copy = utils.function_to_da_function(copy)
+
+        if name is not None:
+            copy.adj_name = name
+            copy.rename(name, "a Function from dolfin-adjoint")
+            adjglobals.function_names.add(name)
 
         if to_annotate:
-            if not isinstance(args[0], compatibility.function_space_type):
-                if isinstance(args[0], backend.Function):
-                    known = adjglobals.adjointer.variable_known(adjglobals.adj_variables[args[0]])
-                else:
-                    known = True
+            assignment.register_assign(copy, self)
 
-                if known or (annotate is True):
-                    assignment.register_assign(self, args[0])
-                else:
-                    adjglobals.adj_variables.forget(args[0])
+        return copy
+
+    def project(self, other, annotate=None, *args, **kwargs):
+        '''To disable the annotation, just pass :py:data:`annotate=False` to this routine, and it acts exactly like the
+        Firedrake project call.'''
+
+        to_annotate = utils.to_annotate(annotate)
+
+        if not to_annotate:
+            flag = misc.pause_annotation()
+
+        res = firedrake_project(self, other, *args, **kwargs)
+
+        if not to_annotate:
+            misc.continue_annotation(flag)
+
+        return res
 
     def assign(self, other, annotate=None, *args, **kwargs):
         '''To disable the annotation, just pass :py:data:`annotate=False` to this routine, and it acts exactly like the
@@ -182,6 +199,8 @@ class Function(backend.Function):
 backend.Function.assign = dolfin_adjoint_assign # so that Functions produced inside Expression etc. get it too
 if backend.__name__ == "dolfin":
     backend.Function.split  = dolfin_adjoint_split
+else:
+    backend.Function.project = firedrake_project
 backend.Function.__str__ = dolfin_adjoint_str
 backend.Function.interpolate = dolfin_adjoint_interpolate
 

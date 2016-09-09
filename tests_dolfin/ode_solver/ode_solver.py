@@ -42,7 +42,7 @@ if __name__ == "__main__":
     c  = interpolate(Constant(1.0), R, name="GrowthRate")
     Solver = RK4
 
-    u = Function(u0, name="Solution")
+    u = u0.copy(deepcopy=True, name="Solution")
     v = TestFunction(R)
     time = Constant(0.0)
     # FIXME: make this work in the forward code:

@@ -2,7 +2,7 @@ import sys
 import random
 from dolfin import *
 from dolfin_adjoint import *
-from dolfin_adjoint.misc import rank
+from dolfin_adjoint.compatibility import rank
 from math import sqrt
 
 dolfin.parameters["adjoint"]["record_all"] = True
@@ -10,7 +10,7 @@ dolfin.parameters["adjoint"]["record_all"] = True
 # Class representing the intial conditions
 class InitialConditions(Expression):
     def __init__(self):
-        random.seed(2 + rank())
+        random.seed(2 + rank(mpi_comm_world()))
     def eval(self, values, x):
         values[0] = 0.63 + 0.02*(0.5 - random.random())
         values[1] = 0.0
@@ -32,8 +32,8 @@ parameters["std_out_all_processes"] = False;
 # Create mesh and define function spaces
 nodes = 32*32
 mesh = UnitSquareMesh(int(sqrt(nodes)), int(sqrt(nodes)))
-V = FunctionSpace(mesh, "Lagrange", 1)
-ME = V*V
+cg1 = FiniteElement("Lagrange", triangle, 1)
+ME = FunctionSpace(mesh, MixedElement([cg1, cg1]))
 
 steps = 5
 

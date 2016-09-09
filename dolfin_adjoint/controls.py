@@ -1,17 +1,20 @@
-import libadjoint
-import ufl
-import backend
-from backend import info, info_blue, info_red
 import numpy
+import types
+import backend
+import ufl
+import libadjoint
+
 import adjlinalg
 import adjglobals
-from adjrhs import adj_get_forward_equation
 import adjresidual
+import constant
+import adjrhs
+import utils
+
+from backend import info, info_blue, info_red
+from adjrhs import adj_get_forward_equation
 from constant import get_constant
 from enlisting import enlist
-import constant
-import types
-import adjrhs
 
 global_eqn_list = {}
 
@@ -81,8 +84,9 @@ class FunctionControl(DolfinAdjointControl):
         '''coeff: the variable whose initial condition you wish to perturb.
            perturbation: the perturbation direction in which you wish to compute the gradient. Must be a Function.'''
 
-        if not (isinstance(coeff, backend.Function) or isinstance(coeff, str)):
-            raise TypeError, "The coefficient must be a Function or a String"
+        if not (isinstance(coeff, backend.Function) or isinstance(coeff, str)
+            or isinstance(coeff, backend.MultiMeshFunction)):
+            raise TypeError, "The coefficient must be a Function,MultiMeshFunction or a String"
 
         self.coeff = coeff
         self.value = value
@@ -123,10 +127,13 @@ class FunctionControl(DolfinAdjointControl):
             return None
 
     def data(self):
+
         if self.value is not None:
             return self.value
         else:
-            return adjglobals.adjointer.get_variable_value(self.var).data
+            x = adjglobals.adjointer.get_variable_value(self.var).data
+            x = utils.function_to_da_function(x)
+            return x
 
     def update(self, value):
         '''Update the control value.'''

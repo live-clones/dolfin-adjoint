@@ -14,7 +14,7 @@ def Dt(u, u_, timestep):
 
 def main(ic, annotate=False):
 
-    u_ = Function(ic, name="Velocity")
+    u_ = ic.copy(deepcopy=True, name="Velocity")
     u = TrialFunction(V)
     v = TestFunction(V)
 

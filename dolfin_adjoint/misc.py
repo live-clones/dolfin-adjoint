@@ -1,4 +1,5 @@
 import backend
+from contextlib import contextmanager
 
 def uniq(seq):
     '''Remove duplicates from a list, preserving order'''
@@ -15,11 +16,22 @@ def pause_annotation():
 def continue_annotation(flag):
     backend.parameters["adjoint"]["stop_annotating"] = flag
 
-def rank():
-    # No idea what to do with firedrake here, so I assume one of them will fix it!
-    try:
-        # DOLFIN 1.4 and onwards
-        return backend.MPI.rank(backend.mpi_comm_world())
-    except AttributeError:
-        # Will be removed in DOLFIN 1.5:
-        return backend.MPI.process_number()
+@contextmanager
+def annotations(flag):
+
+    orig = backend.parameters["adjoint"]["stop_annotating"]
+    backend.parameters["adjoint"]["stop_annotating"] = not flag
+
+    yield
+
+    backend.parameters["adjoint"]["stop_annotating"] = orig
+
+def noannotations(func):
+
+   def func_wrapper(*args, **kwargs):
+       with annotations(False):
+           res = func(*args, **kwargs)
+       return res
+
+   return func_wrapper
+

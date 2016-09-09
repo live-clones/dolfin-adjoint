@@ -7,9 +7,13 @@ if not hasattr(dolfin, "FunctionAssigner"):
     sys.exit(0)
 
 mesh = UnitIntervalMesh(2)
-V = VectorFunctionSpace(mesh, "CG", 2)
-P = FunctionSpace(mesh, "CG", 1)
-Z = MixedFunctionSpace([V, P])
+p2 = VectorElement("CG", interval, 2)
+p1 = FiniteElement("CG", interval, 1)
+p2p1 = MixedElement([p2, p1])
+
+V = FunctionSpace(mesh, p2)
+P = FunctionSpace(mesh, p1)
+Z = FunctionSpace(mesh, p2p1)
 
 def main(u, p):
     assigner_u = FunctionAssigner(Z.sub(0), V)
@@ -27,10 +31,6 @@ if __name__ == "__main__":
     p = interpolate(Expression("x[0] + 1.0"), P, name="Pressure")
     z = main(u, p)
 
-    A = tuple(p.vector())
-    B = tuple(Function(z.sub(1)).vector())
-    assert A == B # Check for some dolfin bugs that have been fixed
-
     assert adjglobals.adjointer.equation_count == 5
 
     success = replay_dolfin(tol=0.0, stop=True)
@@ -46,8 +46,9 @@ if __name__ == "__main__":
     eps = 0.0001
     dJdm_fd = Function(P)
     for i in range(P.dim()):
-        p_ptb = Function(p)
-        p_ptb.vector()[i] += eps
+        p_ptb = p.copy(deepcopy=True, annotate=False)
+        p_vec = p_ptb.vector()
+        p_vec[i] = p_vec[i][0] + eps
         z_ptb = main(u, p_ptb)
         J_ptb = assemble(form(z_ptb))
         dJdm_fd.vector()[i] = (J_ptb - Jm)/eps

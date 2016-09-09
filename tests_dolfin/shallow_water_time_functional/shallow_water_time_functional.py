@@ -36,7 +36,7 @@ def compute_J(ic):
 
 ic = Function(W)
 ic.interpolate(divett.InitialConditions())
-minconv = test_initial_condition_adjoint(compute_J, ic, adj_state, seed=0.001)
+minconv = utils.test_initial_condition_adjoint(compute_J, ic, adj_state, seed=0.001)
 if minconv < 1.9:
     exit_code = 1
 else:

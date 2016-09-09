@@ -40,7 +40,7 @@ if __name__ == "__main__":
     u0 = interpolate(Constant((1.0, 1.0)), R, name="InitialValue")
     Solver = BackwardEuler
 
-    u = Function(u0, name="Solution")
+    u = u0.copy(deepcopy=True, name="Solution")
     v = TestFunction(R)
     time = Constant(0.0)
     form = lambda u, time: inner(time*u, v)*dP

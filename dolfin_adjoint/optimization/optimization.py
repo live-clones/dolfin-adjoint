@@ -1,9 +1,10 @@
 import numpy as np
-import dolfin
+import backend
 from ..reduced_functional_numpy import ReducedFunctionalNumPy, get_global
 from ..reduced_functional import ReducedFunctional
 from ..utils import gather
-from ..misc import rank
+from ..compatibility import rank
+from ..misc import noannotations
 
 def serialise_bounds(rf_np, bounds):
     ''' Converts bounds to an array of (min, max) tuples and serialises it in a parallel environment. '''
@@ -56,15 +57,15 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
     m = [p.data() for p in rf_np.controls]
     m_global = rf_np.obj_to_array(m)
     J = rf_np.__call__
-    dJ = lambda m: rf_np.derivative(m, taylor_test=dolfin.parameters["optimization"]["test_gradient"],
-                                       seed=dolfin.parameters["optimization"]["test_gradient_seed"],
+    dJ = lambda m: rf_np.derivative(m, taylor_test=backend.parameters["optimization"]["test_gradient"],
+                                       seed=backend.parameters["optimization"]["test_gradient_seed"],
                                        forget=forget,
                                        project=project)
     H = rf_np.hessian
 
     if not "options" in kwargs:
         kwargs["options"] = {}
-    if rank() != 0:
+    if rank(rf_np.rf.mpi_comm()) != 0:
         # Shut up all processors except the first one.
         kwargs["options"]["disp"] = False
     else:
@@ -143,8 +144,8 @@ def minimize_custom(rf_np, bounds=None, **kwargs):
     m = [p.data() for p in rf_np.controls]
     m_global = rf_np.obj_to_array(m)
     J = rf_np.__call__
-    dJ = lambda m: rf_np.derivative(m, taylor_test=dolfin.parameters["optimization"]["test_gradient"],
-                                       seed=dolfin.parameters["optimization"]["test_gradient_seed"],
+    dJ = lambda m: rf_np.derivative(m, taylor_test=backend.parameters["optimization"]["test_gradient"],
+                                       seed=backend.parameters["optimization"]["test_gradient_seed"],
                                        forget=None)
     H = rf_np.hessian
 
@@ -181,6 +182,7 @@ def print_optimization_methods():
     for function_name, (description, func) in optimization_algorithms_dict.iteritems():
         print function_name, ': ', description
 
+@noannotations
 def minimize(rf, method='L-BFGS-B', scale=1.0, **kwargs):
     ''' Solves the minimisation problem with PDE constraint:
 

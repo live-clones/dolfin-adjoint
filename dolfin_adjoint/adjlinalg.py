@@ -10,23 +10,24 @@ import compatibility
 import utils
 
 class Vector(libadjoint.Vector):
-    '''This class implements the libadjoint.Vector abstract base class for the Dolfin adjoint.
+    '''This class implements the libadjoint.Vector abstract base class for dolfin-adjoint.
     In particular, it must implement the data callbacks for tasks such as adding two vectors
     together, duplicating vectors, taking norms, etc., that occur in the process of constructing
     the adjoint equations.'''
 
     def __init__(self, data, zero=False, fn_space=None):
 
-
-        self.data=data
-        if not (self.data is None or isinstance(self.data, backend.Function) or isinstance(self.data, ufl.Form)):
+        self.data = data
+        if not (self.data is None or isinstance(self.data, backend.Function) or
+                isinstance(self.data, ufl.Form) or isinstance(self.data,
+                    backend.MultiMeshFunction)):
             backend.error("Got " + str(self.data.__class__) + " as input to the Vector() class. Don't know how to handle that.")
 
         # self.zero is true if we can prove that the vector is zero.
         if data is None:
-            self.zero=True
+            self.zero = True
         else:
-            self.zero=zero
+            self.zero = zero
 
         if fn_space is not None:
             self.fn_space = fn_space
@@ -42,6 +43,14 @@ class Vector(libadjoint.Vector):
             except:
                 fn_space = self.data.function_space()
             data = backend.Function(fn_space)
+
+        elif isinstance(self.data, backend.MultiMeshFunction):
+            try:
+                fn_space = self.data.function_space().collapse()
+            except:
+                fn_space = self.data.function_space()
+            data = backend.MultiMeshFunction(fn_space)
+
         else:
             data = None
 
@@ -65,7 +74,11 @@ class Vector(libadjoint.Vector):
         if (self.data is None):
             # self is an empty form.
             if isinstance(x.data, backend.Function):
-                self.data = backend.Function(x.data)
+                self.data = x.data.copy(deepcopy=True)
+                self.data.vector()._scale(alpha)
+            if isinstance(x.data, backend.MultiMeshFunction):
+                self.data = backend.MultiMeshFunction(x.data.function_space(),
+                        x.data.vector())
                 self.data.vector()._scale(alpha)
             else:
                 self.data=alpha*x.data
@@ -74,11 +87,24 @@ class Vector(libadjoint.Vector):
             pass
         elif isinstance(self.data, backend.Coefficient):
             if isinstance(x.data, backend.Coefficient):
-                self.data.vector().axpy(alpha, x.data.vector())
+                try:
+                    self.data.vector().axpy(alpha, x.data.vector())
+                except:
+                    # Handle subfunctions
+                    # Fixme: use FunctionAssigner instead of a projection
+                    #assigner = backend.FunctionAssigner(self.data.function_space,
+                    #        x.data.function_space()
+                    x = backend.project(x.data, self.data.function_space())
+                    self.data.vector().axpy(alpha, x.vector())
             else:
                 # This occurs when adding a RHS derivative to an adjoint equation
                 # corresponding to the initial conditions.
-                self.data.vector().axpy(alpha, backend.assemble(x.data))
+                if ((len(x.data.coefficients())>0) and
+                    hasattr(x.data.coefficients()[0], '_V')):
+                    self.data.vector().axpy(alpha,
+                                            backend.assemble_multimesh(x.data))
+                else:
+                    self.data.vector().axpy(alpha, backend.assemble(x.data))
                 self.data.form = alpha * x.data
         elif isinstance(x.data, ufl.form.Form) and isinstance(self.data, ufl.form.Form):
 
@@ -107,6 +133,8 @@ class Vector(libadjoint.Vector):
             new_fn.vector()[:] = self_vec
             self.data = new_fn
             self.fn_space = self.data.function_space()
+        elif isinstance(self.data, backend.MultiMeshFunction):
+            raise NotImplementedError
 
         else:
             print "self.data.__class__: ", self.data.__class__
@@ -121,6 +149,8 @@ class Vector(libadjoint.Vector):
             return (abs(backend.assemble(backend.inner(self.data, self.data)*backend.dx)))**0.5
         elif isinstance(self.data, ufl.form.Form):
             return backend.assemble(self.data).norm("l2")
+        elif isinstance(self.data, backend.MultiMeshFunction):
+            raise NotImplementedError
 
     def dot_product(self,y):
 
@@ -136,8 +166,10 @@ class Vector(libadjoint.Vector):
             raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to dot anything else.")
 
     def set_random(self):
-        assert isinstance(self.data, backend.Function) or hasattr(self, "fn_space")
+        if isinstance(self.data, backend.MultiMeshFunction):
+            raise NotImplementedError
 
+        assert isinstance(self.data, backend.Function) or hasattr(self, "fn_space")
         if self.data is None:
             self.data = backend.Function(self.fn_space)
 
@@ -160,6 +192,8 @@ class Vector(libadjoint.Vector):
         raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to get the size.")
 
     def set_values(self, array):
+        if isinstance(self.data, backend.MultiMeshFunction):
+            raise NotImplementedError
         if isinstance(self.data, backend.Function):
             vec = self.data.vector()
             vec.set_local(array)
@@ -251,8 +285,19 @@ class Matrix(libadjoint.Matrix):
 
     def assemble_data(self):
         assert not isinstance(self.data, IdentityMatrix)
+        if backend.__name__ == "firedrake":
+            # Firedrake specifies assembled matrix type as part of the
+            # solver parameters.
+            mat_type = self.solver_parameters.get("mat_type")
+            assemble = lambda x: backend.assemble(self.data, mat_type=mat_type)
+        else:
+            assemble = backend.assemble
         if not self.cache:
-            return backend.assemble(self.data)
+            if hasattr(self.data.arguments()[0], '_V_multi'):
+                return backend.assemble_multimesh(self.data)
+            else:
+                return backend.assemble(self.data)
+
         else:
             if self.data in caching.assembled_adj_forms:
                 if backend.parameters["adjoint"]["debug_cache"]:
@@ -261,12 +306,16 @@ class Matrix(libadjoint.Matrix):
             else:
                 if backend.parameters["adjoint"]["debug_cache"]:
                     backend.info_red("Got an assembly cache miss")
-                M = backend.assemble(self.data)
+
+                if hasattr(self.data.arguments()[0], '_V_multi'):
+                    M = backend.assemble_multimesh(self.data)
+                else:
+                    M = backend.assemble(self.data)
+
                 caching.assembled_adj_forms[self.data] = M
                 return M
 
     def basic_solve(self, var, b):
-
         if isinstance(self.data, IdentityMatrix):
             x=b.duplicate()
             x.axpy(1.0, b)
@@ -281,7 +330,13 @@ class Matrix(libadjoint.Matrix):
                 bcs = self.bcs
 
             test = self.test_function()
-            x = Vector(backend.Function(test.function_space()))
+
+            #FIXME: This is a hack, the test and trial function should carry
+            # the MultiMeshFunctionSpace as an attribute
+            if hasattr(test, '_V_multi'):
+                x = Vector(backend.MultiMeshFunction(test._V_multi))
+            else:
+                x = Vector(backend.Function(test.function_space()))
 
             #print "b.data is a %s in the solution of %s" % (b.data.__class__, var)
             if b.data is None and not hasattr(b, 'nonlinear_form'):
@@ -340,7 +395,10 @@ class Matrix(libadjoint.Matrix):
             elif isinstance(b.data, ufl.Form):
                 assembled_rhs = wrap_assemble(b.data, self.test_function())
             else:
-                assembled_rhs = b.data.vector()
+                if backend.__name__ == "dolfin":
+                    assembled_rhs = b.data.vector()
+                else:
+                    assembled_rhs = b.data
             [bc.apply(assembled_rhs) for bc in bcs]
 
             if not var in caching.lu_solvers:
@@ -354,7 +412,7 @@ class Matrix(libadjoint.Matrix):
                     assembled_lhs = self.assemble_data()
                     [bc.apply(assembled_lhs) for bc in bcs]
 
-                caching.lu_solvers[var] = backend.LUSolver(assembled_lhs, "mumps")
+                caching.lu_solvers[var] = compatibility.LUSolver(assembled_lhs, "mumps")
                 caching.lu_solvers[var].parameters["reuse_factorization"] = True
             else:
                 if backend.parameters["adjoint"]["debug_cache"]:
@@ -473,7 +531,10 @@ def wrap_assemble(form, test):
     '''
 
     try:
-        b = backend.assemble(form)
+        if hasattr(form.arguments()[0], '_V_multi'):
+            b = backend.assemble_multimesh(form)
+        else:
+            b = backend.assemble(form)
     except RuntimeError:
         assert len(form.integrals()) == 0
         b = backend.Function(test.function_space()).vector()

@@ -1,0 +1,11 @@
+image: quay.io/dolfinadjoint/dev-dolfin-adjoint
+
+pipelines:
+  default:
+    - step:
+        script:
+          - sudo su fenics
+          - source ~/dolfin-adjoint.conf
+          - update_libadjoint
+          - update_dolfin-adjoint
+          - py.test -v tests_dolfin/
