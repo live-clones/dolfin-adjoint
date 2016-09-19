@@ -23,33 +23,24 @@ right.mark(boundary_parts, 1)
 ds = Measure("ds")[boundary_parts]
 
 class Source(Expression):
-    def __init__(self, t, omega=Constant(2e2)):
+    def __init__(self, omega=Constant(2e2), derivative=None, degree=3):
         """ Construct the source function """
-        self.t = t
+        self.t = 0.0
         self.omega = omega
-
+        self.derivative = derivative
+        
     def eval(self, value, x):
         """ Evaluate the expression """
-        if x[0] < 1e-15:
-            value[0] = np.sin(float(self.omega)*self.t)
-        else:
-            value[0] = 0.
-
-    def deval(self, value, x, coeff):
-        """ Evaluate the derivative of the expression """
-        assert coeff == self.omega, "Given coeff must be the start time"
-        if x[0] < 1e-15:
-            value[0] = self.t*np.cos(float(self.omega)*self.t)
-        else:
-            value[0] = 0.
-
-    def dependencies(self):
-        """ List the dependencies of which derivatives are taken """
-        return [self.omega]
-
-    def copy(self):
-        """ Return a copy of itself """
-        return Source(self.t, self.omega)
+        if self.derivative is None:        
+            if x[0] < 1e-15:
+                value[0] = np.sin(float(self.omega)*self.t)
+            else:
+                value[0] = 0.
+        elif self.derivative == self.omega:
+            if x[0] < 1e-15:
+                value[0] = self.t*np.cos(float(self.omega)*self.t)
+            else:
+                value[0] = 0.
 
 def forward(excitation, c=Constant(1.), record=False, annotate=False):
     # Define function space
@@ -81,7 +72,6 @@ def forward(excitation, c=Constant(1.), record=False, annotate=False):
     times = [t,]
     if annotate: adj_start_timestep()
     while t < T - .5*float(k):
-        print t
         excitation.t = t + float(k)
         solve(a == L, u, annotate = annotate)
         u0.assign(u1, annotate = annotate)
@@ -91,7 +81,6 @@ def forward(excitation, c=Constant(1.), record=False, annotate=False):
         times.append(t)
         if record:
             rec.append(u1(1.0))
-            plot(u)
         if annotate: adj_inc_timestep(t, t > T - .5*float(k))
         i += 1
 
@@ -117,11 +106,16 @@ def objective(times, u, observations):
 
 def optimize(dbg=False):
     # Define the control
-    source = Source(t = 0.0, omega = Constant(190))
+    Omega = Constant(190)
+    source = Source(Omega)
+    source.dependencies = Omega  # dolfin-adjoint needs to know on which
+                                 # coefficients this expression depends on
+    # Provide the derivative coefficients
+    source.user_defined_derivatives = {Omega: Source(Omega, derivative=Omega)}
 
     # Execute first time to annotate and record the tape
     u, times = forward(source, 2*DOLFIN_PI, False, True)
-
+    print "recording completed"
     if dbg:
         # Check the recorded tape
         success = replay_dolfin(tol = 0.0, stop = True)
@@ -146,12 +140,15 @@ def optimize(dbg=False):
     # map refs to be constant
     refs = map(Constant, refs)
 
+    print "define controls"
     # Define the controls
-    controls = [Control(c) for c in source.dependencies()]
+    controls = Control(Omega)
 
+    print "define objective"
     Jform = objective(times, u, refs)
+    print "define functional"    
     J = Functional(Jform)
-
+    print "compute gradient"
     # compute the gradient
     dJd0 = compute_gradient(J, controls)
     print float(dJd0[0])
@@ -159,6 +156,7 @@ def optimize(dbg=False):
     # Prepare the reduced functional
     reduced_functional = ReducedFunctional(J, controls, eval_cb_post = eval_cb)
 
+    print "optimize"
     # Run the optimisation
     omega_opt = minimize(reduced_functional, method = "L-BFGS-B",\
                      tol=1.0e-12, options = {"disp": True,"gtol":1.0e-12})
@@ -170,7 +168,7 @@ if __name__ == "__main__":
     if '-r' in sys.argv:
         print "compute reference solution"
         os.popen('rm -rf recorded.txt')
-        source = Source(t = 0.0, omega = Constant(2e2))
+        source = Source(Constant(2e2))
         forward(source, 2*DOLFIN_PI, True)
     print "start automatic characterization"
     if '-dbg' in sys.argv:

@@ -6,7 +6,8 @@ class SourceExpression(Expression):
         self.c = c
         self.d = d
         self.derivative = derivative
-
+        self.degree = 1
+        
     def eval(self, value, x):
 
         if self.derivative is None:
