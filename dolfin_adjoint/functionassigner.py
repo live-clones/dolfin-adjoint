@@ -61,7 +61,7 @@ if hasattr(backend, 'FunctionAssigner'):
             self.giving_deps     = [adjglobals.adj_variables[giver] for giver in self.giving_supers]
 
         def __call__(self, dependencies, values):
-            receiving_super = backend.Function(values[0].data) # make a copy of the OLD value of what we're assigning to
+            receiving_super = values[0].data.copy(deepcopy=True) # make a copy of the OLD value of what we're assigning to
             receiving_sub = receiving_super
             for idx in self.receiving_idx:
                 receiving_sub = receiving_sub.sub(idx)

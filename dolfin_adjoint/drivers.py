@@ -9,27 +9,29 @@ import adjresidual
 import ufl.algorithms
 from enlisting import enlist, delist
 from numpy import ndarray
+from functional import Functional
+import misc
 
 def replay_dolfin(forget=False, tol=0.0, stop=False):
 
-    parameters["adjoint"]["stop_annotating"] = True
-    if not backend.parameters["adjoint"]["record_all"]:
-        info_red("Warning: your replay test will be much more effective with dolfin.parameters['adjoint']['record_all'] = True.")
+    with misc.annotations(False):
+        if not backend.parameters["adjoint"]["record_all"]:
+            info_red("Warning: your replay test will be much more effective with dolfin.parameters['adjoint']['record_all'] = True.")
 
-    success = True
-    for i in range(adjglobals.adjointer.equation_count):
-        (fwd_var, output) = adjglobals.adjointer.get_forward_solution(i)
-        storage = libadjoint.MemoryStorage(output)
-        storage.set_compare(tol=tol)
-        storage.set_overwrite(True)
-        out = adjglobals.adjointer.record_variable(fwd_var, storage)
-        success = success and out
+        success = True
+        for i in range(adjglobals.adjointer.equation_count):
+            (fwd_var, output) = adjglobals.adjointer.get_forward_solution(i)
+            storage = libadjoint.MemoryStorage(output)
+            storage.set_compare(tol=tol)
+            storage.set_overwrite(True)
+            out = adjglobals.adjointer.record_variable(fwd_var, storage)
+            success = success and out
 
-        if forget:
-            adjglobals.adjointer.forget_forward_equation(i)
+            if forget:
+                adjglobals.adjointer.forget_forward_equation(i)
 
-        if not out and stop:
-            return success
+            if not out and stop:
+                break
 
     return success
 
@@ -104,11 +106,27 @@ def compute_tlm(parameter, forget=False):
 
 
 def compute_gradient(J, param, forget=True, ignore=[], callback=lambda var, output: None, project=False):
-    backend.parameters["adjoint"]["stop_annotating"] = True
+    if not isinstance(J, Functional):
+        raise ValueError, "J must be of type dolfin_adjoint.Functional."
+
+    flag = misc.pause_annotation()
 
     enlisted_controls = enlist(param)
     param = ListControl(enlisted_controls)
-    dJdparam = enlisted_controls.__class__([None] * len(enlisted_controls))
+
+    if backend.parameters["adjoint"]["allow_zero_derivatives"]:
+        dJ_init = []
+        for c in enlisted_controls:
+            if isinstance(c.data(), backend.Constant):
+                dJ_init.append(backend.Constant(0))
+            elif isinstance(c.data(), backend.Function):
+                space = c.data().function_space()
+                dJ_init.append(backend.Function(space))
+
+    else:
+        dJ_init = [None] * len(enlisted_controls)
+
+    dJdparam = enlisted_controls.__class__(dJ_init)
 
     last_timestep = adjglobals.adjointer.timestep_count
 
@@ -158,16 +176,15 @@ def compute_gradient(J, param, forget=True, ignore=[], callback=lambda var, outp
 
     rename(J, dJdparam, param)
 
+    misc.continue_annotation(flag)
+
     return postprocess(dJdparam, project, list_type=enlisted_controls)
 
 def rename(J, dJdparam, param):
     if isinstance(dJdparam, list):
         [rename(J, dJdm, m) for (dJdm, m) in zip(dJdparam, param.controls)]
     elif isinstance(dJdparam, backend.Function):
-        if backend.__name__ == "dolfin":
-            dJdparam.rename("d(%s)/d(%s)" % (str(J), str(param)), "a Function from dolfin-adjoint")
-        else:
-            dJdparam.name = "d(%s)/d(%s)" % (str(J), str(param))
+        dJdparam.rename("d(%s)/d(%s)" % (str(J), str(param)), "a Function from dolfin-adjoint")
 
 def project_test(func):
     if isinstance(func, backend.Function):
@@ -195,8 +212,9 @@ def postprocess(dJdparam, project, list_type):
 
 def hessian(J, m, warn=True):
     '''Choose which Hessian the user wants.'''
-    backend.parameters["adjoint"]["stop_annotating"] = True
-    return BasicHessian(J, m, warn=warn)
+    with misc.annotations(False):
+        H = BasicHessian(J, m, warn=warn)
+    return H
 
 class BasicHessian(libadjoint.Matrix):
     '''A basic implementation of the Hessian class that recomputes the tangent linear, adjoint and second-order adjoint
@@ -211,6 +229,7 @@ class BasicHessian(libadjoint.Matrix):
             backend.info_red("Warning: Hessian computation is still experimental and is known to not work for some problems. Please Taylor test thoroughly.")
 
     def __call__(self, m_dot, project=False):
+        flag = misc.pause_annotation()
         hess_action_timer = backend.Timer("Hessian action")
 
         m_p = self.m.set_perturbation(m_dot)
@@ -290,6 +309,7 @@ class BasicHessian(libadjoint.Matrix):
             if isinstance(Hm_cmp, backend.Function):
                 Hm_cmp.rename("d^2(%s)/d(%s)^2" % (str(self.J), str(self.m)), "a Function from dolfin-adjoint")
 
+        misc.continue_annotation(flag)
         return postprocess(Hm, project, list_type=self.enlisted_controls)
 
     def action(self, x, y):
@@ -363,6 +383,10 @@ class compute_gradient_tlm(object):
     for testing tangent linear models, and might be useful in future where
     you have many functionals and few parameters.'''
     def __init__(self, J, m, forget=True, callback=lambda var, output: None, project=False):
+        if not isinstance(J, Functional):
+            raise ValueError, "J must be of type dolfin_adjoint.Functional."
+
+
         self.J = J
 
         if isinstance(m, (list, tuple)):

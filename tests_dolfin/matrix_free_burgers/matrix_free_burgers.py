@@ -60,7 +60,7 @@ def main(ic, annotate=False):
 if __name__ == "__main__":
 
     ic = project(Expression("sin(2*pi*x[0])"),  V)
-    ic_copy = Function(ic)
+    ic_copy = ic.copy(deepcopy=True)
     forward = main(ic, annotate=True)
     forward_copy = Function(forward)
     adj_html("burgers_matfree_forward.html", "forward")
@@ -78,12 +78,12 @@ if __name__ == "__main__":
         return assemble(forward*forward*dx)
 
     ic.vector()[:] = ic_copy.vector()
-    minconv = test_initial_condition_adjoint(Jfunc, ic, adjoint, seed=1.0e-1)
+    minconv = utils.test_initial_condition_adjoint(Jfunc, ic, adjoint, seed=1.0e-1)
     if minconv < 1.8:
         sys.exit(1)
 #
 #    ic.vector()[:] = ic_copy.vector()
 #    dJ = assemble(derivative(forward_copy*forward_copy*dx, forward_copy))
-#    minconv = test_initial_condition_tlm(Jfunc, dJ, ic, seed=1.0e-5)
+#    minconv = utils.test_initial_condition_tlm(Jfunc, dJ, ic, seed=1.0e-5)
 #    if minconv < 1.9:
 #      sys.exit(1)

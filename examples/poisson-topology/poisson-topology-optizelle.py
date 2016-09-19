@@ -293,4 +293,5 @@ if __name__ == "__main__":
 
     solver  = OptizelleSolver(problem, parameters=parameters)
     a_opt   = solver.solve()
-    File("output/control_solution.xdmf") << a_opt
+    xdmf_filename = XDMFFile(mpi_comm_world(), "output/control_solution.xdmf")
+    xdmf_filename.write(a_opt)

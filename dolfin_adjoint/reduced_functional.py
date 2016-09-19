@@ -3,11 +3,13 @@ import hashlib
 import libadjoint
 import utils
 from backend import Function, Constant, info_red, info_green, File
-from dolfin_adjoint import drivers
+from dolfin_adjoint import drivers, compatibility
 from dolfin_adjoint.adjglobals import adjointer, mem_checkpoints, disk_checkpoints, adj_reset_cache
 from functional import Functional
 from enlisting import enlist, delist
 from controls import DolfinAdjointControl, ListControl
+from misc import noannotations
+
 
 class ReducedFunctional(object):
     ''' This class provides access to the reduced functional for given
@@ -129,6 +131,7 @@ class ReducedFunctional(object):
         if hasattr(self, 'cache') and self.cache is not None:
             pickle.dump(self._cache, open(self.cache, "w"))
 
+    @noannotations
     def __call__(self, value):
         """ Evaluates the reduced functional for the given control value.
 
@@ -138,6 +141,8 @@ class ReducedFunctional(object):
 	Returns:
 	    float: The functional value.
         """
+
+        # Make sure we do not annotate
 
         # Reset any cached data in dolfin-adjoint
         adj_reset_cache()
@@ -368,6 +373,12 @@ class ReducedFunctional(object):
         return utils.taylor_test(self.__call__, self.controls, Jm, dJdm, HJm, seed=seed,
                 perturbation_direction=perturbation_direction)
 
+    def mpi_comm(self):
+        """ Return the MPI communicator associated with this reduced functional."""
+
+        # Nice!
+        return compatibility.form_comm(self.functional.timeform.terms[0].form)
+
 
 def value_hash(value):
     if isinstance(value, Constant):
@@ -381,6 +392,7 @@ def value_hash(value):
     else:
         raise Exception, "Don't know how to take a hash of %s" % value
 
+
 def cache_load(value, V):
     if isinstance(value, (list, tuple)):
         return [cache_load(value[i], V[i]) for i in range(len(value))]
@@ -389,6 +401,7 @@ def cache_load(value, V):
     elif isinstance(value, str):
         return Function(V, value)
     return
+
 
 def cache_store(value, cache):
     if isinstance(value, (list, tuple)):

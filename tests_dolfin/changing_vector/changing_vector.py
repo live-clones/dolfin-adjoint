@@ -22,7 +22,7 @@ def Dt(u, u_, timestep):
 
 def main(ic, annotate=False):
 
-    u_ = Function(ic, name="Velocity")
+    u_ = ic.copy(deepcopy=True, name="Velocity")
     u = Function(V, name="VelocityNext")
     v = TestFunction(V)
 
@@ -53,3 +53,4 @@ if __name__ == "__main__":
 
     print "Running forward replay .... "
     success = replay_dolfin(forget=False) # <------ should catch it here
+    assert not success

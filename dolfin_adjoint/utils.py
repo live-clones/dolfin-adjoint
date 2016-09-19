@@ -15,8 +15,9 @@ import compatibility
 import controls
 from enlisting import enlist
 from controls import ListControl, Control
-if backend.__name__  == "dolfin":
-    from backend import cpp
+from compatibility import gather  # NOQA
+from misc import noannotations
+
 
 def scale(obj, factor):
     """ A generic function to scale Functions,
@@ -24,8 +25,11 @@ def scale(obj, factor):
     """
 
     if hasattr(obj, "function_space"):
-        # dolfin.Function
-        scaled_obj = backend.Function(obj.function_space(), factor * obj.vector())
+        # dolfin.Function of dolfin.MultiMeshFunctionSpace
+        if isinstance(obj.function_space(), compatibility.multi_mesh_function_space_type):
+            scaled_obj = backend.MultiMeshFunction(obj.function_space(), factor * obj.vector())
+        else:
+            scaled_obj = backend.Function(obj.function_space(), factor * obj.vector())
     elif isinstance(obj, backend.Constant):
         # dolfin.Constant
         scaled_obj = backend.Constant(factor * constant_to_array(obj))
@@ -54,28 +58,10 @@ def constant_to_array(c):
         r = a[0]
 
     # Make sure input and output have the same shape
-    assert c.shape() == r.shape
+    assert c.ufl_shape == r.shape
 
     return r
 
-def gather(vec):
-    """Parallel gather of distributed data (for optimisation algorithms, usually)"""
-    if isinstance(vec, cpp.Function):
-        vec = vec.vector()
-
-    if isinstance(vec, cpp.GenericVector):
-        try:
-            arr = cpp.DoubleArray(vec.size())
-            vec.gather(arr, numpy.arange(vec.size(), dtype='I'))
-            arr = arr.array().tolist()
-        except TypeError:
-            arr = vec.gather(numpy.arange(vec.size(), dtype='intc'))
-    elif isinstance(vec, list):
-        return map(gather, vec)
-    else:
-        arr = vec # Assume it's a gathered numpy array already
-
-    return arr
 
 def convergence_order(errors, base = 2):
     import math
@@ -102,17 +88,19 @@ def test_initial_condition_adjoint(J, ic, final_adjoint, seed=0.01, perturbation
        series remainder, which should be 2 if the adjoint is working
        correctly.'''
 
+    import function
+
     # We will compute the gradient of the functional with respect to the initial condition,
     # and check its correctness with the Taylor remainder convergence test.
     info_blue("Running Taylor remainder convergence analysis for the adjoint model ... ")
 
     # First run the problem unperturbed
-    ic_copy = backend.Function(ic)
+    ic_copy = ic.copy(deepcopy=True)
     f_direct = J(ic_copy)
 
     # Randomise the perturbation direction:
     if perturbation_direction is None:
-        perturbation_direction = backend.Function(ic.function_space())
+        perturbation_direction = function.Function(ic.function_space())
         compatibility.randomise(perturbation_direction)
 
     # Run the forward problem for various perturbed initial conditions
@@ -120,12 +108,12 @@ def test_initial_condition_adjoint(J, ic, final_adjoint, seed=0.01, perturbation
     perturbations = []
     perturbation_sizes = [seed/(2**i) for i in range(5)]
     for perturbation_size in perturbation_sizes:
-        perturbation = backend.Function(perturbation_direction)
+        perturbation = perturbation_direction.copy(deepcopy=True)
         vec = perturbation.vector()
         vec *= perturbation_size
         perturbations.append(perturbation)
 
-        perturbed_ic = backend.Function(ic)
+        perturbed_ic = ic.copy(deepcopy=True)
         vec = perturbed_ic.vector()
         vec += perturbation.vector()
 
@@ -446,6 +434,7 @@ def taylor_remainder_with_gradient(m, Jm, dJdm, functional_value, perturbation, 
         remainder = abs(functional_value - Jm - dJdm.vector().inner(perturbation.vector()))
     return remainder
 
+@noannotations
 def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None, value=None):
     '''J must be a function that takes in a parameter value m and returns the value
        of the functional:
@@ -492,7 +481,9 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
     m_cpy = []
     for c in m:
         if isinstance(c.data(), backend.Function):
-            m_cpy.append(backend.Function(c.data()))
+            m_cpy.append(c.data().copy(deepcopy=True))
+        elif isinstance(c.data(), backend.MultiMeshFunction):
+            m_cpy.append(c.data().copy(deepcopy=True))
         else:
             m_cpy.append(backend.Constant(c.data()))
 
@@ -522,6 +513,8 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
 
 
 def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value):
+    import function
+
     # Check inputs
     if not isinstance(m, libadjoint.Parameter):
         raise ValueError, "m must be a valid control instance."
@@ -568,8 +561,15 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
             perturbation_direction = numpy.array([get_const(x)/5.0 for x in m.v])
         elif isinstance(m, controls.FunctionControl):
             ic = get_value(m, value)
-            perturbation_direction = backend.Function(ic.function_space())
+
+            # Check for MultiMeshFunction_space
+            if isinstance(ic.function_space(), compatibility.multi_mesh_function_space_type):
+                perturbation_direction = backend.MultiMeshFunction(ic.function_space())
+            else:
+                perturbation_direction = function.Function(ic.function_space())
+
             compatibility.randomise(perturbation_direction)
+
         else:
             raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to compute a perturbation direction")
     else:
@@ -579,12 +579,12 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
             perturbation_direction = float(perturbation_direction)
 
     # So now compute the perturbations:
-    if not isinstance(perturbation_direction, backend.Function):
+    if not isinstance(perturbation_direction, (backend.Function, backend.MultiMeshFunction)):
         perturbations = [x*perturbation_direction for x in perturbation_sizes]
     else:
         perturbations = []
         for x in perturbation_sizes:
-            perturbation = backend.Function(perturbation_direction)
+            perturbation = perturbation_direction.copy(deepcopy=True)
             vec = perturbation.vector()
             vec *= x
             perturbations.append(perturbation)
@@ -602,7 +602,7 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
     elif isinstance(m, controls.FunctionControl):
         pinputs = []
         for x in perturbations:
-            pinput = backend.Function(x)
+            pinput = x.copy(deepcopy=True)
             vec = pinput.vector()
             vec += ic.vector()
             pinputs.append(pinput)
@@ -791,8 +791,10 @@ def get_identity_block(fn_space):
 
     def identity_assembly_cb(variables, dependencies, hermitian, coefficient, context):
         assert coefficient == 1
-        return (adjlinalg.Matrix(adjlinalg.IdentityMatrix()), adjlinalg.Vector(backend.Function(fn_space)))
-
+        if isinstance(fn_space, compatibility.function_space_type):
+            return (adjlinalg.Matrix(adjlinalg.IdentityMatrix()), adjlinalg.Vector(backend.Function(fn_space)))
+        else:
+            return (adjlinalg.Matrix(adjlinalg.IdentityMatrix()), adjlinalg.Vector(backend.MultiMeshFunction(fn_space)))
     identity_block.assemble = identity_assembly_cb
 
     def identity_action_cb(variables, dependencies, hermitian, coefficient, input, context):
@@ -803,3 +805,10 @@ def get_identity_block(fn_space):
     identity_block.action = identity_action_cb
 
     return identity_block
+
+def function_to_da_function(f):
+    import function
+    if not isinstance(f, function.Function):
+        # Wrap copy into a dolfin_adjoint.Function
+        return function.Function(f.function_space(), f.vector())
+    return f

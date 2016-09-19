@@ -31,6 +31,7 @@ if __name__ == "__main__":
     sol.set_operator(A)
     sol.solve(p.vector(), rhs)
 
+
     J = Functional(p*dx)
     m = Control(Ks)
     Jr = ReducedFunctional(J, m)

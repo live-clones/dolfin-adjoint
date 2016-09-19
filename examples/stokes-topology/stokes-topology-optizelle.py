@@ -106,9 +106,10 @@ V = Constant(1.0/3) * delta  # want the fluid to occupy 1/3 of the domain
 
 mesh = RectangleMesh(mpi_comm_world(), Point(0.0, 0.0), Point(delta, 1.0), N, N)
 A = FunctionSpace(mesh, "CG", 1)        # control function space
-U = VectorFunctionSpace(mesh, "CG", 2)  # velocity function space
-P = FunctionSpace(mesh, "CG", 1)        # pressure function space
-W = MixedFunctionSpace([U, P])          # mixed Taylor-Hood function space
+
+U_h = VectorElement("CG", mesh.ufl_cell(), 2)
+P_h = FiniteElement("CG", mesh.ufl_cell(), 1)
+W = FunctionSpace(mesh, U_h*P_h)          # mixed Taylor-Hood function space
 
 # Define the boundary condition on velocity
 

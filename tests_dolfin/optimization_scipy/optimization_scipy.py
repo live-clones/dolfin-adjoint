@@ -8,7 +8,7 @@ import scipy
 import libadjoint
 
 dolfin.set_log_level(ERROR)
-dolfin.parameters["optimization"]["test_gradient"] = True
+#dolfin.parameters["optimization"]["test_gradient"] = True
 dolfin.parameters["adjoint"]["cache_factorizations"] = True
 
 n = 10
@@ -48,20 +48,20 @@ def derivative_cb(j, dj, m):
 if __name__ == "__main__":
 
     ic = project(Expression("sin(2*pi*x[0])"),  V, annotate=False)
-    u = Function(ic, name='Velocity')
-
+    u = ic.copy(deepcopy=True, annotate=False, name='Velocity')
     J = Functional(u*u*dx*dt[FINISH_TIME])
 
     # Run the model once to create the annotation
-    u.assign(ic, annotate=False)
     main(u, annotate=True)
 
     # Run the optimisation
     lb = project(Expression("-1"),  V)
 
     # Define the reduced funtional
-    reduced_functional = ReducedFunctional(J, Control(u, value=ic),
+    ctrl = Control(u)
+    reduced_functional = ReducedFunctional(J, ctrl,
                                            derivative_cb_post=derivative_cb)
+    assert reduced_functional.taylor_test(ic, test_hessian=True)
 
     try:
         print "\n === Solving problem with L-BFGS-B. === \n"
@@ -90,8 +90,9 @@ if __name__ == "__main__":
                    "Powell": {"bounds": None}
                   }
 
-        for method in ["SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Newton-CG", "Nelder-Mead", "CG"]:
+        for method in ["Newton-CG", "SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Nelder-Mead", "CG"]:
             print "\n === Solving problem with %s. ===\n" % method
+            # Reset control value
             reduced_functional(ic)
             u_opt = minimize(reduced_functional,
                              bounds = options[method].pop("bounds"),

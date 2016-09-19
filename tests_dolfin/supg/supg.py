@@ -130,11 +130,6 @@ if __name__ == "__main__":
     f  = Constant(0.0)
     u = main(u0, f=f)
 
-    adj_html("forward.html", "forward")
-    adj_html("adjoint.html", "adjoint")
-
-    info_blue("Replaying forward model .. ")
-
     success = replay_dolfin()
 
     if not success:
@@ -153,7 +148,7 @@ if __name__ == "__main__":
 
     info_blue("Verifying adjoint ... ")
 
-    minconv = test_scalar_parameter_adjoint(J, f, dJdf)
+    minconv = utils.test_scalar_parameter_adjoint(J, f, dJdf)
 
     if minconv < 1.9:
         sys.exit(1)

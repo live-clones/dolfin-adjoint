@@ -1,9 +1,14 @@
-from dolfin import as_backend_type
+from backend import as_backend_type
 from dolfin_adjoint.controls import FunctionControl, ConstantControl
 from optimization_solver import OptimizationSolver
 import numpy as np
+from dolfin_adjoint import compatibility
+from ..misc import noannotations
 
 from backend import *
+import backend
+from ..constant import Constant
+
 
 class TAOSolver(OptimizationSolver):
     """Uses PETSc TAO to solve the given optimization problem.
@@ -107,10 +112,14 @@ class TAOSolver(OptimizationSolver):
                 j = self.objective(x)
                 # TODO: Concatenated gradient vector
                 gradient = rf.derivative(forget=False)[0]
-                gradient_vec = as_backend_type(gradient.vector()).vec()
 
-                G.set(0)
-                G.axpy(1, gradient_vec)
+                if isinstance(gradient, backend.Constant):
+                    G.set(float(gradient))
+                else:
+                    gradient_vec = as_backend_type(gradient.vector()).vec()
+                    G.set(0)
+                    G.axpy(1, gradient_vec)
+
                 return j
 
             def hessian(self, tao, x, H, HP):
@@ -141,7 +150,8 @@ class TAOSolver(OptimizationSolver):
 
             def mult(self, mat, x, y):
                 # TODO: Add multiple control support to Hessian stack and check for ConstantControl
-                x_wrap = Function(rf.controls[0].data().function_space(), PETScVector(x))
+                x_wrap = compatibility.petsc_vec_as_function(
+                    rf.controls[0].data().function_space(), x)
                 hes = rf.hessian(x_wrap)
                 hes_vec = as_backend_type(hes.vector()).vec()
 
@@ -202,8 +212,8 @@ class TAOSolver(OptimizationSolver):
                                 val.append(val_inner)
 
                         # Replace control in rf
-                        cons = Constant(val) # Loss of information? No coeff in init
-                        rf.controls[i] = ConstantControl(cons)
+                        cons = Constant(val)
+                        rf.controls[i].update(Constant(cons))
                         nvec += vsize
 
         # create user application context
@@ -381,7 +391,7 @@ class TAOSolver(OptimizationSolver):
     def __control_as_vec(self, control):
         """Return a PETSc Vec representing the supplied Control"""
         if isinstance(control, FunctionControl):
-            as_vec = as_backend_type(Function(control.data()).vector()).vec()
+            as_vec = as_backend_type(control.data().copy(deepcopy=True).vector()).vec()
         elif isinstance(control, ConstantControl):
             as_vec = self.__constant_as_vec(Constant(control.data()))
         else:
@@ -392,6 +402,7 @@ class TAOSolver(OptimizationSolver):
         """Returns the PETSc TAO instance associated with the solver"""
         return self.tao
 
+    @noannotations
     def solve(self):
         self.tao.solve()
         sol_vec = self.tao.getSolution()

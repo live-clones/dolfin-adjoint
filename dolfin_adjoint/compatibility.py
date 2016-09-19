@@ -1,6 +1,7 @@
 import backend
 import numpy
-
+if backend.__name__ == "dolfin":
+    from backend import cpp
 
 if backend.__name__ == "firedrake":
     class Timer(object):
@@ -17,6 +18,16 @@ if backend.__name__ == "firedrake":
             return 0.0
 
     backend.Timer = Timer
+
+    class MultiMeshFunction(object):
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("Should never happen (firedrake doesn't support multimesh)")
+
+    backend.MultiMeshFunction = MultiMeshFunction
+
+    class MultiMeshFunctionSpace(object):
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("Should never happen (firedrake doesn't support multimesh)")
 
 
 def to_dict(d):
@@ -57,20 +68,21 @@ def randomise(x):
 
 
 if hasattr(backend.Function, 'sub'):
-    dolfin_sub    = backend.Function.sub
+    dolfin_sub = backend.Function.sub
+
     def dolfin_adjoint_sub(self, idx, deepcopy=False):
         if backend.__name__ == "dolfin":
             out = dolfin_sub(self, idx, deepcopy=deepcopy)
         else:
             out = dolfin_sub(self, idx)
         out.super_idx = idx
-        out.super_fn  = self
+        out.super_fn = self
         return out
 
 
 def assembled_rhs(b):
     if backend.__name__ == "dolfin":
-        assembled_rhs = backend.Function(b.data).vector()
+        assembled_rhs = b.data.copy(deepcopy=True).vector()
     else:
         assembled_rhs = backend.Function(b.data)
     return assembled_rhs
@@ -95,15 +107,88 @@ if backend.__name__ == "dolfin":
     _extract_args = backend.fem.solving._extract_args
     function_type = backend.cpp.Function
     function_space_type = backend.cpp.FunctionSpace
-
+    multi_mesh_function_space_type = backend.cpp.MultiMeshFunctionSpace
 else:
     solve = backend.solving.solve
-    matrix_types = lambda: backend.op2.base.Mat
+    matrix_types = lambda: backend.matrix.MatrixBase
     function_type = backend.Function
     function_space_type = (backend.functionspaceimpl.FunctionSpace,
                            backend.functionspaceimpl.WithGeometry,
                            backend.functionspaceimpl.MixedFunctionSpace)
+    multi_mesh_function_space_type = MultiMeshFunctionSpace
 
     def _extract_args(*args, **kwargs):
-        eq, u, bcs, _, _, _, _, solver_parameters, _, _, _ = backend.solving._extract_args(*args, **kwargs)
-        return eq, u, bcs, None, None, None, None, solver_parameters
+        # FIXME: need to track all of these things, currently only
+        # return the dolfin-compatible ones.
+        eq, u, bcs, J, Jp, M, form_compiler_parameters, solver_parameters, \
+            nullspace, transpose_nullspace, options_prefix = backend.solving._extract_args(*args, **kwargs)
+        return eq, u, bcs, J, None, None, form_compiler_parameters, solver_parameters
+
+
+def gather(vec):
+    """Parallel gather of distributed data (for optimisation algorithms, usually)"""
+    if backend.__name__ == "dolfin":
+        if isinstance(vec, cpp.Function):
+            vec = vec.vector()
+
+        if isinstance(vec, cpp.GenericVector):
+            try:
+                arr = cpp.DoubleArray(vec.size())
+                vec.gather(arr, numpy.arange(vec.size(), dtype='I'))
+                arr = arr.array().tolist()
+            except TypeError:
+                arr = vec.gather(numpy.arange(vec.size(), dtype='intc'))
+        elif isinstance(vec, list):
+            return map(gather, vec)
+        else:
+            arr = vec  # Assume it's a gathered numpy array already
+    else:
+        arr = vec.gather()
+
+    return arr
+
+if backend.__name__ == "dolfin":
+    from backend import LUSolver
+else:
+    class LUSolver(object):
+        """LUSolver compatibility object"""
+        def __init__(self, A, method):
+            self.mat = A
+            self.method = method
+            self.parameters = {}
+            if method == "mumps":
+                solver_parameters = {"pc_factor_mat_solver_package": "mumps",
+                                     "ksp_type": "preonly",
+                                     "pc_type": "lu"}
+            else:
+                raise NotImplementedError("No idea how to solve with %s" % method)
+            self.solver = backend.LinearSolver(A,
+                                               solver_parameters=solver_parameters)
+
+        def solve(self, x, b):
+            return self.solver.solve(x, b)
+
+
+def rank(comm):
+    if backend.__name__ == "dolfin":
+        return backend.MPI.rank(comm)
+    else:
+        return comm.rank
+
+
+def form_comm(form):
+    """Return the communicator associated with a form."""
+    if backend.__name__ == "dolfin":
+        return form.ufl_domain().ufl_cargo().mpi_comm()
+    else:
+        return form.ufl_domain().comm
+
+
+def petsc_vec_as_function(fs, petsc_vec):
+    if backend.__name__ == "dolfin":
+        return backend.Function(fs, backend.PETScVector(petsc_vec))
+    else:
+        f = backend.Function(fs)
+        with f.dat.vec as v:
+            petsc_vec.copy(v)
+        return f

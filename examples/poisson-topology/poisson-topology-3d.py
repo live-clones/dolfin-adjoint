@@ -223,7 +223,7 @@ if __name__ == "__main__":
             self.tmpvec = Function(A)
 
         def function(self, m):
-            self.tmpvec.vector()[:] = m
+            reduced_functional_numpy.set_local(self.tmpvec, m)
 
 # Compute the integral of the control over the domain
 
@@ -253,7 +253,8 @@ if __name__ == "__main__":
     solver = IPOPTSolver(problem, parameters=parameters)
     a_opt = solver.solve()
 
-    File("output-3d/control_solution.xdmf") << a_opt
+    infile = XDMFFile(mpi_comm_world(), 'output-3d/control_solution.xdmf')
+    infile.write(a_opt)
 
 # The example code can be found in ``examples/poisson-topology/`` in the
 # ``dolfin-adjoint`` source tree. Running it takes approximately 5 minutes

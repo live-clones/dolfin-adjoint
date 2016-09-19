@@ -44,6 +44,6 @@ if __name__ == "__main__":
         soln = main(ic)
         return assemble(inner(soln, soln)*dx)
 
-    minconv = test_initial_condition_adjoint(J, ic, adjoint, seed=1.0e-3)
+    minconv = utils.test_initial_condition_adjoint(J, ic, adjoint, seed=1.0e-3)
     if minconv < 1.9:
         sys.exit(1)

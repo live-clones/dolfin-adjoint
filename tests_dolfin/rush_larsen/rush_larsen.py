@@ -7,6 +7,7 @@ except ImportError:
 
 from dolfin import *
 from dolfin_adjoint import *
+parameters["form_compiler"]["representation"] = "uflacs"
 import ufl.algorithms
 
 if not hasattr(MultiStageScheme, "to_tlm"):
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     u0 = interpolate(Constant(1.0), R, name="InitialValue")
     for Solver in [RL1, RL2, GRL1, GRL2]:
         adj_reset()
-        u = Function(u0, name="Solution")
+        u = u0.copy(deepcopy=True, name="Solution")
         v = TestFunction(R)
         time = Constant(0.0, name="Time")
         form = lambda u, time: inner(time*u, v)*dP

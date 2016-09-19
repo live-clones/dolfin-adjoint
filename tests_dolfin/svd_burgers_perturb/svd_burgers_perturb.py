@@ -23,7 +23,7 @@ def Dt(u, u_, timestep):
 
 def main(ic, annotate=False):
 
-    u_ = Function(ic, name="State")
+    u_ = ic.copy(deepcopy=True, name="State")
     u = Function(V, name="NextState")
     v = TestFunction(V)
 
@@ -49,10 +49,10 @@ def main(ic, annotate=False):
 if __name__ == "__main__":
 
     ic = project(Expression("sin(2*pi*x[0])"),  V)
-    ic_copy = Function(ic)
+    ic_copy = ic.copy(deepcopy=True)
     forward = main(ic, annotate=True)
     parameters["adjoint"]["stop_annotating"] = True
-    forward_copy = Function(forward)
+    forward_copy = forward.copy(deepcopy=True)
 
     ic = forward
     ic.vector()[:] = ic_copy.vector()
@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     ic_norm = v.vector().norm("l2")
 
-    perturbed_ic = Function(ic)
+    perturbed_ic = ic.copy(deepcopy=True)
     perturbed_ic.vector().axpy(factor, v.vector())
     perturbed_soln = main(perturbed_ic, annotate=False)
 
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     ic_norm = sqrt(assemble(inner(v, v)*dx))
 
-    perturbed_ic = Function(ic)
+    perturbed_ic = ic.copy(deepcopy=True)
     perturbed_ic.vector().axpy(factor, v.vector())
     perturbed_soln = main(perturbed_ic, annotate=False)
 

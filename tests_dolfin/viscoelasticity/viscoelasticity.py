@@ -192,11 +192,11 @@ amplitude = Constant(0.05)
 #amplitude = Constant(0.05)
 
 # Define function spaces
-S = VectorFunctionSpace(mesh, "BDM", 1)
-V = VectorFunctionSpace(mesh, "DG", 0)
-Q = VectorFunctionSpace(mesh, "DG", 0)
-CG1 = VectorFunctionSpace(mesh, "CG", 1)
-Z = MixedFunctionSpace([S, S, V, Q])
+bdm1 = VectorElement("BDM", mesh.ufl_cell(), 1)
+dg0 = VectorElement("DG", mesh.ufl_cell(), 0)
+mixed_ele = MixedElement([bdm1, bdm1, dg0, dg0])
+Z = FunctionSpace(mesh, mixed_ele)
+V = FunctionSpace(mesh, dg0)
 
 def main(ic, params, amplitude, T=1.0, dt=0.01, annotate=False):
     # dk = half the timestep
@@ -209,7 +209,7 @@ def main(ic, params, amplitude, T=1.0, dt=0.01, annotate=False):
 
     # Define functions for previous timestep (z_), half-time (z_star)
     # and current (z)
-    z_ = Function(ic, name="Solution")
+    z_ = ic.copy(deepcopy=True, name="Solution")
     z_star = Function(Z, name="SolutionStar")
     z = Function(Z, name="SolutionNext")
 

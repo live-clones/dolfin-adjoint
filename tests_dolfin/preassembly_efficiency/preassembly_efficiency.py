@@ -32,10 +32,7 @@ from dolfin_adjoint import *
 parameters["std_out_all_processes"] = False;
 parameters["adjoint"]["debug_cache"] = True
 
-#parameters["mesh_partitioner"] = "SCOTCH";
-
 # Load mesh from file
-#mesh = Mesh("lshape.xml.gz")
 mesh = UnitSquareMesh(192, 192)
 
 # Define function spaces (P2-P1)
@@ -51,7 +48,7 @@ q = TestFunction(Q)
 def main(ic):
     # Set parameter values
     dt = 0.01
-    T = 0.05
+    T = 0.02
     nu = 0.01
 
     # Define time-dependent pressure boundary condition
@@ -68,7 +65,7 @@ def main(ic):
     bcp = [inflow, outflow]
 
     # Create functions
-    u0 = Function(ic, name="Velocity")
+    u0 = ic.copy(deepcopy=True, name="Velocity")
     u1 = Function(V, name="VelocityNext")
     p1 = Function(Q, name="Pressure")
 
@@ -152,11 +149,8 @@ if __name__ == "__main__":
     fwd_time = fwd_timer.stop()
     parameters["adjoint"]["stop_annotating"] = True
 
-    adj_html("forward.html", "forward")
-    adj_html("adjoint.html", "adjoint")
-
     replay_timer = Timer("Replay")
-    success = replay_dolfin(tol=1.0e-9)
+    success = replay_dolfin(tol=1.0e-6)
     replay_time = replay_timer.stop()
 
     ratio = replay_time / fwd_time

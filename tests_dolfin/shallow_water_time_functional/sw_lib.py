@@ -41,11 +41,10 @@ def rt0(mesh):
 def p1dgp2(mesh):
     "Return a function space U*H on mesh from the rt0 space."
 
-    V = VectorFunctionSpace(mesh, 'DG', 1, dim=2)# Velocity space
-
-    H = FunctionSpace(mesh, 'CG', 2)             # Height space
-
-    W=V*H                                        # Mixed space of both.
+    V = VectorElement('DG', triangle, 1) # Velocity space
+    H = FiniteElement('CG', triangle, 2) # Height space
+    VH = MixedElement([V, H])
+    W = FunctionSpace(mesh, VH)                    # Mixed space of both.
 
     return W
 

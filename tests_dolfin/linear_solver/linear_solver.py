@@ -39,9 +39,10 @@ if not has_linear_algebra_backend("PETSc") and not has_linear_algebra_backend("E
 mesh = UnitCubeMesh(4, 4, 4)
 
 # Define function spaces
-V = VectorFunctionSpace(mesh, "CG", 2)
-Q = FunctionSpace(mesh, "CG", 1)
-W = V * Q
+cg2 = VectorElement("CG", tetrahedron, 2)
+cg1 = FiniteElement("CG", tetrahedron, 1)
+ele = MixedElement([cg2, cg1])
+W = FunctionSpace(mesh, ele)
 
 # Boundaries
 def right(x, on_boundary): return x[0] > (1.0 - DOLFIN_EPS)
@@ -91,8 +92,9 @@ U = Function(W)
 U.vector()[:] = 1.0
 #solver.parameters["monitor_convergence"] = True
 solver.parameters["relative_tolerance"] = 1.0e-14
+solver.parameters["absolute_tolerance"] = 1.0e-12
 solver.parameters["nonzero_initial_guess"] = True
 solver.solve(U.vector(), bb)
 
 assert adjglobals.adjointer.equation_count > 0
-assert replay_dolfin(tol=1.0e-10)
+assert replay_dolfin(tol=5.0e-9)

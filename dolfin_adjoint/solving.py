@@ -25,6 +25,7 @@ import adjlinalg
 import misc
 if backend.__name__ == "dolfin":
     import lusolver
+    import multimesh_assembly
 import utils
 import caching
 
@@ -407,8 +408,8 @@ def register_initial_conditions(coeffdeps, linear, var=None):
                 if dep == var:
                     continue
 
-            if hasattr(coeff, "split"):
-                if coeff.split is True:
+            if hasattr(coeff, "split_da"):
+                if coeff.split_da is True:
                     errmsg = """
                     dolfin-adjoint does not support dolfin.Function.split().
 
@@ -420,6 +421,12 @@ def register_initial_conditions(coeffdeps, linear, var=None):
             register_initial_condition(coeff, dep)
 
 def register_initial_condition(coeff, dep):
+    # For subfunctions, always register the super space
+    if hasattr(coeff, "super_fn"):
+        coeff = coeff.super_fn
+        dep.name = dep.name[:-2]
+        dep.var.name = dep.var.name[:-2]
+
     fn_space = coeff.function_space()
     identity_block = utils.get_identity_block(fn_space)
 

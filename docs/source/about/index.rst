@@ -31,6 +31,10 @@ where the model is implemented in the Python interface to DOLFIN.
 
 News
 ====
+**08.9.2016**: We now offer Docker images to simplify the installation procedure.
+
+**30.8.2016**: dolfin-adjoint 2016.1 released (compatible with FEniCS 2016.1).
+
 **20.8.2015**: dolfin-adjoint 1.6 released (compatible with FEniCS 1.6).
 
 **11.6.2015**: P. E. Farrell, S. W. Funke, D. A. Ham and M. E. Rognes were awarded the 2015 `Wilkinson prize for numerical software`_ for dolfin-adjoint.

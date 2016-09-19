@@ -7,9 +7,11 @@ if not hasattr(dolfin, "FunctionAssigner"):
     sys.exit(0)
 
 mesh = UnitIntervalMesh(2)
-V = VectorFunctionSpace(mesh, "CG", 2)
-P = FunctionSpace(mesh, "CG", 1)
-Z = MixedFunctionSpace([V, P])
+cg2 = VectorElement("CG", interval, 2)
+cg1 = FiniteElement("CG", interval, 1)
+ele = MixedElement([cg2, cg1])
+V = FunctionSpace(mesh, cg2)
+Z = FunctionSpace(mesh, ele)
 
 def main(z0):
     """ Maps
@@ -27,6 +29,8 @@ def main(z0):
 if __name__ == "__main__":
     z0 = interpolate(Constant((1, 2)), Z, name="State")
     v = main(z0)
+
+    parameters["adjoint"]["stop_annotating"] = True
 
     # Check that the function assignment worked
     assert tuple(v.vector()) == (1, 1, 1, 1, 1)
@@ -47,7 +51,7 @@ if __name__ == "__main__":
     eps = 0.0001
     dJdm_fd = Function(Z)
     for i in range(Z.dim()):
-        z_ptb = Function(z0)
+        z_ptb = z0.copy(deepcopy=True)
         vec = z_ptb.vector()
         vec[i] = vec[i][0] + eps
         v_ptb = main(z_ptb)
@@ -64,6 +68,7 @@ if __name__ == "__main__":
         dJdm_tlm_result.vector()[i] = dJdm_tlm.inner(test_vec.vector())
 
     print "dJdm_tlm: ", list(dJdm_tlm_result.vector())
+
 
 
     def Jhat(z):

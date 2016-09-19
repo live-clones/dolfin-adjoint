@@ -64,4 +64,4 @@ boundaries.set_all(0)
 left.mark(boundaries, 1)
 right.mark(boundaries, 2)
 sides.mark(boundaries, 3)
-ds = Measure("ds")[boundaries]
+ds = Measure("ds")(subdomain_data=boundaries)

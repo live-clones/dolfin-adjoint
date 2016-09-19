@@ -4,6 +4,7 @@ import constraints
 import numpy
 import math
 from ..enlisting import enlist, delist
+from ..misc import noannotations
 
 from backend import *
 
@@ -58,7 +59,7 @@ class OptizelleBoundConstraint(constraints.InequalityConstraint):
         if isinstance(self.m, Constant):
             return [self.scale*(float(m) - float(self.bound))]
         elif isinstance(self.m, Function):
-            out = Function(m)
+            out = Function.copy(m, deepcopy=True)
 
             if isinstance(self.bound, float):
                 out_vec = out.vector()
@@ -102,7 +103,7 @@ class DolfinVectorSpace(object):
     def __deep_copy_obj(x):
         if isinstance(x, GenericFunction):
             x.vector().apply("")
-            return Function(x)
+            return Function.copy(x, deepcopy=True)
         elif isinstance(x, Constant):
             return Constant(float(x))
         elif isinstance(x, numpy.ndarray):
@@ -663,6 +664,7 @@ class OptizelleSolver(OptimizationSolver):
                     print("Error: unknown optizelle option %s." % key)
                     raise
 
+    @noannotations
     def solve(self):
         """Solve the optimization problem and return the optimized parameters."""
 

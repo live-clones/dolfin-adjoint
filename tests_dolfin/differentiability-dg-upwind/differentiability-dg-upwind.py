@@ -21,8 +21,14 @@ from numpy import random
 from dolfin import *
 
 mesh = Mesh("mesh.xml.gz")
+
+p2 = VectorElement("CG", triangle, 2)
+p1 = FiniteElement("CG", triangle, 1)
+p2p1 = MixedElement([p2, p1])
+
+V = FunctionSpace(mesh, p2)
+W = FunctionSpace(mesh, p2p1)
 V = FunctionSpace(mesh, "DG", 1)
-W = VectorFunctionSpace(mesh, "CG", 2) * FunctionSpace(mesh, "CG", 1)
 
 w = Function(W, "velocity.xml.gz")
 T = Function(V, "temperature.xml.gz")
@@ -94,7 +100,7 @@ if __name__ == "__main__":
         dw.vector()[:] = h * dw_dir.vector()
 
         # Compute the perturbed result
-        wdw = Function(w) # w + dw
+        wdw = w.copy(deepcopy=True) # w + dw
         wdw.vector()[:] += dw.vector()
         perturbed = form_action(wdw)
 

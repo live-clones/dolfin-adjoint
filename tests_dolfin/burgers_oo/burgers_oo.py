@@ -35,7 +35,7 @@ class BurgersProblem(NonlinearProblem):
 
 def main(ic, annotate=False):
 
-    u_ = Function(ic)
+    u_ = ic.copy(deepcopy=True)
     u = Function(V)
     v = TestFunction(V)
 
