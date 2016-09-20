@@ -110,8 +110,10 @@ class PointwiseFunctional(functional.Functional):
     # Evaluate functional
     def __call__(self, adjointer, timestep, dependencies, values):
 
-        if self.verbose: print "eval ", len(values)
-        print "\r\n******************"
+        if self.verbose: 
+            print "eval ", len(values)
+            print "\r\n******************"
+            
         toi = _time_levels(adjointer, timestep)[0] # time of interest
 
         my   = [0.0]*len(self.coords)
@@ -163,10 +165,12 @@ class PointwiseFunctional(functional.Functional):
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional derivative
     def derivative(self, adjointer, variable, dependencies, values):
-        for dep in dependencies: print variable.timestep, "derive wrt ", dep.name
+        if self.verbose:
+            for dep in dependencies: 
+                print variable.timestep, "derive wrt ", dep.name
 
         if variable.timestep is 0 and self.regform is not None:
-            " derivatives wrt the controls "
+            if self.verbose: " derivatives wrt the controls "
             d = derivative(self.regform, self.regform.coefficients()[0])
             return self.regfunc.derivative(adjointer, variable, dependencies, values)
 
@@ -175,7 +179,7 @@ class PointwiseFunctional(functional.Functional):
             final_time = _time_levels(adjointer, adjointer.timestep_count - 1)[1]
             self.times[self.times.index("FINISH_TIME")] = final_time
 
-        if self.verbose:print "derive ", variable.timestep, " num values ", len(values)
+        if self.verbose: print "derive ", variable.timestep, " num values ", len(values)
         timesteps = self._derivative_timesteps(adjointer, variable)
 
         ff    = [0.0]*len(self.coords)
