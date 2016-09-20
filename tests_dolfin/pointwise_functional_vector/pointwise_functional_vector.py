@@ -25,18 +25,15 @@ def forward(c):
 c = Constant(3.)
 u = forward(c)
 
-# check for one coord
-print "functional stuff"
 J0 = PointwiseFunctional(u, [0, 0, 0, 0], Point(np.array([0.4, 0.4])), [1, 2, 3, 4], u_ind=[0])
 Jr0 = ReducedFunctional(J0, Control(c))
-J1 = PointwiseFunctional(u, [0, 0, 0, 0], Point(np.array([0.4, 0.4])), [1, 2, 3, 4], u_ind=[1])
+J1 = PointwiseFunctional(u, [0, 0, 0, 0], Point(np.array([0.4, 0.4])), [1, 2, 3, 4], u_ind=[1], alpha=0.5)
 Jr1 = ReducedFunctional(J1, Control(c))
 
-print "compute"
 Jr3 = Jr0(Constant(3.))
 Jr4 = Jr1(Constant(2.))
 
 assert abs(Jr3 - 270.0) < 1e-12
-assert abs(Jr4 - 480.0) < 1e-11
+assert abs(Jr4 - 240.0) < 1e-11
 assert Jr0.taylor_test(Constant(5.)) > 1.9
 

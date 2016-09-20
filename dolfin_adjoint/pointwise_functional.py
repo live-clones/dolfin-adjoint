@@ -83,7 +83,8 @@ class PointwiseFunctional(functional.Functional):
         if self.regform is not None:
             self.timeform += self.regform*dt[0]
             self.regfunc  = functional.Functional(self.regform*dt[0])
-
+            self.dregform = derivative(self.regform, self.regform.coefficients()[0])
+            
         # check compatibility inputs
         if len(self.coords) != len(self.refs):
             raise RuntimeError("Number of coordinates and observations doesn't match %4i vs %4i" %(len(self.coords), len(self.refs)))
@@ -105,7 +106,6 @@ class PointwiseFunctional(functional.Functional):
             if sum(self.basis[i].vector().array())<1.e-12:
                 if self.verbose: print "coord %i not in domain" %i
                 self.skip[i] = True
-        print "init complete"
         
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional
@@ -174,8 +174,10 @@ class PointwiseFunctional(functional.Functional):
 
         if variable.timestep is 0 and self.regform is not None:
             if self.verbose: " derivatives wrt the controls "
-            d = derivative(self.regform, self.regform.coefficients()[0])
-            return self.regfunc.derivative(adjointer, variable, dependencies, values)
+            raise RuntimeError("""The derivative of a regularisation term 
+                               doesn't work properly and shouldn't be used""")
+            from IPython import embed; embed()
+            return backend.assemble(self.dregform)
 
         # transate finish_time: UGLY!!
         if "FINISH_TIME" in self.times:
