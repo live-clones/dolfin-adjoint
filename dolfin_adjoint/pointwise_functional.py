@@ -105,13 +105,15 @@ class PointwiseFunctional(functional.Functional):
             if sum(self.basis[i].vector().array())<1.e-12:
                 if self.verbose: print "coord %i not in domain" %i
                 self.skip[i] = True
-
+        print "init complete"
+        
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional
     def __call__(self, adjointer, timestep, dependencies, values):
 
         if self.verbose: 
             print "eval ", len(values)
+            print "timestep ", timestep
             print "\r\n******************"
             
         toi = _time_levels(adjointer, timestep)[0] # time of interest
@@ -123,7 +125,7 @@ class PointwiseFunctional(functional.Functional):
 
                     # add final contribution
                     if self.index[i] is None: solu = values[0].data(self.coords[i])
-                    else: solu = values[0].data[self.index[i]](self.coords[i])
+                    else: solu = values[0].data(self.coords[i])[self.index[i]]
                     ref  = self.refs[i][self.times.index(self.times[-1])]
                     my[i] = (solu - float(ref))*(solu - float(ref))
 
@@ -135,7 +137,7 @@ class PointwiseFunctional(functional.Functional):
                     # if necessary, add one but last contribution
                     if toi in self.times and len(values) > 0:
                         if self.index[i] is None: solu = values[-1].data(self.coords[i])
-                        else: solu = values[-1].data[self.index[i]](self.coords[i])
+                        else: solu = values[-1].data(self.coords[i])[self.index[i]]
                         ref  = self.refs[i][self.times.index(toi)]
                         my[i] += (solu - float(ref))*(solu - float(ref))
 
@@ -145,9 +147,10 @@ class PointwiseFunctional(functional.Functional):
                             print ref, " ", solu
                 elif timestep is 0:
                     return backend.assemble(self.regform)
-                else:
+                else: # normal situation
+                    #from IPython import embed; embed()
                     if self.index[i] is None: solu = values[-1].data(self.coords[i])
-                    else: solu = values[-1].data[self.index[i]](self.coords[i])
+                    else: solu = values[-1].data(self.coords[i])[self.index[i]]
                     ref  = self.refs[i][self.times.index(toi)]
                     my[i] = (solu - float(ref))*(solu - float(ref))
 
@@ -209,7 +212,7 @@ class PointwiseFunctional(functional.Functional):
                 coef = values[ind].data
                 ref  = self.refs[i][self.times.index(toi)]
                 if self.index[i] is None: solu = coef(self.coords[i])
-                else: solu = coef[self.index[i]](self.coords[i])
+                else: solu = coef(self.coords[i])[self.index[i]]
                 ff[i] = backend.Constant(self.alpha*2.0*(solu - float(ref)))
 
                 if self.verbose:
