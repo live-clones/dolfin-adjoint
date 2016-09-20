@@ -25,7 +25,7 @@ def forward(c):
 c = Constant(3.)
 u = forward(c)
 
-J = PointwiseFunctional(u, [[0, 0, 0, 0]], np.array([[0.4, 0.4]]), [1, 2, 3, 4], u_ind=[None])
+J = PointwiseFunctional(u, [0, 0, 0, 0], Point(np.array([0.4, 0.4])), [1, 2, 3, 4], u_ind=[None])
 Jr = ReducedFunctional(J, Control(c))
 
 Jr3 = Jr(Constant(3))

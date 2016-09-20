@@ -19,7 +19,7 @@ class PointwiseFunctional(functional.Functional):
     Args:
         u (Function): The computed solution.
         refs (List of lists or scalars): The reference.
-        coords (List of Coodinates): The coordinates of the points where u is evaluated in the functional
+        coords (List of Points): The coordinates of the points where u is evaluated in the functional
         times (List of scalars): The time instances considered in the functional
           Default: None (assuming final time)
         u_ind (List of ints): In case u is a vector function, u_ind contains a list of which component of u that is studied
@@ -27,7 +27,7 @@ class PointwiseFunctional(functional.Functional):
         Verbose (bool): Show info on the commandline while running
           Default: False
         Name (str): Name of the functional 
-        Regularisation (Form): the regularisation term (will be evaluated at START_TIME)
+        regularisation (Form): the regularisation term (will be evaluated at START_TIME)
         alpha (float): Constant to multiply the misfit terms with
 
     Some examples:
@@ -45,7 +45,7 @@ class PointwiseFunctional(functional.Functional):
     def __init__(self, u, refs, coords, times=None, **kwargs):
 
         # Sort out input params
-        self.coords   = coords    # List of coordinates
+        self.coords   = coords    # List of Points
         self.func     = u         # Dolfin function to be evaluated
         self.refs     = refs      # References
         self.times    = times     # Relevant times
@@ -55,8 +55,14 @@ class PointwiseFunctional(functional.Functional):
         self.regform  = kwargs.get("regularisation", None)
         self.alpha    = kwargs.get("alpha", 1.0)
         self.index    = kwargs.get("u_ind", [None])
-        self.basis    = [None]*self.coords.shape[0]
-        self.skip     = [False]*self.coords.shape[0]
+        
+        # Prep coords to be considerd as a matrix
+        if type(self.coords) is not list:
+            self.coords = [self.coords]
+            self.refs = [self.refs]
+        
+        self.basis    = [None]*len(self.coords)
+        self.skip     = [False]*len(self.coords)
 
         # Some conformity checks
         if self.times is None:
@@ -65,16 +71,10 @@ class PointwiseFunctional(functional.Functional):
             raise RuntimeError("""The 'times' argument should be None,
                                     'FINISH_TIME' or a non-empty list""")
 
-        if self.coords.shape[0] > 1:
-            if len(self.index) != self.coords.shape[0]:
-                from IPython import embed; embed()
-                raise RuntimeError("""The 'index' argument should be of the,
-                                    same length as the 'coords argument'""")
 
-        # Prep coords to be considerd as a matrix
-        if self.coords.ndim == 1:
-            self.coords = np.array([self.coords])
-            self.refs = [self.refs]
+        if len(self.index) != len(self.coords):
+            raise RuntimeError("""The 'index' argument should be of the,
+                                same length as the 'coords argument'""")
 
         # Prepare a ghost timeform. Only the time instant is important.
         self.timeform = sum(inner(u,u)*dx*dt[t] for t in self.times)
@@ -85,19 +85,19 @@ class PointwiseFunctional(functional.Functional):
             self.regfunc  = functional.Functional(self.regform*dt[0])
 
         # check compatibility inputs
-        if self.coords.shape[0] != len(self.refs):
-            raise RuntimeError("Number of coordinates and observations doesn't match %4i vs %4i" %(self.coords.shape[0], len(self.refs)))
+        if len(self.coords) != len(self.refs):
+            raise RuntimeError("Number of coordinates and observations doesn't match %4i vs %4i" %(len(self.coords), len(self.refs)))
         else:
             for self.ref in self.refs:
               if len(self.ref) != len(self.times): # check compatibility inputs
                 raise RuntimeError("Number of timesteps and observations doesn't match %4i vs %4i" %(len(self.times), len(self.ref)))
 
-        for i in range (self.coords.shape[0]):
+        for i in range(len(self.coords)):
             # Prepare pointwise evals for derivative
             if self.index[i] is None:
-                ps = backend.PointSource(self.func.function_space(), backend.Point(self.coords[i,:]), 1.)
+                ps = backend.PointSource(self.func.function_space(), self.coords[i], 1.)
             else:
-                ps = backend.PointSource(self.func.function_space().sub(self.index[i]), backend.Point(self.coords[i,:]), 1.)
+                ps = backend.PointSource(self.func.function_space().sub(self.index[i]), self.coords[i], 1.)
             self.basis[i] = backend.Function(self.func.function_space()) # basis function for R
             ps.apply(self.basis[i].vector())
 
@@ -114,14 +114,14 @@ class PointwiseFunctional(functional.Functional):
         print "\r\n******************"
         toi = _time_levels(adjointer, timestep)[0] # time of interest
 
-        my   = [0.0]*self.coords.shape[0]
-        for i in range (self.coords.shape[0]):
+        my   = [0.0]*len(self.coords)
+        for i in range(len(self.coords)):
             if not self.skip[i] and len(values) > 0:
                 if timestep is adjointer.timestep_count -1:
 
                     # add final contribution
-                    if self.index[i] is None: solu = values[0].data(self.coords[i,:])
-                    else: solu = values[0].data[self.index[i]](self.coords[i,:])
+                    if self.index[i] is None: solu = values[0].data(self.coords[i])
+                    else: solu = values[0].data[self.index[i]](self.coords[i])
                     ref  = self.refs[i][self.times.index(self.times[-1])]
                     my[i] = (solu - float(ref))*(solu - float(ref))
 
@@ -132,8 +132,8 @@ class PointwiseFunctional(functional.Functional):
 
                     # if necessary, add one but last contribution
                     if toi in self.times and len(values) > 0:
-                        if self.index[i] is None: solu = values[-1].data(self.coords[i,:])
-                        else: solu = values[-1].data[self.index[i]](self.coords[i,:])
+                        if self.index[i] is None: solu = values[-1].data(self.coords[i])
+                        else: solu = values[-1].data[self.index[i]](self.coords[i])
                         ref  = self.refs[i][self.times.index(toi)]
                         my[i] += (solu - float(ref))*(solu - float(ref))
 
@@ -144,8 +144,8 @@ class PointwiseFunctional(functional.Functional):
                 elif timestep is 0:
                     return backend.assemble(self.regform)
                 else:
-                    if self.index[i] is None: solu = values[-1].data(self.coords[i,:])
-                    else: solu = values[-1].data[self.index[i]](self.coords[i,:])
+                    if self.index[i] is None: solu = values[-1].data(self.coords[i])
+                    else: solu = values[-1].data[self.index[i]](self.coords[i])
                     ref  = self.refs[i][self.times.index(toi)]
                     my[i] = (solu - float(ref))*(solu - float(ref))
 
@@ -178,8 +178,8 @@ class PointwiseFunctional(functional.Functional):
         if self.verbose:print "derive ", variable.timestep, " num values ", len(values)
         timesteps = self._derivative_timesteps(adjointer, variable)
 
-        ff    = [0.0]*self.coords.shape[0]
-        for i in range (self.coords.shape[0]):
+        ff    = [0.0]*len(self.coords)
+        for i in range(len(self.coords)):
             if self.skip[i]:
                 if self.verbose: print "skipped"
                 v[i] = self.basis[i]
@@ -204,8 +204,8 @@ class PointwiseFunctional(functional.Functional):
                         ind = 1
                 coef = values[ind].data
                 ref  = self.refs[i][self.times.index(toi)]
-                if self.index[i] is None: solu = coef(self.coords[i,:])
-                else: solu = coef[self.index[i]](self.coords[i,:])
+                if self.index[i] is None: solu = coef(self.coords[i])
+                else: solu = coef[self.index[i]](self.coords[i])
                 ff[i] = backend.Constant(self.alpha*2.0*(solu - float(ref)))
 
                 if self.verbose:
@@ -217,7 +217,7 @@ class PointwiseFunctional(functional.Functional):
 
         # Set up linear combinations to be projected
         form = ff[0]*self.basis[0]
-        for i in range(1, self.coords.shape[0]): form += ff[i]*self.basis[i]
+        for i in range(1, len(self.coords)): form += ff[i]*self.basis[i]
 
         v = backend.project(form, self.func.function_space())
 
