@@ -13,28 +13,47 @@ from dolfin_adjoint.timeforms import dt
 import dolfin_adjoint.adjlinalg as adjlinalg
 
 class PointwiseFunctional(functional.Functional):
-    # u : function containing the solution
-    # refs : vector containing the observations
-    # coord : coordinates of the point in which the functional has to be evaluated
-    # times: list of the time instants that are considered in the functional
-    # u_ind: the inde of the component of u that is considered
-    # timeform: ??
-    # verbose : T/F Spill out info while running
-    # name: allow to set a name, which is usefull for all da obejcts
+    '''The Functional class is overloaded to handle specific functionals, 
+    where a Functions is evaluated in one or multiple points.
+
+    Args:
+        u (Function): The computed solution.
+        refs (List of lists or scalars): The reference.
+        coords (List of Coodinates): The coordinates of the points where u is evaluated in the functional
+        times (List of scalars): The time instances considered in the functional
+          Default: None (assuming final time)
+        u_ind (List of ints): In case u is a vector function, u_ind contains a list of which component of u that is studied
+          Default: [None] (assuming a scalar function u)
+        Verbose (bool): Show info on the commandline while running
+          Default: False
+        Name (str): Name of the functional 
+        Regularisation (Form): the regularisation term (will be evaluated at START_TIME)
+        alpha (float): Constant to multiply the misfit terms with
+
+    Some examples:
+
+      - Integration over all time:
+
+        .. code-block:: python
+
+          J = Functional(inner(u, u)*dx*dt)
+
+
+    '''
 
     #-----------------------------------------------------------------------------------------------------
     def __init__(self, u, refs, coords, times=None, **kwargs):
 
         # Sort out input params
-        self.coords   = coords    # Numpy array with coordinates
+        self.coords   = coords    # List of coordinates
         self.func     = u         # Dolfin function to be evaluated
         self.refs     = refs      # References
         self.times    = times     # Relevant times
         self.timeform = kwargs.get("timeform", False)
         self.verbose  = kwargs.get("verbose",  False)
         self.name     = kwargs.get("name", None)
-        self.regform  = kwargs.get("regform", None)
-        self.boost    = kwargs.get("boost", 1.0)
+        self.regform  = kwargs.get("regularisation", None)
+        self.alpha    = kwargs.get("alpha", 1.0)
         self.index    = kwargs.get("u_ind", [None])
         self.basis    = [None]*self.coords.shape[0]
         self.skip     = [False]*self.coords.shape[0]
@@ -58,8 +77,7 @@ class PointwiseFunctional(functional.Functional):
             self.refs = [self.refs]
 
         # Prepare a ghost timeform. Only the time instant is important.
-        if not self.timeform:
-            self.timeform = sum(inner(u,u)*dx*dt[t] for t in self.times)
+        self.timeform = sum(inner(u,u)*dx*dt[t] for t in self.times)
 
         # Add regularisation
         if self.regform is not None:
@@ -140,7 +158,7 @@ class PointwiseFunctional(functional.Functional):
                 print "my eval ", my[i]
                 print "eval ", timestep, " times ", _time_levels(adjointer, timestep)
 
-        return self.boost*sum(my)
+        return self.alpha*sum(my)
 
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional derivative
@@ -188,7 +206,7 @@ class PointwiseFunctional(functional.Functional):
                 ref  = self.refs[i][self.times.index(toi)]
                 if self.index[i] is None: solu = coef(self.coords[i,:])
                 else: solu = coef[self.index[i]](self.coords[i,:])
-                ff[i] = backend.Constant(self.boost*2.0*(solu - float(ref)))
+                ff[i] = backend.Constant(self.alpha*2.0*(solu - float(ref)))
 
                 if self.verbose:
                     print "ff", float(ff[i])
