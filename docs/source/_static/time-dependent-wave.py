@@ -20,10 +20,10 @@ right = CompiledSubDomain("near(x[0], 1.)")
 boundary_parts = MeshFunction("size_t", mesh, mesh.topology().dim()-1)
 left.mark(boundary_parts, 0)
 right.mark(boundary_parts, 1)
-ds = Measure("ds")[boundary_parts]
+ds = Measure("ds", subdomain_data=boundary_parts)
 
 class Source(Expression):
-    def __init__(self, omega=Constant(2e2), derivative=None, degree=3):
+    def __init__(self, omega=Constant(2e2), derivative=None, **kwargs):
         """ Construct the source function """
         self.t = 0.0
         self.omega = omega
@@ -107,11 +107,11 @@ def objective(times, u, observations):
 def optimize(dbg=False):
     # Define the control
     Omega = Constant(190)
-    source = Source(Omega)
+    source = Source(degree=3, Omega)
     source.dependencies = Omega  # dolfin-adjoint needs to know on which
                                  # coefficients this expression depends on
     # Provide the derivative coefficients
-    source.user_defined_derivatives = {Omega: Source(Omega, derivative=Omega)}
+    source.user_defined_derivatives = {Omega: Source(degree=3, Omega, derivative=Omega)}
 
     # Execute first time to annotate and record the tape
     u, times = forward(source, 2*DOLFIN_PI, False, True)
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     if '-r' in sys.argv:
         print "compute reference solution"
         os.popen('rm -rf recorded.txt')
-        source = Source(Constant(2e2))
+        source = Source(degree=3, Constant(2e2))
         forward(source, 2*DOLFIN_PI, True)
     print "start automatic characterization"
     if '-dbg' in sys.argv:
