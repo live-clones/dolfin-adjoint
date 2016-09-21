@@ -23,14 +23,15 @@ right.mark(boundary_parts, 1)
 ds = Measure("ds", subdomain_data=boundary_parts)
 
 class Source(Expression):
-    def __init__(self, omega=Constant(2e2), derivative=None, **kwargs):
+    def __init__(self, omega=Constant(2e2), Source=None, derivative=None, **kwargs):
         """ Construct the source function """
         self.t = 0.0
         self.omega = omega
         self.derivative = derivative
+        self.source = Source # needed to get the matching time instant
         
     def eval(self, value, x):
-        """ Evaluate the expression """
+        """ Evaluate the source function and it's derivative"""
         if self.derivative is None:        
             if x[0] < 1e-15:
                 value[0] = np.sin(float(self.omega)*self.t)
@@ -38,17 +39,19 @@ class Source(Expression):
                 value[0] = 0.
         elif self.derivative == self.omega:
             if x[0] < 1e-15:
-                value[0] = self.t*np.cos(float(self.omega)*self.t)
+                value[0] = self.source.t*np.cos(float(self.omega)*self.source.t)
             else:
                 value[0] = 0.
 
 def forward(excitation, c=Constant(1.), record=False, annotate=False):
+    """ The forward problem """
+    
     # Define function space
     U = FunctionSpace(mesh, "Lagrange", 1)
 
     # Set up initial values
-    u0 = interpolate(Expression("0."), U, name = "u0", annotate = annotate)
-    u1 = interpolate(Expression("0."), U, name = "u1", annotate = annotate)
+    u0 = Function(U, name = "u0", annotate = annotate)
+    u1 = Function(U, name = "u1", annotate = annotate)
 
     # Define test and trial functions
     v = TestFunction(U)
@@ -92,11 +95,15 @@ def forward(excitation, c=Constant(1.), record=False, annotate=False):
 # Callback function for the optimizer
 # Writes intermediate results to a logfile
 def eval_cb(j, m):
-    print("omega = %15.10e " % float(m[0]))
+    """ The callback function keeping a log """
+
+    print("omega = %15.10e " % float(m))
     print("objective = %15.10e " % j)
 
 # Prepare the objective function
 def objective(times, u, observations):
+    """ The objective """
+    
     combined = zip(times, observations)
     area = times[-1] - times[0]
     M = len(times)
@@ -105,17 +112,19 @@ def objective(times, u, observations):
     return I
 
 def optimize(dbg=False):
+    """ The optimization routine """
+    
     # Define the control
     Omega = Constant(190)
-    source = Source(degree=3, Omega)
-    source.dependencies = Omega  # dolfin-adjoint needs to know on which
-                                 # coefficients this expression depends on
-    # Provide the derivative coefficients
-    source.user_defined_derivatives = {Omega: Source(degree=3, Omega, derivative=Omega)}
+    source = Source(Omega, degree=3, name="source")
+    
+    # provide the coefficient on which this expression depends and its derivative
+    source.dependencies = [Omega]
+    source.user_defined_derivatives = {Omega: Source(Omega, Source = source, derivative=Omega, degree=3)}
 
     # Execute first time to annotate and record the tape
     u, times = forward(source, 2*DOLFIN_PI, False, True)
-    print "recording completed"
+
     if dbg:
         # Check the recorded tape
         success = replay_dolfin(tol = 0.0, stop = True)
@@ -140,23 +149,19 @@ def optimize(dbg=False):
     # map refs to be constant
     refs = map(Constant, refs)
 
-    print "define controls"
-    # Define the controls
-    controls = Control(Omega)
+    # Define the control
+    control = Control(Omega)
 
-    print "define objective"
     Jform = objective(times, u, refs)
-    print "define functional"    
     J = Functional(Jform)
-    print "compute gradient"
+    
     # compute the gradient
-    dJd0 = compute_gradient(J, controls)
-    print float(dJd0[0])
-
+    dJd0 = compute_gradient(J, control)
+    print "gradient = ", float(dJd0)
+    
     # Prepare the reduced functional
-    reduced_functional = ReducedFunctional(J, controls, eval_cb_post = eval_cb)
+    reduced_functional = ReducedFunctional(J, control, eval_cb_post = eval_cb)
 
-    print "optimize"
     # Run the optimisation
     omega_opt = minimize(reduced_functional, method = "L-BFGS-B",\
                      tol=1.0e-12, options = {"disp": True,"gtol":1.0e-12})
@@ -166,11 +171,10 @@ def optimize(dbg=False):
 
 if __name__ == "__main__":
     if '-r' in sys.argv:
-        print "compute reference solution"
         os.popen('rm -rf recorded.txt')
-        source = Source(degree=3, Constant(2e2))
+        source = Source(Constant(2e2), degree=3)
         forward(source, 2*DOLFIN_PI, True)
-    print "start automatic characterization"
+
     if '-dbg' in sys.argv:
         optimize(True)
     else:
