@@ -83,7 +83,6 @@ class PointwiseFunctional(functional.Functional):
         if self.regform is not None:
             self.timeform += self.regform*dt[0]
             self.regfunc  = functional.Functional(self.regform*dt[0])
-            self.dregform = derivative(self.regform, self.regform.coefficients()[0])
             
         # check compatibility inputs
         if len(self.coords) != len(self.refs):
@@ -148,7 +147,6 @@ class PointwiseFunctional(functional.Functional):
                 elif timestep is 0:
                     return backend.assemble(self.regform)
                 else: # normal situation
-                    #from IPython import embed; embed()
                     if self.index[i] is None: solu = values[-1].data(self.coords[i])
                     else: solu = values[-1].data(self.coords[i])[self.index[i]]
                     ref  = self.refs[i][self.times.index(toi)]
@@ -171,63 +169,60 @@ class PointwiseFunctional(functional.Functional):
         if self.verbose:
             for dep in dependencies: 
                 print variable.timestep, "derive wrt ", dep.name
-
-        if variable.timestep is 0 and self.regform is not None:
+        if self.regform is not None and variable.name == self.regform.coefficients()[0].name(): # derivative wrt the contorl
             if self.verbose: " derivatives wrt the controls "
-            raise RuntimeError("""The derivative of a regularisation term 
-                               doesn't work properly and shouldn't be used""")
-            from IPython import embed; embed()
-            return backend.assemble(self.dregform)
+            #raise RuntimeError("""The derivative of a regularisation term                              doesn't work properly and shouldn't be used""")
+            #from IPython import embed; embed()
+            return self.regfunc.derivative(adjointer, variable, dependencies, values)
+        else: 
+            # transate finish_time: UGLY!!
+            if "FINISH_TIME" in self.times:
+                final_time = _time_levels(adjointer, adjointer.timestep_count - 1)[1]
+                self.times[self.times.index("FINISH_TIME")] = final_time
 
-        # transate finish_time: UGLY!!
-        if "FINISH_TIME" in self.times:
-            final_time = _time_levels(adjointer, adjointer.timestep_count - 1)[1]
-            self.times[self.times.index("FINISH_TIME")] = final_time
+            if self.verbose: print "derive ", variable.timestep, " num values ", len(values)
+            timesteps = self._derivative_timesteps(adjointer, variable)
 
-        if self.verbose: print "derive ", variable.timestep, " num values ", len(values)
-        timesteps = self._derivative_timesteps(adjointer, variable)
-
-        ff    = [0.0]*len(self.coords)
-        for i in range(len(self.coords)):
-            if self.skip[i]:
-                if self.verbose: print "skipped"
-                v[i] = self.basis[i]
-            else:
-                if len(timesteps) is 1: # only occurs at start and finish time
-                    tsoi = timesteps[-1]
-                    if tsoi is 0: toi = _time_levels(adjointer, tsoi)[0]; ind = -1
-                    else: toi = _time_levels(adjointer, tsoi)[-1]; ind = 0
+            ff    = [backend.Constant(0.0)]*len(self.coords)
+            for i in range(len(self.coords)):
+                if self.skip[i]:
+                    if self.verbose: print "skipped"
                 else:
-                    if len(values) is 1: # one value (easy)
+                    if len(timesteps) is 1: # only occurs at start and finish time
                         tsoi = timesteps[-1]
-                        toi = _time_levels(adjointer, tsoi)[0]
-                        ind = 0
-                    elif len(values) is 2: # two values (hard)
-                        tsoi = timesteps[-1]
-                        toi = _time_levels(adjointer, tsoi)[0]
-                        if _time_levels(adjointer, tsoi)[1] in self.times: ind = 0
-                        else: ind = 1
-                    else: # three values (easy)
-                        tsoi = timesteps[1]
-                        toi = _time_levels(adjointer, tsoi)[0]
-                        ind = 1
-                coef = values[ind].data
-                ref  = self.refs[i][self.times.index(toi)]
-                if self.index[i] is None: solu = coef(self.coords[i])
-                else: solu = coef(self.coords[i])[self.index[i]]
-                ff[i] = backend.Constant(self.alpha*2.0*(solu - float(ref)))
+                        if tsoi is 0: toi = _time_levels(adjointer, tsoi)[0]; ind = -1
+                        else: toi = _time_levels(adjointer, tsoi)[-1]; ind = 0
+                    else:
+                        if len(values) is 1: # one value (easy)
+                            tsoi = timesteps[-1]
+                            toi = _time_levels(adjointer, tsoi)[0]
+                            ind = 0
+                        elif len(values) is 2: # two values (hard)
+                            tsoi = timesteps[-1]
+                            toi = _time_levels(adjointer, tsoi)[0]
+                            if _time_levels(adjointer, tsoi)[1] in self.times: ind = 0
+                            else: ind = 1
+                        else: # three values (easy)
+                            tsoi = timesteps[1]
+                            toi = _time_levels(adjointer, tsoi)[0]
+                            ind = 1
+                    coef = values[ind].data
+                    ref  = self.refs[i][self.times.index(toi)]
+                    if self.index[i] is None: solu = coef(self.coords[i])
+                    else: solu = coef(self.coords[i])[self.index[i]]
+                    ff[i] = backend.Constant(self.alpha*2.0*(solu - float(ref)))
 
-                if self.verbose:
-                    print "ff", float(ff[i])
-                    print "sol", solu
-                    print "ref", float(ref)
-                    print "tsoi", tsoi
-                    print "toi", toi
+                    if self.verbose:
+                        print "ff", float(ff[i])
+                        print "sol", solu
+                        print "ref", float(ref)
+                        print "tsoi", tsoi
+                        print "toi", toi
 
-        # Set up linear combinations to be projected
-        form = ff[0]*self.basis[0]
-        for i in range(1, len(self.coords)): form += ff[i]*self.basis[i]
+            # Set up linear combinations to be projected
+            form = ff[0]*self.basis[0]
+            for i in range(1, len(self.coords)): form += ff[i]*self.basis[i]
+                
+            v = backend.project(form, self.func.function_space())
 
-        v = backend.project(form, self.func.function_space())
-
-        return adjlinalg.Vector(v)
+            return adjlinalg.Vector(v)

@@ -27,12 +27,13 @@ c = project(c, U, name="Control")
 u = forward(c)
 
 # check for one coord
-Regform = inner(c, c)*dx
-J = PointwiseFunctional(u, [0, 0, 0, 0], Point(np.array([0.4, 0.4])), [1, 2, 3, 4], u_ind=[None], regularisation=Regform)
+Regform = Constant(0.01)*inner(c, c)*inner(c, c)*dx
+J = PointwiseFunctional(u, [0, 0, 0, 0], Point(np.array([0.4, 0.4])), [1, 2, 3, 4], u_ind=[None], regularisation=Regform, verbose=False)
 Jr = ReducedFunctional(J, Control(c))
 
 Jr3 = Jr(c)
-
-assert abs(Jr3 - 279.0) < 1e-4
-#assert Jr.taylor_test(project(Constant(5.), U)) > 1.9
+#G = compute_gradient(J, Control(c))
+#print assemble(G)
+#assert abs(Jr3 - 310.5) < 1e-4
+assert Jr.taylor_test(project(Constant(5.), U)) > 1.9
 
