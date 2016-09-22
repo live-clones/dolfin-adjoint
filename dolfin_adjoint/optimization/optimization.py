@@ -57,10 +57,7 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
     m = [p.data() for p in rf_np.controls]
     m_global = rf_np.obj_to_array(m)
     J = rf_np.__call__
-    dJ = lambda m: rf_np.derivative(m, taylor_test=backend.parameters["optimization"]["test_gradient"],
-                                       seed=backend.parameters["optimization"]["test_gradient_seed"],
-                                       forget=forget,
-                                       project=project)
+    dJ = lambda m: rf_np.derivative(m, forget=forget, project=project)
     H = rf_np.hessian
 
     if not "options" in kwargs:
@@ -144,9 +141,7 @@ def minimize_custom(rf_np, bounds=None, **kwargs):
     m = [p.data() for p in rf_np.controls]
     m_global = rf_np.obj_to_array(m)
     J = rf_np.__call__
-    dJ = lambda m: rf_np.derivative(m, taylor_test=backend.parameters["optimization"]["test_gradient"],
-                                       seed=backend.parameters["optimization"]["test_gradient_seed"],
-                                       forget=None)
+    dJ = lambda m: rf_np.derivative(m, forget=None)
     H = rf_np.hessian
 
     if bounds != None:

@@ -8,7 +8,6 @@ import scipy
 import libadjoint
 
 dolfin.set_log_level(ERROR)
-dolfin.parameters["optimization"]["test_gradient"] = True
 
 n = 20
 end = 0.2
@@ -80,8 +79,7 @@ if __name__ == "__main__":
         print 'Test failed: Optimised functional value exceeds tolerance: ' , final_functional, ' > ', tol, '.'
         sys.exit(1)
 
-    # Run the problem again with SQP, this time for performance reasons with the gradient test switched off
-    dolfin.parameters["optimization"]["test_gradient"] = False
+    # Run the problem again with SQP
 
     # Method specific arguments:
     options = {"SLSQP": {"bounds": (lb, 1)},
