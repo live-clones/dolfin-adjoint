@@ -41,7 +41,7 @@ The FEniCS Docker script can also be used to create persistent sessions::
 
 The development version of dolfin-adjoint and FEniCS is available with::
 
-    fenicsproject-adjoint run quay.io/dolfinadjoint/dev-dolfin-adjoint
+    fenicsproject run quay.io/dolfinadjoint/dev-dolfin-adjoint
 
 
 To update the development container, run::
