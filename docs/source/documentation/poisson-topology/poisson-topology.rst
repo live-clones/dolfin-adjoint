@@ -276,7 +276,8 @@ this and pass it to :py:mod:`pyipopt` to solve:
       solver = IPOPTSolver(problem, parameters=parameters)
       a_opt = solver.solve()
   
-      File("output/final_control.pvd") << a_opt
+      xdmf_filename = XDMFFile(mpi_comm_world(), "output/final_solution.xdmf")
+      xdmf_filename.write(a_opt)
   
 The example code can be found in ``examples/poisson-topology/`` in the
 ``dolfin-adjoint`` source tree, and executed as follows:

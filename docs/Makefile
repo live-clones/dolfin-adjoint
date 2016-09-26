@@ -20,7 +20,6 @@ all: html
 
 EXAMPLES_IN = ../examples
 EXAMPLES_OUT = source/documentation
-EXAMPLES = poisson-mother
 
 examples:
 	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/poisson-mother/poisson-mother.py $(EXAMPLES_OUT)/poisson-mother/poisson-mother.rst
@@ -30,6 +29,8 @@ examples:
 	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/mpec/mpec.py $(EXAMPLES_OUT)/mpec/mpec.rst
 	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/salt-fingering/salt-fingering.py $(EXAMPLES_OUT)/salt-fingering/salt-fingering.rst
 	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/klein/klein.py $(EXAMPLES_OUT)/klein/klein.rst
+	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/time-distributed-control/time-distributed-control.py $(EXAMPLES_OUT)/time-distributed-control/time-distributed-control.rst
+	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/time-distributed-control/plot.png $(EXAMPLES_OUT)/time-distributed-control/plot.png
 
 run_tutorials:
 	python source/_static/tutorial1.py
