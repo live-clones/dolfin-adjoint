@@ -8,7 +8,7 @@
 # Simon W. Funke <simon@simula.no>
 
 FROM quay.io/fenicsproject/stable:current
-MAINTAINER jhale <mail@jackhale.co.uk>
+MAINTAINER Simon W. Funke <simon@simula.no>
 
 USER root
 RUN apt-get -qq update && \
@@ -17,8 +17,10 @@ RUN apt-get -qq update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 USER fenics
+
 ENV DOLFIN_ADJOINT_VERSION 2016.1.0
 ENV IPOPT_VER=3.12.6
+
 COPY dolfin-adjoint.conf $FENICS_HOME/dolfin-adjoint.conf
 RUN /bin/bash -l -c "source $FENICS_HOME/dolfin-adjoint.conf && \
                      update_libadjoint && \
