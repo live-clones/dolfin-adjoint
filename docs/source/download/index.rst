@@ -36,8 +36,8 @@ A Jupyter notebook instance with a user defined name (here myproject) can be sta
 
 The FEniCS Docker script can also be used to create persistent sessions::
 
-    fenicsproject create myproject
-    fenicsproject run myproject
+    fenicsproject create myproject quay.io/dolfinadjoint/dolfin-adjoint
+    fenicsproject start myproject
 
 The development version of dolfin-adjoint and FEniCS is available with::
 
