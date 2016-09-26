@@ -32,23 +32,25 @@ def main():
     t = float(dt)
     adj_start_timestep(time=t)
     while t <= T:
-        print ctrls
         f.assign(ctrls[t], annotate=True)
         solve(a == L, u_0, bc)
         t += float(dt)
         adj_inc_timestep(time=t, finished=t>T)
 
-    return u_0, ctrls
+    return u_0, ctrls.values()
 
 def test_heat():
     u, ctrls = main()
 
-    #from IPython import embed; embed()
-    J = Functional(u**2*dx*dt_meas)
-    m = [Control(c) for c in ctrls.values()]
+    regularisation = sum([(new-old)**2 for new, old in zip(ctrls[1:], ctrls[:-1])])
+    regularisation = regularisation*dx*dt_meas[START_TIME]
+
+    alpha = Constant(1e0)
+    J = Functional(u**2*dx*dt_meas + alpha*regularisation)
+    m = [Control(c) for c in ctrls]
 
     rf = ReducedFunctional(J, m)
-    minconv = rf.taylor_test(ctrls.values(), seed=1e5)
+    minconv = rf.taylor_test(ctrls, seed=1e4)
 
     assert minconv > 1.9
 
