@@ -22,6 +22,8 @@ platform. To get started, follow these 2 steps:
 If running on Mac or Windows, make sure you run this and other
 commands inside the Docker Quickstart Terminal.
 
+Stable version:
+---------------
 Once both Docker and the FEniCS Docker script have been installed, you can
 easily start a FEniCS session with dolfin-adjoint by running the following
 command::
@@ -39,6 +41,8 @@ The FEniCS Docker script can also be used to create persistent sessions::
     fenicsproject create myproject quay.io/dolfinadjoint/dolfin-adjoint
     fenicsproject start myproject
 
+Development version:
+--------------------
 The development version of dolfin-adjoint and FEniCS is available with::
 
     fenicsproject run quay.io/dolfinadjoint/dev-dolfin-adjoint
