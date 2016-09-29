@@ -41,6 +41,7 @@ if backend.__name__ == "dolfin":
 
 import gst
 import function
+import multimeshfunction
 
 import optimization
 import reduced_functional

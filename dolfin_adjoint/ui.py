@@ -39,6 +39,7 @@ from optimization.constraints import InequalityConstraint, EqualityConstraint
 from optimization.optimization import minimize, maximize, print_optimization_methods, minimise, maximise
 from optimization.tao_solver import TAOSolver
 if backend.__name__ == "dolfin":
+    from multimeshfunction import MultiMeshFunction
     from multimesh_assembly import assemble_multimesh
     from newton_solver import NewtonSolver
     from krylov_solver import KrylovSolver

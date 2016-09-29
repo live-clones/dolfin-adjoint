@@ -808,9 +808,16 @@ def get_identity_block(fn_space):
 
 def function_to_da_function(f):
     import function
-    if isinstance(f, backend.MultiMeshFunction):
-        return f
-    if not isinstance(f, function.Function):
+    import multimeshfunction
+
+    if isinstance(f, backend.Function) and not isinstance(f, function.Function):
         # Wrap copy into a dolfin_adjoint.Function
         return function.Function(f.function_space(), f.vector())
-    return f
+
+    elif isinstance(f, backend.MultiMeshFunction) and not isinstance(f,
+            multimeshfunction.MultiMeshFunction):
+        # Wrap copy into a dolfin_adjoint.MultiMeshFunction
+        return multimeshfunction.MultiMeshFunction(f.function_space(), f.vector())
+
+    else:
+        return f

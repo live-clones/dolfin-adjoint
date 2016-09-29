@@ -22,15 +22,17 @@ def solve_move():
     # Time parameters and init condition
     dt = Constant(0.01)
     t = float(dt)
-    T = 0.02
+    T = 0.03
     g_expr = '0' # + x[0]*x[0] + alpha*x[1]*x[1] + beta*t'
     g = Expression(g_expr , alpha=3.0, beta=1.2, t=0,
                    degree=2)
-    u0 = project(g, V, name="u0proj")
+    u0 = project(g, V)
+    print "u0", u0
 
 
     # Initial guess
-    f = Constant(0)
+    f = MultiMeshFunction(V)
+    print "f", f
 
     # Define trial and test functions and right-hand side
     u = TrialFunction(V)
@@ -79,9 +81,10 @@ def solve_move():
 
     # Solving linear system
     u1 = MultiMeshFunction(V, name="u1")
+    print "u1", u1
+    adj_start_timestep(time=t)
     while (t <= T):
 
-        g.t = t
         b = assemble_multimesh(L)
         bc0.apply(A,b)
         bc1.apply(A,b)
@@ -92,13 +95,14 @@ def solve_move():
         # Updating mesh
         if (t<=T):
             # ALE.move(mesh_1,Expression(('0.55*dt','0.55*dt'), dt=dt))
-            mesh_1.rotate(90*float(dt))
-            multimesh.build()
+            #mesh_1.rotate(90*float(dt))
+            #multimesh.build()
             A = assemble_multimesh(a)
-            #bc0 = MultiMeshDirichletBC(V, g, bound)
 
-        out0 << u1.part(0)
-        out1 << u1.part(1)
+        #out0 << u1.part(0)
+        #out1 << u1.part(1)
+        adj_inc_timestep(time=t, finished=t>T)
+
 
     # plot(u1.part(0), interactive=True)
 
@@ -112,7 +116,14 @@ def solve_move():
     #plot(multimesh)
     #interactive()
 
+    J = Functional(u0**2*dX)
+    m = Control(f)
+    adj_html("forward.html", "forward")
+
+    rf = ReducedFunctional(J, m)
+    rf.taylor_test(u0)
+
+
 if __name__ == '__main__':
     solve_move()
 
-    adj_html("forward.html", "forward")
