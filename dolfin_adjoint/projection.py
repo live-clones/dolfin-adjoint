@@ -7,6 +7,7 @@ import libadjoint
 import adjglobals
 import adjlinalg
 import utils
+import multimesh_assembly
 
 def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="cg", preconditioner_type="default", form_compiler_parameters=None, annotate=None, name=None):
     '''The project call performs an equation solve, and so it too must be annotated so that the
@@ -32,7 +33,9 @@ def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="cg", preconditio
         out.adj_name = name
         out.rename(name, "a Function from dolfin-adjoint")
 
-    if to_annotate:
+    is_multimesh = hasattr(V, "multimesh") or isinstance(v, backend.MultiMeshFunction)
+
+    if to_annotate and not is_multimesh:
         # reproduce the logic from project. This probably isn't future-safe, but anyway
 
         if V is None:
@@ -47,6 +50,30 @@ def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="cg", preconditio
         L = backend.inner(w, v)*backend.dx(domain=mesh)
 
         solving.annotate(a == L, out, bcs, solver_parameters={"linear_solver": solver_type, "preconditioner": preconditioner_type, "symmetric": True})
+
+        if backend.parameters["adjoint"]["record_all"]:
+            adjglobals.adjointer.record_variable(adjglobals.adj_variables[out], libadjoint.MemoryStorage(adjlinalg.Vector(out)))
+
+    if to_annotate and is_multimesh:
+        # reproduce the logic from project. This probably isn't future-safe, but anyway
+
+        if V is None:
+            V = backend.fem.projection._extract_function_space(v, mesh)
+        if mesh is None:
+            mesh = V.multimesh()
+
+        # Define variational problem for projection
+        w = backend.TestFunction(V)
+        Pv = backend.TrialFunction(V)
+        a = backend.inner(w, Pv)*backend.dX
+        L = backend.inner(w, v)*backend.dX
+        # FIXME: MultiMesh only supports the solve(a, u, b) notation for now,
+        # hence we need to assemble here for now.
+        a = multimesh_assembly.assemble_multimesh(a)
+        L = multimesh_assembly.assemble_multimesh(L)
+        assert bcs is None  # Not yet supported
+
+        solving.annotate(a, out.vector(), L, solver_type, preconditioner_type)
 
         if backend.parameters["adjoint"]["record_all"]:
             adjglobals.adjointer.record_variable(adjglobals.adj_variables[out], libadjoint.MemoryStorage(adjlinalg.Vector(out)))
