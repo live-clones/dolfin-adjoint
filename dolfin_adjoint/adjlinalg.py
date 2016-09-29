@@ -340,7 +340,7 @@ class Matrix(libadjoint.Matrix):
                 # simulation ran further ahead than when the functional was evaluated, or it could be that the
                 # functional is set up incorrectly.
                 backend.warning("Warning: got zero RHS for the solve associated with variable %s" % var)
-            elif isinstance(b.data, backend.Function):
+            elif isinstance(b.data, (backend.Function, backend.MultiMeshFunction)):
 
                 assembled_lhs = self.assemble_data()
                 [bc.apply(assembled_lhs) for bc in bcs]

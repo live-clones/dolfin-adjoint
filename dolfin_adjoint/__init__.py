@@ -49,6 +49,8 @@ from . import function
 from . import optimization
 from . import reduced_functional
 from .optimization import optimization
+from . import multimeshfunction
+
 if backend.__name__ == "dolfin":
     from . import genericmatrix
     from . import genericvector
