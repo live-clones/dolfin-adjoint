@@ -1,5 +1,6 @@
 from __future__ import print_function
 from dolfin import *
+from dolfin_adjoint import *
 
 class Dirichlet(SubDomain):
     def inside(self, x, on_boundary):
@@ -8,7 +9,7 @@ class Dirichlet(SubDomain):
 class Propeller(SubDomain):
     def inside(self, x, on_boundary):
         return (on_boundary and ((x[0]-5)**2+(x[1]-5)**2)<2)
-    
+
 def solve_move():
     mesh_0 = Mesh("propeller_background.xml.gz")
     mesh_1 = Mesh("propeller_front.xml.gz")
@@ -18,17 +19,17 @@ def solve_move():
     multimesh.build()
     # Define functionspace
     V = MultiMeshFunctionSpace(multimesh, "Lagrange", 1)
- 
+
     # Time parameters and init condition
     dt = Constant(0.01)
     t = float(dt)
-    T = 1.
+    T = 0.02
     g_expr = '0' # + x[0]*x[0] + alpha*x[1]*x[1] + beta*t'
     g = Expression(g_expr , alpha=3.0, beta=1.2, t=0,
                    degree=2)
-    u0 = project(g, V)
-    
-  
+    u0 = project(g, V, name="u0proj")
+
+
     # Initial guess
     f = Constant(0)
 
@@ -67,20 +68,20 @@ def solve_move():
     prop = Propeller()
     propfunc.set_all(0)
     prop.mark(propfunc,1)
-    plot(propfunc)
-    interactive()
+    #plot(propfunc)
+    #interactive()
     bc1 = MultiMeshDirichletBC(V, Constant(1), propfunc, 1, 1)
-    
+
     #bc0.apply(A,b)
 
     # Files for visualization
     out0 = File("background.pvd")
     out1 = File("propeller.pvd")
-    
+
     # Solving linear system
-    u1 = MultiMeshFunction(V)
+    u1 = MultiMeshFunction(V, name="u1")
     while (t <= T):
-       
+
         g.t = t
         b = assemble_multimesh(L)
         bc0.apply(A,b)
@@ -88,7 +89,7 @@ def solve_move():
         solve(A, u1.vector(), b)
         u0.assign(u1)
         t += float(dt)
-        
+
         # Updating mesh
         if (t<=T):
             # ALE.move(mesh_1,Expression(('0.55*dt','0.55*dt'), dt=dt))
@@ -99,10 +100,10 @@ def solve_move():
 
         out0 << u1.part(0)
         out1 << u1.part(1)
-        
+
     # plot(u1.part(0), interactive=True)
  
-    u0 = project(g,V)
+    u0 = project(g,V, name="u0")
     print("L2 error: ", assemble_multimesh((u1-u0)**2*dX))
 
     plot(u1.part(0),title='Approx p0')
@@ -112,6 +113,7 @@ def solve_move():
     plot(multimesh)
     interactive()
 
-    
 if __name__ == '__main__':
     solve_move()
+
+    adj_html("forward.html", "forward")
