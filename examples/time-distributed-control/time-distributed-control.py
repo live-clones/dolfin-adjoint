@@ -68,7 +68,7 @@ dt_meas = dt  # Keep a reference to dt, the time-measure of dolfin-adjoint
 # observational data :math:`d` and the viscosity :math:`\nu`.
 
 f = Expression("0", t=0)
-data = Expression("16*x[0]*(x[0]-1)*x[1]*(x[1]-1)*sin(2*pi*t)", t=0)
+data = Expression("16*x[0]*(x[0]-1)*x[1]*(x[1]-1)*sin(pi*t)", t=0)
 nu = Constant(1)
 
 # Next, we define the discretization in both space:
@@ -78,8 +78,8 @@ V = FunctionSpace(mesh, "CG", 1)
 
 # ... and time:
 
-dt = Constant(0.025)
-T = 1.0
+dt = Constant(0.01)
+T = 0.5
 
 # We are considering a time-distributed forcing as control. In the next step,
 # we create one control function for each timestep in the model, and store all
@@ -89,7 +89,7 @@ ctrls = {}
 t = float(dt)
 while t <= T:
     f.t = t
-    ctrls[t] = project(Constant(0), V, name="f_{}".format(t), annotate=True)
+    ctrls[t] = project(Constant(0), V, name="source_{}".format(t), annotate=True)
     t += float(dt)
 
 # The following function implements a heat equation solver in FEniCS. The
@@ -104,7 +104,7 @@ def solve_heat():
     f = Function(V)
     d = Function(V)
 
-    u_0 = Function(V, name="Solution")
+    u_0 = Function(V, name="solution")
 
     F = ( (u - u_0)/dt*v + nu*inner(grad(u), grad(v)) - f*v)*dx
     a, L = lhs(F), rhs(F)
@@ -116,9 +116,9 @@ def solve_heat():
         # Update source term from control array
         f.assign(ctrls[t], annotate=True)
 
-        # Store data on dolfin-adjoint tape
+        # Update data function
         data.t = t
-        d.assign(interpolate(data, V), annotate=True)
+        d.assign(interpolate(data, V, name="data_{}".format(t)), annotate=True)
 
         # Solve PDE
         solve(a == L, u_0, bc)
@@ -162,10 +162,9 @@ u, d, ctrls = solve_heat()
 #
 # In code this yields:
 
-alpha = Constant(1e-4)
+alpha = Constant(0e-4)
 regularisation = alpha/2*sum([1/dt*(fb-fa)**2*dx for fb, fa in zip(ctrls[1:], ctrls[:-1])])
 
-interactive()
 # By default, dolfin-adjoint integrates functionals over the full time-interval.
 # Here, we have already discretised the functional in time, so it is sufficient
 # to let dolfin-adjoint evaluate the functional at the beginning of the
@@ -181,7 +180,8 @@ m = [Control(c) for c in ctrls]
 # Finally, we define the reduced functional and solve the optimisation problem:
 
 rf = ReducedFunctional(J, m)
-opt_ctrls = minimize(rf, options={"maxiter": 15})
+opt_ctrls = minimize(rf, options={"maxiter": 10})
+adj_html("forward.html", "forward")
 
 # Depending on the alpha value that we choose, we get different behaviour in the
 # controls: the higher the alpha value, the "smoother" the control function will
@@ -192,4 +192,17 @@ opt_ctrls = minimize(rf, options={"maxiter": 15})
 #     :align: center
 
 
-print ", ".join([str(c.vector().norm("linf")) for c in opt_ctrls])
+from matplotlib import pyplot
+x = [c.vector().norm("linf") for c in opt_ctrls]
+x2 = [norm(c) for c in opt_ctrls]
+x3 = [c((0.5, 0.5)) for c in opt_ctrls]
+#from IPython import embed; embed()
+pyplot.plot(x, label="linf")
+pyplot.plot(x2, label="l2")
+pyplot.plot(x3, label="midpoint")
+pyplot.legend()
+pyplot.show()
+
+for i, c in enumerate(opt_ctrls):
+    plot(c, title=str(i))
+interactive()
