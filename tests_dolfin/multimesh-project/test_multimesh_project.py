@@ -18,7 +18,8 @@ def test_project():
     m = Control(g)
 
     rf = ReducedFunctional(J, m)
-    rf.taylor_test(g)
+    order = rf.taylor_test(g)
+    assert order > 1.9
 
 if __name__ == '__main__':
     test_project()
