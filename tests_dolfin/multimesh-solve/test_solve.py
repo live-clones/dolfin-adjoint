@@ -55,7 +55,8 @@ def test_move():
     J = Functional(u1**2*dX)
     m = [Control(u0), Control(f)]
     rf = ReducedFunctional(J, m)
-    rf.taylor_test([u0, f])
+    order = rf.taylor_test([u0, f])
+    assert order > 1.9
 
 
 if __name__ == '__main__':
