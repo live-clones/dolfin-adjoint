@@ -195,6 +195,14 @@ def project_test(func):
         proj = backend.Function(V)
         backend.solve(M, proj.vector(), func.vector())
         return proj
+    elif isinstance(func, backend.MultiMeshFunction):
+        V = func.function_space()
+        u = backend.TrialFunction(V)
+        v = backend.TestFunction(V)
+        M = backend.assemble_multimesh(backend.inner(u, v)*backend.dX)
+        proj = backend.MultiMeshFunction(V)
+        backend.solve(M, proj.vector(), func.vector())
+        return proj
     else:
         return func
 
