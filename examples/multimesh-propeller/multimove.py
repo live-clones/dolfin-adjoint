@@ -27,13 +27,11 @@ def solve_move():
     g_expr = '0' # + x[0]*x[0] + alpha*x[1]*x[1] + beta*t'
     g = Expression(g_expr , alpha=3.0, beta=1.2, t=0,
                    degree=2)
-    u0 = project(g, V)
-    print "u0", u0
-
+    u0 = project(g, V, name="u0", annotate=False)
+    u0.vector()[:] = 1
 
     # Initial guess
-    f = MultiMeshFunction(V)
-    print "f", f
+    f = MultiMeshFunction(V, name="f")
 
     # Define trial and test functions and right-hand side
     u = TrialFunction(V)
@@ -70,11 +68,7 @@ def solve_move():
     prop = Propeller()
     propfunc.set_all(0)
     prop.mark(propfunc,1)
-    #plot(propfunc)
-    #interactive()
     bc1 = MultiMeshDirichletBC(V, Constant(1), propfunc, 1, 1)
-
-    #bc0.apply(A,b)
 
     # Files for visualization
     out0 = File("background.pvd")
@@ -82,13 +76,12 @@ def solve_move():
 
     # Solving linear system
     u1 = MultiMeshFunction(V, name="u1")
-    print "u1", u1
     adj_start_timestep(time=t)
     while (t <= T):
 
         b = assemble_multimesh(L)
-        bc0.apply(A,b)
-        bc1.apply(A,b)
+        bc0.apply(A, b)
+        bc1.apply(A, b)
         solve(A, u1.vector(), b)
         u0.assign(u1)
         t += float(dt)
@@ -96,33 +89,21 @@ def solve_move():
         # Updating mesh
         if (t<=T):
             # ALE.move(mesh_1,Expression(('0.55*dt','0.55*dt'), dt=dt))
-            #mesh_1.rotate(90*float(dt))
-            #multimesh.build()
+            mesh_1.rotate(90*float(dt))
+            multimesh.build()
             A = assemble_multimesh(a)
 
-        #out0 << u1.part(0)
-        #out1 << u1.part(1)
+        out0 << u1.part(0)
+        out1 << u1.part(1)
         adj_inc_timestep(time=t, finished=t>T)
 
 
-    # plot(u1.part(0), interactive=True)
- 
-    u0 = project(g,V, name="u0")
-    print("L2 error: ", assemble_multimesh((u1-u0)**2*dX))
-
-    plot(u1.part(0),title='Approx p0')
-    plot(u1.part(1),title='Approx p1')
-    plot(u0.part(0), title='Exact p0')
-    plot(u0.part(1), title='Exact p1')
-    plot(multimesh)
-    interactive()
-
-    J = Functional(u0**2*dX)
-    m = Control(f)
-    adj_html("forward.html", "forward")
+    J = Functional(u1**2*dX)
+    m = [Control(u0), Control(f)]
 
     rf = ReducedFunctional(J, m)
-    rf.taylor_test(u0)
+    order = rf.taylor_test([u0, f])
+    assert order > 1.8
 
 
 if __name__ == '__main__':
