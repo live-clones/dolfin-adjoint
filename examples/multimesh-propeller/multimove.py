@@ -23,12 +23,9 @@ def solve_move():
     # Time parameters and init condition
     dt = Constant(0.01)
     t = float(dt)
-    T = 0.03
-    g_expr = '0' # + x[0]*x[0] + alpha*x[1]*x[1] + beta*t'
-    g = Expression(g_expr , alpha=3.0, beta=1.2, t=0,
-                   degree=2)
+    T = 0.5
+    g = Constant(0)
     u0 = project(g, V, name="u0", annotate=False)
-    u0.vector()[:] = 1
 
     # Initial guess
     f = MultiMeshFunction(V, name="f")
@@ -102,6 +99,13 @@ def solve_move():
     m = [Control(u0), Control(f)]
 
     rf = ReducedFunctional(J, m)
+    dJdu0, dJdf = rf.derivative(project=True)
+    out3 = File("background_grad.pvd")
+    out4 = File("propeller_grad.pvd")
+    out3 << dJdu0.part(0)
+    out4 << dJdu0.part(1)
+
+    print("Running Taylor test")
     order = rf.taylor_test([u0, f])
     assert order > 1.8
 
