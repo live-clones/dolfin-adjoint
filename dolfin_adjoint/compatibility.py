@@ -39,7 +39,10 @@ def to_dict(d):
 
 def bc(bc):
     if backend.__name__ == "dolfin":
-        return backend.DirichletBC(bc)
+        if isinstance(bc, backend.DirichletBC):
+            return backend.DirichletBC(bc)
+        if isinstance(bc, backend.MultiMeshDirichletBC):
+            return backend.MultiMeshDirichletBC(bc)
     else:
         return backend.DirichletBC(bc.function_space(), bc.function_arg, bc.sub_domain, method=bc.method)
 

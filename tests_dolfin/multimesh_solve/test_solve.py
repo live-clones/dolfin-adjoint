@@ -48,7 +48,7 @@ def test_move():
 
     # Solving linear system
     bound = Dirichlet()
-    bc = MultiMeshDirichletBC(V, Constant(0), bound)
+    bc = MultiMeshDirichletBC(V, Constant(1), bound)
     bc.apply(A,b)
     solve(A, u1.vector(), b)
 

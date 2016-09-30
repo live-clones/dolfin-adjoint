@@ -322,8 +322,11 @@ class Matrix(libadjoint.Matrix):
                 x = Vector(backend.Function(x.fn_space, backend.assemble(x.data)))
         else:
             if var.type in ['ADJ_TLM', 'ADJ_ADJOINT', 'ADJ_SOA']:
-                dirichlet_bcs = [utils.homogenize(bc) for bc in self.bcs if isinstance(bc, backend.DirichletBC)]
-                other_bcs  = [bc for bc in self.bcs if not isinstance(bc, backend.DirichletBC)]
+                dirichlet_bcs = [utils.homogenize(bc) for bc in self.bcs if
+                        isinstance(bc, (backend.DirichletBC,
+                                        backend.MultiMeshDirichletBC))]
+                other_bcs  = [bc for bc in self.bcs if not isinstance(bc,
+                    (backend.DirichletBC, backend.MultiMeshDirichletBC))]
                 bcs = dirichlet_bcs + other_bcs
             else:
                 bcs = self.bcs
