@@ -29,8 +29,8 @@ examples:
 	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/mpec/mpec.py $(EXAMPLES_OUT)/mpec/mpec.rst
 	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/salt-fingering/salt-fingering.py $(EXAMPLES_OUT)/salt-fingering/salt-fingering.rst
 	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/klein/klein.py $(EXAMPLES_OUT)/klein/klein.rst
-	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/time-distributed-control/time-distributed-control.py $(EXAMPLES_OUT)/time-distributed-control/time-distributed-control.rst
-	cp $(EXAMPLES_IN)/time-distributed-control/plot.* $(EXAMPLES_OUT)/time-distributed-control/
+#	bin/pylit.py --overwrite=yes $(EXAMPLES_IN)/time-distributed-control/time-distributed-control.py $(EXAMPLES_OUT)/time-distributed-control/time-distributed-control.rst
+#	cp $(EXAMPLES_IN)/time-distributed-control/plot.* $(EXAMPLES_OUT)/time-distributed-control/
 
 run_tutorials:
 	python source/_static/tutorial1.py
