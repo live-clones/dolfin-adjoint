@@ -107,7 +107,7 @@ def main(ic, annotate=False):
     return u0, j
 
 if __name__ == "__main__":
-    ic = interpolate(InitialConditions(), ME)
+    ic = interpolate(InitialConditions(degree=1), ME)
     forward, j = main(ic, annotate=True)
 
     parameters["adjoint"]["cache_factorizations"] = True

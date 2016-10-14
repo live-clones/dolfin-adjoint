@@ -9,11 +9,11 @@ if __name__ == "__main__":
     a = Constant(0.5)
     b = Constant(0.25)
 
-    f = Expression("(a-x[0])*(a-x[0])*b*b", a=a, b=b)
+    f = Expression("(a-x[0])*(a-x[0])*b*b", a=a, b=b, degree=2)
     f.dependencies = [a, b]
 
-    dfda = Expression("2*(a-x[0])*b", a=a, b=b)
-    dfdb = Expression("2*b*(a-x[0])*(a-x[0])", a=a, b=b)
+    dfda = Expression("2*(a-x[0])*b", a=a, b=b, degree=1)
+    dfdb = Expression("2*b*(a-x[0])*(a-x[0])", a=a, b=b), degree=2
 
     f.user_defined_derivatives = {a: dfda, b: dfdb}
 

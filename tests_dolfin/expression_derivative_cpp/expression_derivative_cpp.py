@@ -31,14 +31,14 @@ if __name__ == "__main__":
     a = Constant(0.5)
     b = Constant(0.25)
 
-    f = Expression(cpp_code)
+    f = Expression(cpp_code, degree=1)
     f.a = a; f.b = b
     f.dependencies = [a, b]
 
-    dfda = Expression(da_cpp_code)
+    dfda = Expression(da_cpp_code, degree=1)
     dfda.a = a; dfda.b = b
 
-    dfdb = Expression(db_cpp_code)
+    dfdb = Expression(db_cpp_code, degree=1)
     dfdb.a = a; dfdb.b = b
 
     f.user_defined_derivatives = {a: dfda, b: dfdb}
