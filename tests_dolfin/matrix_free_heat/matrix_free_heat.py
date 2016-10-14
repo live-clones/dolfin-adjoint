@@ -5,7 +5,7 @@ from dolfin_adjoint import *
 
 dolfin.parameters["adjoint"]["record_all"] = True
 
-f = Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)")
+f = Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)", degree=4)
 mesh = UnitSquareMesh(4, 4)
 V = FunctionSpace(mesh, "CG", 1)
 

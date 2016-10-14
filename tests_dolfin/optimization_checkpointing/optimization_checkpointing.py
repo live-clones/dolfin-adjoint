@@ -49,7 +49,7 @@ def derivative_cb(j, dj, m):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V, annotate=False)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V, annotate=False)
     u = ic.copy(deepcopy=True, name='Velocity')
 
     J = Functional(u*u*dx*dt[FINISH_TIME])
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     main(u, annotate=True)
 
     # Run the optimisation
-    lb = project(Expression("-1"),  V)
+    lb = interpolate(Constant(-1),  V)
 
     # Define the reduced funtional
     reduced_functional = ReducedFunctional(J, Control(u, value=ic),

@@ -47,7 +47,7 @@ if __name__ == "__main__":
     except OSError:
         pass
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     forward = main(ic, annotate=True)
 
     J = Functional(forward*forward*dx*dt[FINISH_TIME] + forward*forward*dx*dt[START_TIME])

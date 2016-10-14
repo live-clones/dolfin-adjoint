@@ -2,7 +2,7 @@ from os import path
 import subprocess
 import pytest
 
-@pytest.skip("Not supported by dolfin master yet")
+@pytest.mark.skip("Not supported by dolfin master yet")
 def test(request):
     test_file = path.split(path.dirname(str(request.fspath)))[1] + ".py"
     test_dir = path.split(str(request.fspath))[0]

@@ -182,7 +182,7 @@ def Nusselt():
     #return Nu
 
 if __name__ == "__main__":
-    Tic = Function(interpolate(InitialTemperature(Ra, length), Q), name="InitialTemperature")
+    Tic = Function(interpolate(InitialTemperature(Ra, length, degree=1), Q), name="InitialTemperature")
     ic_copy = Function(Tic)
     another_copy = Function(Tic)
 

@@ -56,7 +56,7 @@ def main(ic):
     nu = 0.01
 
     # Define time-dependent pressure boundary condition
-    p_in = Expression("sin(3.0*t)", t=0.0)
+    p_in = Expression("sin(3.0*t)", t=0.0, degree=1)
 
     # Define boundary conditions
     noslip  = DirichletBC(V, (0, 0),

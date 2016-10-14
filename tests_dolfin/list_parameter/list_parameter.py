@@ -40,7 +40,7 @@ def main(ic, nu, annotate=False):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     nu = Constant(0.0001, name="nu")
     forward = main(ic, nu, annotate=True)
 

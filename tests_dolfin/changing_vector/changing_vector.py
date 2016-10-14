@@ -48,7 +48,7 @@ def main(ic, annotate=False):
     return u_
 
 if __name__ == "__main__":
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     main(ic, annotate=True)
 
     print "Running forward replay .... "

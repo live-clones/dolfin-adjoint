@@ -66,8 +66,8 @@ if __name__ == "__main__":
     solve_pde(u, V, m_opt)
 
     # Define the analytical expressions
-    m_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
-    u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])")
+    m_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])", degree=1)
+    u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])", degree=1)
 
     # Compute the error
     control_error = errornorm(m_analytic, m_opt)
