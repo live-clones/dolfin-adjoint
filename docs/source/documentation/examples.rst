@@ -21,7 +21,6 @@ Optimization examples
    poisson-topology/poisson-topology
    stokes-topology/stokes-topology
    time-dependent-wave/time-dependent-wave
-   time-distributed-control/time-distributed-control
    mpec/mpec
 
 Generalized stability examples

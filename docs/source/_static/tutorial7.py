@@ -1,8 +1,6 @@
 from dolfin import *
 from dolfin_adjoint import *
 
-parameters["num_threads"] = 8
-
 adj_checkpointing(strategy='multistage', steps=11,
                   snaps_on_disk=2, snaps_in_ram=2, verbose=True)
 
