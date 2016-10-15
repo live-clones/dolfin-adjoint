@@ -88,6 +88,8 @@ class TimeTerm(object):
     def __neg__(self):
         return TimeTerm(-self.form,self.time)
 
+    def __hash__(self):
+        return hash((self.form, self.time))
 
 class TimeForm(object):
     def __init__(self, terms):
