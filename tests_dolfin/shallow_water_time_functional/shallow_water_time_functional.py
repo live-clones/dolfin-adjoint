@@ -9,7 +9,7 @@ dolfin.parameters["adjoint"]["record_all"]=True
 
 state=Function(W)
 
-state.interpolate(divett.InitialConditions())
+state.interpolate(divett.InitialConditions(degree=1))
 
 divett.params["basename"]="p1dgp2"
 divett.params["finish_time"]=2*pi/(sqrt(divett.params["g"]*divett.params["depth"])*pi/3000)
@@ -35,7 +35,7 @@ def compute_J(ic):
     return j + assemble(3.14*dot(state, state)*dx)
 
 ic = Function(W)
-ic.interpolate(divett.InitialConditions())
+ic.interpolate(divett.InitialConditions(degree=1))
 minconv = utils.test_initial_condition_adjoint(compute_J, ic, adj_state, seed=0.001)
 if minconv < 1.9:
     exit_code = 1
