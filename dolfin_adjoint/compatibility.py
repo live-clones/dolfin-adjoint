@@ -55,12 +55,7 @@ def randomise(x):
             vec.set_local(numpy.random.random(vec_size))
             vec.apply("")
         else:
-            components = ("((float) rand()) / (float) RAND_MAX",)
-            if isinstance(x, backend.Function):
-                if(x.rank() > 0):
-                    components *= len(x)
-            temp = backend.Expression(components)
-            x.interpolate(temp)
+            x.dat.data[...] = numpy.random.random(x.dat.shape)
     else:
         # Make sure we get consistent values in MPI environments
         numpy.random.seed(seed=21)

@@ -396,7 +396,7 @@ class Functional(libadjoint.Functional):
         if self.name is not None:
             return "Functional:" + self.name
         else:
-            formstr = " ".join([str(term) for term in self.timeform.terms])
+            formstr = " ".join([str(hash(term)) for term in self.timeform.terms])
             return "Functional:" + hashlib.md5(formstr).hexdigest()
 
 def _slice_intersect(slice1, slice2):
