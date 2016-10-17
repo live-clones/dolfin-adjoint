@@ -9,7 +9,7 @@ dolfin.parameters["adjoint"]["record_all"] = True
 
 # Class representing the intial conditions
 class InitialConditions(Expression):
-    def __init__(self):
+    def __init__(self, **kwargs):
         random.seed(2 + rank(mpi_comm_world()))
     def eval(self, values, x):
         values[0] = 0.63 + 0.02*(0.5 - random.random())
@@ -125,5 +125,5 @@ if __name__ == "__main__":
         u, j = main(ic, annotate=False)
         return j
 
-    minconv = taylor_test(J, FunctionControl("Solution"), j, dJdic, HJm=Hic, seed=1.0e-3)
-    assert minconv > 1.9
+    minconv = taylor_test(J, FunctionControl("Solution"), j, dJdic, HJm=Hic, seed=1.0e-2, perturbation_direction=interpolate(Constant((1, 1)), ME))
+    assert minconv > 2.8

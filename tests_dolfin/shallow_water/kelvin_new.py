@@ -23,8 +23,6 @@ params["dt"]=params["finish_time"]/4000.
 LR=c/params["f"]
 
 class InitialConditions(Expression):
-    def __init__(self):
-        pass
     def eval(self, values, X):
         r=(X[0]**2+X[1]**2)**0.5
         if r>0.0001:
