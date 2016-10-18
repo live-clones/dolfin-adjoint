@@ -89,10 +89,7 @@ class TimeTerm(object):
         return TimeTerm(-self.form,self.time)
 
     def __hash__(self):
-        try:
-            return hash((self.form, str(self.time)))
-        except:
-            import ipdb; ipdb.set_trace()
+        return hash((self.form, str(self.time)))
 
 class TimeForm(object):
     def __init__(self, terms):
