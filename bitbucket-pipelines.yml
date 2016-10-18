@@ -4,6 +4,7 @@ pipelines:
   default:
     - step:
         script:
+          - pip2 install --no-cache-dir --upgrade pytest
           - export HOME=/home/fenics
           - export FENICS_PREFIX=$HOME/local
           - export FENICS_PYTHON_MAJOR_VERSION=2
