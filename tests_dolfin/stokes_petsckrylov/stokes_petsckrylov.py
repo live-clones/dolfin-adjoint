@@ -129,5 +129,5 @@ if __name__ == "__main__":
         T = main(ic, annotate=False)
         return assemble(T*T*dx)
 
-    minconv = taylor_test(Jhat, Control(T), Jic, dJdic, seed=1.0e-1)
+    minconv = taylor_test(Jhat, Control(T), Jic, dJdic, seed=1.0e-1, perturbation_direction=interpolate(Constant(1),X))
     assert minconv > 1.8
