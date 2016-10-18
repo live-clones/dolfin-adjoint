@@ -5,10 +5,12 @@ pipelines:
     - step:
         script:
           - export HOME=/home/fenics
+          - export FENICS_PREFIX=$HOME/local
           - export FENICS_PYTHON_MAJOR_VERSION=2
           - export FENICS_PYTHON_MINOR_VERSION=7
           - source /home/fenics/.profile
           - source /home/fenics/dolfin-adjoint.conf
           - update_libadjoint
-          - update_dolfin-adjoint
-          - py.test -v tests_dolfin/
+          - cd $BITBUCKET_CLONE_DIR
+          - pip2 install --no-cache-dir --upgrade --prefix=$FENICS_PREFIX .
+          - python2 -m pytest -v tests_dolfin/
