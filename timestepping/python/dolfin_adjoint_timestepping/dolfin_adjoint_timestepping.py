@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -195,7 +195,7 @@ def unwrap_fns(form):
         if isinstance(dep, WrappedFunction):
             repl[dep] = dep.fn()
 
-    return replace(form, repl)
+    return dolfin.replace(form, repl)
 
 # Based on the Functional class in functional.py
 class Functional(functional.Functional):
@@ -382,13 +382,11 @@ def da_annotate_equation_solve(solve):
                         if not self.parameters["equations"]["symmetric_boundary_conditions"] and len(bcs) > 0 and static_bcs:
                             # Cache with boundary conditions
                             a = assembly_cache.assemble(self.data,
-                              bcs = bcs, symmetric_bcs = False,
-                              compress = self.parameters["bilinear_forms"]["compress_matrices"])
+                              bcs = bcs, symmetric_bcs = False)
                             apply_a_bcs = False
                         elif len(bcs) == 0:
                             # Cache, no boundary conditions
-                            a = assembly_cache.assemble(self.data,
-                              compress = self.parameters["bilinear_forms"]["compress_matrices"])
+                            a = assembly_cache.assemble(self.data)
                             apply_a_bcs = False
                         else:
                             # Cache without boundary conditions
@@ -451,24 +449,5 @@ def da_annotate_equation_solve(solve):
         DAMatrix = adjlinalg.Matrix
 
     # Annotate the equation
-    if dolfin_version() < (1, 3, 0):
-        if not solve.is_linear():
-            solver_parameters = copy.deepcopy(solver_parameters)
-            nl_solver = solver_parameters.get("nonlinear_solver", "newton")
-            if nl_solver == "newton":
-                nl_solver_parameters = solver_parameters.get("newton_solver", {})
-            elif nl_solver == "snes":
-                nl_solver_parameters = solver_parameters.get("snes_solver", {})
-            else:
-                raise ParameterException("Invalid non-linear solver: %s" % nl_solver)
-            for key, default in [("linear_solver", "default"),
-                                 ("preconditioner", "default"),
-                                 ("lu_solver", {}),
-                                 ("krylov_solver", {})]:
-                if key in nl_solver_parameters:
-                    solver_parameters[key] = nl_solver_parameters[key]
-                    del(nl_solver_parameters[key])
-                else:
-                    solver_parameters[key] = default
     solving.annotate(eq, x_fn, bcs, solver_parameters = solver_parameters, matrix_class = DAMatrix)
     return True

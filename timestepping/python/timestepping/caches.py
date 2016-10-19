@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -46,6 +46,51 @@ def cache_info(msg, info = dolfin.info):
         info(msg)
     return
 
+def form_key(form, static = True):
+    """
+    Generate a hashable key from a Form.
+    """
+
+    if not isinstance(form, ufl.form.Form):
+        raise InvalidArgumentException("form must be a Form")
+
+    if static:
+        return expand(form)
+    else:
+        return extract_test_and_trial(form)
+
+def bc_key(bcs, symmetric_bcs):
+    """
+    Generate a hashable key from a list of DirichletBC s.
+    """
+
+    if not isinstance(bcs, list):
+        raise InvalidArgumentException("bcs must be a list of DirichletBC s")
+    for bc in bcs:
+        if not isinstance(bc, dolfin.cpp.DirichletBC):
+            raise InvalidArgumentException("bcs must be a list of DirichletBC s")
+
+    if len(bcs) == 0:
+        return None
+    else:
+        return tuple(bcs), symmetric_bcs
+
+def parameters_key(parameters):
+    """
+    Generate a hashable key from a Parameters.
+    """
+
+    if not isinstance(parameters, (dolfin.Parameters, dict)):
+        raise InvalidArgumentException("parameters must be a Parameters or dictionary")
+
+    fparameters = []
+    for key in sorted(parameters.keys()):
+        if isinstance(parameters[key], (dolfin.Parameters, dict)):
+            fparameters.append(parameters_key(parameters[key]))
+        else:
+            fparameters.append((key, parameters[key]))
+    return tuple(fparameters)
+
 class AssemblyCache(object):
     """
     A cache of assembled Form s. The assemble method can be used to assemble a
@@ -60,50 +105,51 @@ class AssemblyCache(object):
 
         return
 
-    def assemble(self, form, bcs = [], symmetric_bcs = False, compress = False):
+    def assemble(self, form, form_compiler_parameters = {}, bcs = [],
+      symmetric_bcs = False):
         """
         Return the result of assembling the supplied Form.
 
         Arguments:
           form: The form.
+          form_compiler_parameters: Form compiler parameters.
           bcs: Dirichlet BCs applied to a matrix.
           symmetric_bcs: Whether Dirichlet BCs should be applied so as to yield a
             symmetric matrix.
-          compress: Whether a matrix should be compressed.
         """
 
         if not isinstance(form, ufl.form.Form):
             raise InvalidArgumentException("form must be a Form")
+        if not isinstance(form_compiler_parameters, (dolfin.Parameters, dict)):
+            raise InvalidArgumentException("form_compiler_parameters must be a Parameters or dictionary")
         if not isinstance(bcs, list):
             raise InvalidArgumentException("bcs must be a list of DirichletBC s")
         for bc in bcs:
             if not isinstance(bc, dolfin.cpp.DirichletBC):
                 raise InvalidArgumentException("bcs must be a list of DirichletBC s")
 
+        nform_compiler_parameters = dolfin.parameters["form_compiler"].copy()
+        nform_compiler_parameters.update(form_compiler_parameters)
+        form_compiler_parameters = nform_compiler_parameters;  del(nform_compiler_parameters)
+
         rank = form_rank(form)
         if len(bcs) == 0:
-            if not rank == 2:
-                compress = None
-            key = (expand(form), None, None, compress)
+            key = (form_key(form), parameters_key(form_compiler_parameters), bc_key(bcs, symmetric_bcs))
             if not key in self.__cache:
                 cache_info("Assembling form with rank %i" % rank, dolfin.info_red)
-                self.__cache[key] = assemble(form)
-                if rank == 2 and compress:
-                    self.__cache[key].compress()
+                self.__cache[key] = assemble(form, form_compiler_parameters = form_compiler_parameters)
             else:
                 cache_info("Using cached assembled form with rank %i" % rank, dolfin.info_green)
         else:
             if not rank == 2:
                 raise InvalidArgumentException("form must be rank 2 when applying boundary conditions")
 
-            key = (expand(form), tuple(bcs), symmetric_bcs, compress)
+            key = (form_key(form), parameters_key(form_compiler_parameters), bc_key(bcs, symmetric_bcs))
             if not key in self.__cache:
                 cache_info("Assembling form with rank 2, with boundary conditions", dolfin.info_red)
-                mat = assemble(form)
+                mat = assemble(form, form_compiler_parameters = form_compiler_parameters)
                 apply_bcs(mat, bcs, symmetric_bcs = symmetric_bcs)
                 self.__cache[key] = mat
-                if compress:
-                    mat.compress()
             else:
                 cache_info("Using cached assembled form with rank 2, with boundary conditions", dolfin.info_green)
 
@@ -196,7 +242,7 @@ class SolverCache(object):
              If the default pre-assembly parameters are used, then an empty
              dictionary should be passed as the third argument. Assemble the form
              using:
-               pa_form = PABilinearForm(form,
+               pa_form = PAForm(form,
                  pre_assembly_parameters = pre_assembly_parameters)
                a = assemble(pa_form, ...)
                apply_bcs(a, bcs, ..., symmetric_bcs = symmetric_bcs)
@@ -218,31 +264,17 @@ class SolverCache(object):
 
         def expanded_linear_solver_parameters(form, linear_solver_parameters, static, bcs, symmetric_bcs):
             if static:
-                if dolfin_version() < (1, 3, 0):
-                    default = {"lu_solver":{"reuse_factorization":True, "same_nonzero_pattern":True},
-                              "krylov_solver":{"preconditioner":{"reuse":True}}}
-                else:
-                    default = {"lu_solver":{"reuse_factorization":True, "same_nonzero_pattern":True},
-                              "krylov_solver":{"preconditioner":{"structure":"same"}}}
+                default = {"lu_solver":{"reuse_factorization":True, "same_nonzero_pattern":True},
+                           "krylov_solver":{"preconditioner":{"structure":"same"}}}
                 if (len(bcs) == 0 or symmetric_bcs) and is_self_adjoint_form(form):
-                    if dolfin_version() < (1, 3, 0):
-                        default["lu_solver"]["symmetric_operator"] = True
-                    else:
-                        default["lu_solver"]["symmetric"] = True
+                    default["lu_solver"]["symmetric"] = True
                 linear_solver_parameters = expand_linear_solver_parameters(linear_solver_parameters,
                   default_linear_solver_parameters = default)
             else:
-                if dolfin_version() < (1, 3, 0):
-                    default = {"lu_solver":{"reuse_factorization":False, "same_nonzero_pattern":False},
-                              "krylov_solver":{"preconditioner":{"reuse":False}}}
-                else:
-                    default = {"lu_solver":{"reuse_factorization":False, "same_nonzero_pattern":False},
-                              "krylov_solver":{"preconditioner":{"structure":"different_nonzero_pattern"}}}
+                default = {"lu_solver":{"reuse_factorization":False, "same_nonzero_pattern":False},
+                           "krylov_solver":{"preconditioner":{"structure":"different_nonzero_pattern"}}}
                 if (len(bcs) == 0 or symmetric_bcs) and is_self_adjoint_form(form):
-                    if dolfin_version() < (1, 3, 0):
-                        default["lu_solver"]["symmetric_operator"] = True
-                    else:
-                        default["lu_solver"]["symmetric"] = True
+                    default["lu_solver"]["symmetric"] = True
                 linear_solver_parameters = expand_linear_solver_parameters(linear_solver_parameters,
                   default_linear_solver_parameters = default)
 
@@ -251,38 +283,11 @@ class SolverCache(object):
                     static_parameters = linear_solver_parameters["lu_solver"]["reuse_factorization"] or \
                                         linear_solver_parameters["lu_solver"]["same_nonzero_pattern"]
                 else:
-                    if dolfin_version() < (1, 3, 0):
-                        static_parameters = linear_solver_parameters["krylov_solver"]["preconditioner"]["reuse"]
-                    else:
-                        static_parameters = not linear_solver_parameters["krylov_solver"]["preconditioner"]["structure"] == "different_nonzero_pattern"
+                    static_parameters = not linear_solver_parameters["krylov_solver"]["preconditioner"]["structure"] == "different_nonzero_pattern"
                 if static_parameters:
                     raise ParameterException("Non-static solve supplied with static linear solver parameters")
 
             return linear_solver_parameters
-
-        def form_key(form, static):
-            if static:
-                return expand(form)
-            else:
-                return extract_test_and_trial(form)
-
-        def bc_key(bcs, symmetric_bcs):
-            if len(bcs) == 0:
-                return None
-            else:
-                return tuple(bcs), symmetric_bcs
-
-        def parameters_key(opts):
-            if opts is None:
-                return None
-            assert(isinstance(opts, (dolfin.Parameters, dict)))
-            fopts = []
-            for key in sorted(opts.keys()):
-                if isinstance(opts[key], (dolfin.Parameters, dict)):
-                    fopts.append(parameters_key(opts[key]))
-                else:
-                    fopts.append((key, opts[key]))
-            return tuple(fopts)
 
         if not isinstance(form, ufl.form.Form):
             raise InvalidArgumentException("form must be a rank 2 Form")
@@ -309,9 +314,9 @@ class SolverCache(object):
                 npre_assembly_parameters.update(pre_assembly_parameters)
                 pre_assembly_parameters = npre_assembly_parameters;  del(npre_assembly_parameters)
 
-            key = (form_key(form, static),
+            key = (form_key(form, static = static),
                    parameters_key(linear_solver_parameters),
-                   parameters_key(pre_assembly_parameters),
+                   None if pre_assembly_parameters is None else parameters_key(pre_assembly_parameters),
                    bc_key(bcs, symmetric_bcs),
                    None)
         else:
@@ -327,7 +332,7 @@ class SolverCache(object):
 
             linear_solver_parameters = expanded_linear_solver_parameters(form, linear_solver_parameters, True, bcs, symmetric_bcs)
 
-            key = (form_key(form, True),
+            key = (form_key(form),
                    parameters_key(linear_solver_parameters),
                    None,
                    bc_key(bcs, symmetric_bcs),

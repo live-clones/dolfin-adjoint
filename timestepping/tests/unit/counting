@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -52,9 +52,9 @@ class Functional(TimeFunctional):
     return
   def dependencies(self, s = None, non_symbolic = False):
     if s is None or s >= self.__min_s:
-      return [self.__u]
+      return {self.__u}
     else:
-      return []
+      return set()
   def derivative(self, param, s):
     if s >= self.__min_s:
       return derivative(self.__u * dx, param)
@@ -111,9 +111,9 @@ class Functional(TimeFunctional):
     return
   def dependencies(self, s = None, non_symbolic = False):
     if s is None or s >= self.__min_s:
-      return [self.__u]
+      return {self.__u}
     else:
-      return []
+      return set()
   def derivative(self, param, s):
     if s >= self.__min_s:
       return derivative(s * self.__u * dx, param)
