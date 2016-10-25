@@ -2,7 +2,7 @@
 
     min_(u, m) \int_\Omega 1/2 || u - d ||^2 + 1/2 || f ||^2
 
-    subjecct to
+    subject to
 
     grad \cdot \grad u = f    in \Omega
     u = 0                     on \partial \Omega
@@ -27,7 +27,7 @@ mesh = refine(mesh, cf)
 V = FunctionSpace(mesh, "CG", 1)
 W = FunctionSpace(mesh, "DG", 0)
 
-f = interpolate(Expression("0.11"), W, name='Control')
+f = interpolate(Expression("0.11", degree=1), W, name='Control')
 u = Function(V, name='State')
 v = TestFunction(V)
 
@@ -38,7 +38,9 @@ solve(F == 0, u, bc)
 
 # Define functional of interest and the reduced functional
 x = SpatialCoordinate(mesh)
-d = 1/(2*pi**2)*sin(pi*x[0])*sin(pi*x[1]) # the desired temperature profile
+w = Expression("sin(pi*x[0])*sin(pi*x[1])", degree=3) 
+d = 1/(2*pi**2)
+d = Expression("d*w", d=d, w=w, degree=3)
 
 alpha = Constant(1e-6)
 J = Functional((0.5*inner(u-d, u-d))*dx + alpha/2*f**2*dx)
@@ -63,11 +65,8 @@ plot(f_opt, interactive=True)
 
 # Define the expressions of the analytical solution
 
-f_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
-u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])")
-
-# We can then compute the errors between numerical and analytical
-# solutions.
+f_analytic = Expression("1/(1+alpha*4*pow(pi, 4))*w", w=w, alpha=alpha, degree=3)
+u_analytic = Expression("1/(2*pow(pi, 2))*f", f=f_analytic, degree=3)
 
 f.assign(f_opt)
 solve(F == 0, u, bc)
