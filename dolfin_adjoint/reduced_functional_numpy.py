@@ -58,14 +58,11 @@ class ReducedFunctionalNumPy(ReducedFunctional):
     def get_global(self, m):
         return get_global(m)
 
-    def derivative(self, m_array=None, taylor_test=False, seed=0.001, forget=True, project=False):
+    def derivative(self, m_array=None, forget=True, project=False):
         ''' An implementation of the reduced functional derivative evaluation
             that accepts the controls as an array of scalars. If no control values are given,
-            the result is derivative at the last forward run.
-            If taylor_test = True, the derivative is automatically verified
-            by the Taylor remainder convergence test. The perturbation direction
-            is random and the perturbation size can be controlled with the seed argument.
-            '''
+            the result is derivative at the lastest forward run.
+        '''
 
         # In the case that the control values have changed since the last forward run,
         # we first need to rerun the forward model with the new controls to have the
@@ -81,16 +78,6 @@ class ReducedFunctionalNumPy(ReducedFunctional):
             dJdm_global = self.get_global(dJdm)
         else:
             dJdm_global = get_global(dJdm)
-
-        # Perform the gradient test
-        if taylor_test:
-            minconv = utils.test_gradient_array(self.__call__, self.scale * dJdm_global, m_array,
-                                                seed = seed)
-            if minconv < 1.9:
-                raise RuntimeWarning, "A gradient test failed during execution."
-            else:
-                info("Gradient test successful.")
-            self(m_array)
 
         return dJdm_global
 

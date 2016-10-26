@@ -107,8 +107,8 @@ def main(f, g):
     return u
 
 if __name__ == "__main__":
-    g = interpolate(Expression("-sin(5*x[0])"), V, name="SourceG")
-    f = interpolate(Expression("10*exp(-(pow(x[0] - 0.5, 2) + pow(x[1] - 0.5, 2)) / 0.02)"), V, name="SourceF")
+    g = interpolate(Expression("-sin(5*x[0])", degree=1), V, name="SourceG")
+    f = interpolate(Expression("10*exp(-(pow(x[0] - 0.5, 2) + pow(x[1] - 0.5, 2)) / 0.02)", degree=1), V, name="SourceF")
     u = main(f, g)
 
     parameters["adjoint"]["stop_annotating"] = True

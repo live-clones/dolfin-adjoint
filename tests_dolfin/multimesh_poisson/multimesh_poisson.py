@@ -29,7 +29,7 @@ def solve_poisson():
 
     # Define intial guess for controll-function f (This could be zero)
     # Issue 675: We can't interpolate f into a multimeshfunctionspace
-    #f = interpolate(Expression('x[0]+x[1]'), W, name='Control')
+    #f = interpolate(Expression('x[0]+x[1]', degree=1), W, name='Control')
     # f = Constant(1)
 
 

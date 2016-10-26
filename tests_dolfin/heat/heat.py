@@ -3,7 +3,7 @@ import sys
 from dolfin import *
 from dolfin_adjoint import *
 
-f = Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)")
+f = Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)", degree=4)
 mesh = UnitSquareMesh(4, 4)
 V = FunctionSpace(mesh, "CG", 1)
 

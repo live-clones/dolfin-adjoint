@@ -22,7 +22,7 @@ def main(ic, annotate=False):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)"), V)
+    ic = project(Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)", degree=1), V)
     soln = main(ic, annotate=True)
 
     parameters["adjoint"]["cache_factorizations"] = True

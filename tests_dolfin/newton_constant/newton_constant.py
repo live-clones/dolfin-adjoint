@@ -32,7 +32,7 @@ def main(ic, nu):
     return u
 
 if __name__ == "__main__":
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     nu = Constant(0.0001, name="Nu")
 
     u = main(ic, nu)

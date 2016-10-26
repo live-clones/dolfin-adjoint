@@ -8,8 +8,6 @@ import scipy
 import libadjoint
 
 firedrake.set_log_level(ERROR)
-firedrake.parameters["optimization"]["test_gradient"] = False
-firedrake.parameters["adjoint"]["cache_factorizations"] = False
 
 n = 10
 mesh = UnitIntervalMesh(n)
@@ -75,8 +73,7 @@ if __name__ == "__main__":
             print 'Test failed: Optimised functional value exceeds tolerance: ' , final_functional, ' > ', tol, '.'
             sys.exit(1)
 
-        # Run the problem again with SQP, this time for performance reasons with the gradient test switched off
-        firedrake.parameters["optimization"]["test_gradient"] = False
+        # Run the problem again with SQP.
 
         # Method specific arguments:
         options = {"SLSQP": {"bounds": (lb, 1)},

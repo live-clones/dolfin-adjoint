@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -247,7 +247,7 @@ class PAAdjointSolvers(object):
             a_dep = a_map[f_x]
             if isinstance(f_solve, AssignmentSolver):
                 f_rhs = f_solve.rhs()
-                if isinstance(f_rhs, ufl.expr.Expr):
+                if isinstance(f_rhs, ufl.core.expr.Expr):
                     # Adjoin an expression assignment RHS
                     for f_dep in ufl.algorithms.extract_coefficients(f_rhs):
                         if isinstance(f_dep, dolfin.Function):
@@ -271,7 +271,7 @@ class PAAdjointSolvers(object):
                     if a_x in la_keys:
                         a_test = dolfin.TestFunction(a_x.function_space())
                         a_key = la_keys[a_x]
-                        a_form = -action(adjoint(f_a_od[f_dep], adjoint_arguments = (a_test, a_trial)), a_dep)
+                        a_form = -dolfin.action(adjoint(f_a_od[f_dep], adjoint_arguments = (a_test, a_trial)), a_dep)
                         if la_L_forms[a_key] is None:
                             la_L_forms[a_key] = a_form
                         else:
@@ -313,22 +313,20 @@ class PAAdjointSolvers(object):
                     static_form = is_static_form(self.__a_a_forms[i])
                     if len(self.__a_bcs[i]) > 0 and static_bcs and static_form:
                         a_a = assembly_cache.assemble(self.__a_a_forms[i],
-                          bcs = self.__a_bcs[i], symmetric_bcs = self.__a_pre_assembly_parameters[i]["equations"]["symmetric_boundary_conditions"],
-                          compress = self.__a_pre_assembly_parameters[i]["bilinear_forms"]["compress_matrices"])
+                          bcs = self.__a_bcs[i], symmetric_bcs = self.__a_pre_assembly_parameters[i]["equations"]["symmetric_boundary_conditions"])
                         a_solver = linear_solver_cache.linear_solver(self.__a_a_forms[i],
                           self.__a_solver_parameters[i],
                           bcs = self.__a_bcs[i], symmetric_bcs = self.__a_pre_assembly_parameters[i]["equations"]["symmetric_boundary_conditions"],
                           a = a_a)
                         a_solver.set_operator(a_a)
                     elif len(self.__a_bcs[i]) == 0 and static_form:
-                        a_a = assembly_cache.assemble(self.__a_a_forms[i],
-                          compress = self.__a_pre_assembly_parameters[i]["bilinear_forms"]["compress_matrices"])
+                        a_a = assembly_cache.assemble(self.__a_a_forms[i])
                         a_solver = linear_solver_cache.linear_solver(self.__a_a_forms[i],
                           self.__a_solver_parameters[i],
                           a = a_a)
                         a_solver.set_operator(a_a)
                     else:
-                        a_a = PABilinearForm(self.__a_a_forms[i], pre_assembly_parameters = self.__a_pre_assembly_parameters[i]["bilinear_forms"])
+                        a_a = PAForm(self.__a_a_forms[i], pre_assembly_parameters = self.__a_pre_assembly_parameters[i]["bilinear_forms"])
                         a_solver = linear_solver_cache.linear_solver(self.__a_a_forms[i],
                           self.__a_solver_parameters[i], self.__a_pre_assembly_parameters[i]["bilinear_forms"],
                           static = a_a.is_static() and static_bcs,
@@ -336,14 +334,14 @@ class PAAdjointSolvers(object):
                 else:
                     assert(a_a_rank == 1)
                     assert(self.__a_solver_parameters[i] is None)
-                    a_a = PALinearForm(self.__a_a_forms[i], pre_assembly_parameters = self.__a_pre_assembly_parameters[i]["linear_forms"])
+                    a_a = PAForm(self.__a_a_forms[i], pre_assembly_parameters = self.__a_pre_assembly_parameters[i]["linear_forms"])
                     a_solver = None
             return a_a, a_solver
         def assemble_rhs(i):
             if self.__a_L_forms[i] is None:
                 return None
             else:
-                return PALinearForm(self.__a_L_forms[i], pre_assembly_parameters = self.__a_pre_assembly_parameters[i]["linear_forms"])
+                return PAForm(self.__a_L_forms[i], pre_assembly_parameters = self.__a_pre_assembly_parameters[i]["linear_forms"])
 
         if len(args) == 0:
             la_a, la_solvers = [], []
@@ -404,7 +402,7 @@ class PAAdjointSolvers(object):
             a_solver = self.__a_solvers[i]
 
             def evaluate_a_L_as(i):
-                if isinstance(a_L_as[i], ufl.expr.Expr):
+                if isinstance(a_L_as[i], ufl.core.expr.Expr):
                     if is_r0_function(a_x):
                         L = evaluate_expr(a_L_as[i], copy = False)
                         if isinstance(L, dolfin.GenericVector):
@@ -426,7 +424,7 @@ class PAAdjointSolvers(object):
                     L = float(a_L_as[i][0]) * a_L_as[i][1].vector()
                 return L
             def add_a_L_as(i, L):
-                if isinstance(a_L_as[i], ufl.expr.Expr):
+                if isinstance(a_L_as[i], ufl.core.expr.Expr):
                     l_L = evaluate_expr(a_L_as[i], copy = False)
                     if is_r0_function(a_x):
                         if isinstance(l_L, dolfin.GenericVector):
@@ -518,7 +516,7 @@ class PAAdjointSolvers(object):
             self.__a_L_rhs = [None for i in xrange(len(self.__a_x))]
             for i, a_x in enumerate(a_rhs):
                 if a_x in self.__a_keys:
-                    self.__a_L_rhs[self.__a_keys[a_x]] = PALinearForm(a_rhs[a_x], pre_assembly_parameters = self.__a_pre_assembly_parameters[i]["linear_forms"])
+                    self.__a_L_rhs[self.__a_keys[a_x]] = PAForm(a_rhs[a_x], pre_assembly_parameters = self.__a_pre_assembly_parameters[i]["linear_forms"])
             self.__functional = functional
         elif isinstance(functional, TimeFunctional):
             self.__a_L_rhs = [None for i in xrange(len(self.__a_x))]

@@ -65,10 +65,10 @@ Let us apply the chain rule to :math:`\widehat{J}(m)`:
 
 .. math::
 
-  \underset{\raisebox{1.0ex}[15pt][0pt]{\scriptsize{$1 \times M$}}}{\frac{\mathrm{d}\widehat{J}}{\mathrm{d}m}} = 
-  \underset{\raisebox{1.0ex}[15pt][0pt]{\scriptsize{$1 \times U$}}}{\frac{\partial J}{\partial u}} 
-  \underset{\raisebox{1.0ex}[15pt][0pt]{\scriptsize{$U \times M$}}}{\frac{\mathrm{d}u}{\mathrm{d}m}} + 
-  \underset{\raisebox{1.0ex}[15pt][0pt]{\scriptsize{$1 \times M$}}}{\frac{\partial J}{\partial m}}.
+  \underset{\scriptsize{1 \times M}}{\frac{\mathrm{d}\widehat{J}}{\mathrm{d}m}} = 
+  \underset{\scriptsize{1 \times U}}{\frac{\partial J}{\partial u}} 
+  \underset{\scriptsize{U \times M}}{\frac{\mathrm{d}u}{\mathrm{d}m}} + 
+  \underset{\scriptsize{1 \times M}}{\frac{\partial J}{\partial m}}.
 
 Let us inspect each term of this relationship, and build up some
 intuition about each.  :math:`{\partial J}/{\partial m}` and
@@ -96,9 +96,9 @@ relationship for the solution Jacobian
   & \frac{\mathrm{d}}{\mathrm{d}m} F(u, m) = \frac{\mathrm{d}}{\mathrm{d}m} 0 \\
   \implies & \frac{\partial F(u, m)}{\partial u} \frac{\mathrm{d}u}{\mathrm{d}m} + \frac{\partial F(u, m)}{\partial m} = 0 \\
   \implies & 
-  \underset{\raisebox{1.0ex}[30pt][0pt]{\scriptsize{$U \times U$}}}{\frac{\partial F(u, m)}{\partial u}}
-  \underset{\raisebox{1.0ex}[15pt][0pt]{\scriptsize{$U \times M$}}}{\frac{\mathrm{d}u}{\mathrm{d}m}} = 
-  \underset{\raisebox{1.0ex}[30pt][0pt]{\scriptsize{$U \times M$}}}{-\frac{\partial F(u, m)}{\partial m}}.
+  \underset{\scriptsize{U \times U}}{\frac{\partial F(u, m)}{\partial u}}
+  \underset{\scriptsize{U \times M}}{\frac{\mathrm{d}u}{\mathrm{d}m}} = 
+  \underset{\scriptsize{U \times M}}{-\frac{\partial F(u, m)}{\partial m}}.
 
 .. sidebar:: The tangent linear system
 
@@ -200,12 +200,12 @@ Now let's take the adjoint (Hermitian transpose) of the above equation:
 
 .. math::
 
-  & \underset{M \times 1}{\frac{\mathrm{d}\widehat{J}}{\mathrm{d}m}^*} = 
-    -\underset{M \times U}{\frac{\partial F}{\partial m}^*}
-    \underset{U \times U}{\frac{\partial F}{\partial u}^{-*}}
-    \underset{U \times 1}{\frac{\partial J}{\partial u}^{*}}
+  \underset{\scriptsize{M \times 1}}{\frac{\mathrm{d}\widehat{J}}{\mathrm{d}m}^*} = 
+    -\underset{\scriptsize{M \times U}}{\frac{\partial F}{\partial m}^*}
+    \underset{\scriptsize{U \times U}}{\frac{\partial F}{\partial u}^{-*}}
+    \underset{\scriptsize{U \times 1}}{\frac{\partial J}{\partial u}^{*}}
     +
-    \underset{M \times 1}{\frac{\partial J}{\partial m}^*}
+    \underset{\scriptsize{M \times 1}}{\frac{\partial J}{\partial m}^*}
 
 Let us gather the solution of the inverse Jacobian acting on a vector, and define it
 to be a new variable:

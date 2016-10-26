@@ -8,7 +8,7 @@ import adjglobals
 import adjlinalg
 import utils
 
-def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="cg", preconditioner_type="default", form_compiler_parameters=None, annotate=None, name=None):
+def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="lu", preconditioner_type="default", form_compiler_parameters=None, annotate=None, name=None):
     '''The project call performs an equation solve, and so it too must be annotated so that the
     adjoint and tangent linear models may be constructed automatically by libadjoint.
 

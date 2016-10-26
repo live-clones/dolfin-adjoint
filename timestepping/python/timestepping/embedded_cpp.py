@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -25,7 +25,6 @@ import instant
 import numpy
 
 from exceptions import *
-from fenics_versions import *
 
 __all__ = \
   [
@@ -88,21 +87,12 @@ class EmbeddedCpp(object):
                     cls = self.__boost_classes[cls]
                 args[arg] = cls
 
-        if dolfin_version() < (1, 4, 0):
-            includes = \
-      """
-      namespace boost {
-      }
-      using namespace boost;
+        includes = \
+    """
+    #include <memory>
+    using namespace std;
 
-      %s""" % includes
-        else:
-            includes = \
-      """
-      #include <memory>
-      using namespace std;
-
-      %s""" % includes
+    %s""" % includes
 
         self.__code = code
         self.__includes = \
@@ -122,6 +112,7 @@ class EmbeddedCpp(object):
         """
 
         args = ""
+        argtypes = []
         cast_code = ""
         for name in sorted(self.__args.keys()):
             arg = self.__args[name]
@@ -129,19 +120,25 @@ class EmbeddedCpp(object):
                 args += ", "
             if arg == int:
                 args += "int %s" % name
+                argtypes.append(ctypes.c_int)
             elif arg == float:
                 args += "double %s" % name
+                argtypes.append(ctypes.c_double)
             elif arg == int_arr:
                 args += "int* %s" % name
+                argtypes.append(numpy.ctypeslib.ndpointer(ctypes.c_int, flags = "C_CONTIGUOUS"))
             elif arg == long_arr:
                 args += "long* %s" % name
+                argtypes.append(numpy.ctypeslib.ndpointer(ctypes.c_long, flags = "C_CONTIGUOUS"))
             elif arg == double_arr:
                 args += "double* %s" % name
+                argtypes.append(numpy.ctypeslib.ndpointer(ctypes.c_double, flags = "C_CONTIGUOUS"))
             else:
                 name_mangle = name
                 while name_mangle in self.__args.keys():
                     name_mangle = "%s_" % name_mangle
                 args += "void* %s" % name_mangle
+                argtypes.append(ctypes.c_void_p)
                 cast_code += "    shared_ptr<%s> %s = (*((shared_ptr<%s>*)%s));\n" % \
                   (self.__boost_classes[arg], name, self.__boost_classes[arg], name_mangle)
 
@@ -170,6 +167,7 @@ class EmbeddedCpp(object):
         path = os.path.dirname(mod.__file__)
         name = os.path.split(path)[-1]
         self.__lib = ctypes.cdll.LoadLibrary(os.path.join(path, "_%s.so" % name))
+        self.__lib.code.argtypes = argtypes
         self.__lib.code.restype = int
 
         return
@@ -215,13 +213,8 @@ class EmbeddedCpp(object):
             elif isinstance(arg, float):
                 largs.append(ctypes.c_double(arg))
             elif isinstance(arg, numpy.ndarray):
-                if arg.dtype == "int32":
-                    largs.append(arg.ctypes.data_as(ctypes.POINTER(ctypes.c_int)))
-                elif arg.dtype == "int64":
-                    largs.append(arg.ctypes.data_as(ctypes.POINTER(ctypes.c_long)))
-                else:
-                    assert(arg.dtype == "float64")
-                    largs.append(arg.ctypes.data_as(ctypes.POINTER(ctypes.c_double)))
+                assert(arg.dtype in ["int32", "int64", "float64"])
+                largs.append(arg)
             else:
                 assert(isinstance(arg, tuple(self.__boost_classes.keys())))
                 largs.append(ctypes.c_void_p(int(arg.this)))

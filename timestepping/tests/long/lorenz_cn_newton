@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@ numpy.random.seed(0)
 if "reorder_dofs_serial" in parameters:
   parameters["reorder_dofs_serial"] = False
 
-solver = {"linear_solver":"bicgstab", "preconditioner":"bjacobi", "krylov_solver":{"relative_tolerance":1.0e-16, "absolute_tolerance":1.0e-16}}
+solver = {"linear_solver":"bicgstab", "preconditioner":"ilu", "krylov_solver":{"relative_tolerance":1.0e-16, "absolute_tolerance":1.0e-16}}
 
 Constant = StaticConstant
 
@@ -110,7 +110,7 @@ class Functional(TimeFunctional):
       self.__val += assemble(split(X[n])[2] * dx)
     return
   def dependencies(self, s = None, non_symbolic = False):
-    return [X[n]]
+    return {X[n]}
   def derivative(self, param, s):
     if s in [0, ns]:
       return 0.5 * self.__der

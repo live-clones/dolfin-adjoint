@@ -70,7 +70,7 @@ if plotting:
     b = assemble(f_opt * w * dx, PETScVector())
     nullspace.orthogonalize(b)
     solver.solve(A, u.vector(), b)
-    d = interpolate(Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])"), V)
+    d = interpolate(Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])", degree=1), V)
     nullspace.orthogonalize(d.vector())
     plot(d)
     plot(u, interactive = True)

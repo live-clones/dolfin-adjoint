@@ -7,7 +7,7 @@ dolfin.parameters["adjoint"]["record_all"] = True
 mesh = UnitSquareMesh(4, 4)
 V = FunctionSpace(mesh, "CG", 1)
 v = TestFunction(V)
-f = interpolate(Expression("sin(pi*x[0])"), V, name = "initial condition")
+f = interpolate(Expression("sin(pi*x[0])", degree=1), V, name = "initial condition")
 
 def main(f, annotate=False):
     u = Function(V, name = "system state")

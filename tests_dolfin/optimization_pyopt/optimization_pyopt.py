@@ -56,8 +56,8 @@ def solve_optimal_control(n):
 
 
     # Define the analytical expressions
-    m_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
-    u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])")
+    m_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])", degree=4)
+    u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])", degree=4)
 
     # Compute the error
     control_error = errornorm(m_analytic, m)

@@ -58,7 +58,7 @@ def main(ic, annotate=False):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     ic_copy = ic.copy(deepcopy=True, annotate=False)
     j, forward = main(ic, annotate=True)
     forward_copy = forward.copy(deepcopy=True, annotate=False)
@@ -80,5 +80,5 @@ if __name__ == "__main__":
         j, forward = main(ic, annotate=False)
         return j
 
-    minconv = taylor_test(Jfunc, m, Jm, dJdm, HJm=HJm, seed=5.0e-4, perturbation_direction=interpolate(Expression("x[0]"), V))
+    minconv = taylor_test(Jfunc, m, Jm, dJdm, HJm=HJm, seed=5.0e-4, perturbation_direction=interpolate(Expression("x[0]", degree=1), V))
     assert minconv > 2.7

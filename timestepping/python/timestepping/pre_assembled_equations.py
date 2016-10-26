@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -92,8 +92,8 @@ class PAEquationSolver(EquationSolver):
                 else:
                     # Linear solve, rank 2 LHS
                     cache_info("Detected that solve for %s is linear" % x.name())
-                    form = replace(form, {x:dolfin.TrialFunction(x.function_space())})
-                    eq = lhs(form) == rhs(form)
+                    form = dolfin.replace(form, {x:dolfin.TrialFunction(x.function_space())})
+                    eq = dolfin.lhs(form) == dolfin.rhs(form)
                     eq_lhs_rank = form_rank(eq.lhs)
                     assert(eq_lhs_rank == 2)
                     is_linear = True
@@ -106,7 +106,7 @@ class PAEquationSolver(EquationSolver):
                 form -= eq.rhs
             if not x in ufl.algorithms.extract_coefficients(form):
                 # Linear solve, rank 2 LHS
-                eq = lhs(form) == rhs(form)
+                eq = dolfin.lhs(form) == dolfin.rhs(form)
                 eq_lhs_rank = form_rank(eq.lhs)
                 assert(eq_lhs_rank == 2)
                 is_linear = True
@@ -168,7 +168,7 @@ class PAEquationSolver(EquationSolver):
         both the LHS and RHS. Otherwise, only reassemble the LHS or RHS if they
         depend upon the supplied Constant s or Function s. Note that this does
         not clear the assembly or linear solver caches -- hence if a static
-        Constant, Function, or DicichletBC is modified then one should clear the
+        Constant, Function, or DirichletBC is modified then one should clear the
         caches before calling reassemble on the PAEquationSolver.
         """
 
@@ -189,8 +189,7 @@ class PAEquationSolver(EquationSolver):
                     static_form = is_static_form(eq.lhs)
                     if not pre_assembly_parameters["equations"]["symmetric_boundary_conditions"] and len(bcs) > 0 and static_bcs and static_form:
                         a = assembly_cache.assemble(eq.lhs,
-                          bcs = bcs, symmetric_bcs = False,
-                          compress = pre_assembly_parameters["bilinear_forms"]["compress_matrices"])
+                          bcs = bcs, symmetric_bcs = False)
                         cache_info("Pre-assembled LHS terms in solve for %s    : 1" % x.name())
                         cache_info("Non-pre-assembled LHS terms in solve for %s: 0" % x.name())
                         linear_solver = linear_solver_cache.linear_solver(eq.lhs,
@@ -199,8 +198,7 @@ class PAEquationSolver(EquationSolver):
                           a = a)
                         linear_solver.set_operator(a)
                     elif len(bcs) == 0 and static_form:
-                        a = assembly_cache.assemble(eq.lhs,
-                          compress = pre_assembly_parameters["bilinear_forms"]["compress_matrices"])
+                        a = assembly_cache.assemble(eq.lhs)
                         cache_info("Pre-assembled LHS terms in solve for %s    : 1" % x.name())
                         cache_info("Non-pre-assembled LHS terms in solve for %s: 0" % x.name())
                         linear_solver = linear_solver_cache.linear_solver(eq.lhs,
@@ -208,7 +206,7 @@ class PAEquationSolver(EquationSolver):
                           a = a)
                         linear_solver.set_operator(a)
                     else:
-                        a = PABilinearForm(eq.lhs, pre_assembly_parameters = pre_assembly_parameters["bilinear_forms"])
+                        a = PAForm(eq.lhs, pre_assembly_parameters = pre_assembly_parameters["bilinear_forms"])
                         cache_info("Pre-assembled LHS terms in solve for %s    : %i" % (x.name(), a.n_pre_assembled()))
                         cache_info("Non-pre-assembled LHS terms in solve for %s: %i" % (x.name(), a.n_non_pre_assembled()))
                         linear_solver = linear_solver_cache.linear_solver(eq.lhs,
@@ -217,13 +215,13 @@ class PAEquationSolver(EquationSolver):
                           bcs = bcs, symmetric_bcs = pre_assembly_parameters["equations"]["symmetric_boundary_conditions"])
                 else:
                     assert(eq_lhs_rank == 1)
-                    a = PALinearForm(eq.lhs, pre_assembly_parameters = pre_assembly_parameters["linear_forms"])
+                    a = PAForm(eq.lhs, pre_assembly_parameters = pre_assembly_parameters["linear_forms"])
                     cache_info("Pre-assembled LHS terms in solve for %s    : %i" % (x.name(), a.n_pre_assembled()))
                     cache_info("Non-pre-assembled LHS terms in solve for %s: %i" % (x.name(), a.n_non_pre_assembled()))
                     linear_solver = None
                 return a, linear_solver
             def assemble_rhs():
-                L = PALinearForm(eq.rhs, pre_assembly_parameters = pre_assembly_parameters["linear_forms"])
+                L = PAForm(eq.rhs, pre_assembly_parameters = pre_assembly_parameters["linear_forms"])
                 cache_info("Pre-assembled RHS terms in solve for %s    : %i" % (x.name(), L.n_pre_assembled()))
                 cache_info("Non-pre-assembled RHS terms in solve for %s: %i" % (x.name(), L.n_non_pre_assembled()))
                 return L
@@ -248,7 +246,7 @@ class PAEquationSolver(EquationSolver):
             J, hbcs = self.J(), self.hbcs()
 
             def assemble_lhs():
-                a = PABilinearForm(J, pre_assembly_parameters = pre_assembly_parameters["bilinear_forms"])
+                a = PAForm(J, pre_assembly_parameters = pre_assembly_parameters["bilinear_forms"])
                 cache_info("Pre-assembled LHS terms in solve for %s    : %i" % (x.name(), a.n_pre_assembled()))
                 cache_info("Non-pre-assembled LHS terms in solve for %s: %i" % (x.name(), a.n_non_pre_assembled()))
                 linear_solver = linear_solver_cache.linear_solver(J,
@@ -260,7 +258,7 @@ class PAEquationSolver(EquationSolver):
                 L = -eq.lhs
                 if not is_zero_rhs(eq.rhs):
                     L += eq.rhs
-                L = PALinearForm(L, pre_assembly_parameters = pre_assembly_parameters["linear_forms"])
+                L = PAForm(L, pre_assembly_parameters = pre_assembly_parameters["linear_forms"])
                 cache_info("Pre-assembled RHS terms in solve for %s    : %i" % (x.name(), L.n_pre_assembled()))
                 cache_info("Non-pre-assembled RHS terms in solve for %s: %i" % (x.name(), L.n_non_pre_assembled()))
                 return L
@@ -271,10 +269,10 @@ class PAEquationSolver(EquationSolver):
             else:
                 a, linear_solver = self.__a, self.__linear_solver
                 L = self.__L
-                lhs_cs = ufl.algorithms.extract_coefficients(J)
-                rhs_cs = ufl.algorithms.extract_coefficients(eq.lhs)
+                lhs_cs = set(ufl.algorithms.extract_coefficients(J))
+                rhs_cs = set(ufl.algorithms.extract_coefficients(eq.lhs))
                 if not is_zero_rhs(eq.rhs):
-                    rhs_cs += ufl.algorithms.extract_coefficients(eq.rhs)
+                    rhs_cs.update(ufl.algorithms.extract_coefficients(eq.rhs))
                 for dep in args:
                     if dep in lhs_cs:
                         a, linear_solver = assemble_lhs()
@@ -299,7 +297,9 @@ class PAEquationSolver(EquationSolver):
         if not non_symbolic:
             return EquationSolver.dependencies(self, non_symbolic = False)
         elif not self.__initial_guess is None:
-            return EquationSolver.dependencies(self, non_symbolic = True) + [self.__initial_guess]
+            deps = copy.copy(EquationSolver.dependencies(self, non_symbolic = True))
+            deps.add(self.__initial_guess)
+            return deps
         else:
             return EquationSolver.dependencies(self, non_symbolic = True)
 

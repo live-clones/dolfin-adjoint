@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
     # Run model
     T0_expr = "0.5*(1.0 - x[1]*x[1]) + 0.01*cos(pi*x[0]/l)*sin(pi*x[1]/h)"
-    T0 = Expression(T0_expr, l=1.0, h=1.0)
+    T0 = Expression(T0_expr, l=1.0, h=1.0, degree=3)
     ic = interpolate(T0, X, name="InitialCondition")
     T = main(ic, annotate=True)
 

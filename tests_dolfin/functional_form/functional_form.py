@@ -14,7 +14,7 @@ s = Function(V)                   # PDE solution
 lmbd = Function(V)                # Adjoint PDE solution
 f = Function(V)                   # Parameter
 alpha = Constant(1e-6)            # Regularisation parameter
-ud = Expression("sin(pi*x[0])*sin(pi*x[1])")   # Desired temperature profile
+ud = Expression("sin(pi*x[0])*sin(pi*x[1])", degree=1)   # Desired temperature profile
 
 form_valid = 0.5*inner(s-ud, s-ud)*dx + alpha*f*f*dx
 J = Functional(form_valid)

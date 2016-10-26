@@ -5,7 +5,7 @@ from dolfin_adjoint import *
 
 mesh = UnitSquareMesh(4, 4)
 V = FunctionSpace(mesh, "CG", 1)
-f = project(Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)"), V)
+f = project(Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)", degree=4), V)
 
 def main(f, annotate=True):
     u = TrialFunction(V)

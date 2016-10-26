@@ -85,7 +85,7 @@ def main(u0, f):
     L = rhs(F)
 
     # Set up boundary condition
-    g = Expression("b", b=boundary_value(0))
+    g = Expression("b", degree=1, b=boundary_value(0))
     bc = DirichletBC(Q, g, sub_domains, 1)
 
     # Assemble matrix

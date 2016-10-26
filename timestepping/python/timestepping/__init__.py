@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +63,7 @@ timestepping finite element models.
 
 __license__ = "LGPL-3"
 
-__version__ = "1.4.0+"
+__version__ = "1.6.0"
 
 __all__ = \
   caches.__all__ + \

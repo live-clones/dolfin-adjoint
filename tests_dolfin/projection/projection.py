@@ -16,7 +16,7 @@ def main(ic, annotate=False):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)"), V3)
+    ic = project(Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)", degree=4), V3)
     soln = main(ic, annotate=True)
 
     adj_html("projection_forward.html", "forward")

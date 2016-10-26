@@ -66,7 +66,7 @@ def main(ic, annotate=False):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V, name="InitialCondition")
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V, name="InitialCondition")
     j, forward = main(ic, annotate=True)
 
     J = Functional(forward*forward*dx*dt)

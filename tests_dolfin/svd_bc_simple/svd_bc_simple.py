@@ -34,7 +34,7 @@ def propagator(ic): # a hand-coded tangent linear model, essentially
 
 if __name__ == "__main__":
 
-    ic = project(Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)"), V)
+    ic = project(Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)", degree=4), V)
     soln = main(ic, annotate=True)
 
     try:

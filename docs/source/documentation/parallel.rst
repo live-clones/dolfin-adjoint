@@ -21,22 +21,6 @@ For example, let us take the :doc:`checkpointed adjoint model used in the previo
     Process 0: Convergence orders for Taylor remainder with adjoint information (should all be 2):
       [1.9744066553464978, 1.9872606129796675, 1.9936586367818951, 1.9968385300177882]
 
-Similarly, parallelism over OpenMP works in the same way:
-
-.. literalinclude:: ../_static/tutorial6.py
-    :emphasize-lines: 4
-
-|more| Download the `checkpointed threaded parallel code`_.
-
-.. _checkpointed threaded parallel code: ../_static/tutorial6.py
-
-.. code-block:: none
-
-    $ python tutorial6.py
-    ...
-    Convergence orders for Taylor remainder with adjoint information (should all be 2):
-      [1.9581779061701046, 1.9787032981536112, 1.989252750128478, 1.994601330484473]
-
 .. |more| image:: ../_static/more.png
           :align: middle
           :alt: more info

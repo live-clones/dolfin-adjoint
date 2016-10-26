@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -187,7 +187,7 @@ class TimeSystem(object):
         """
 
         if len(args) == 2 and len(kwargs) == 0 and \
-          (isinstance(args[0], (int, float, LinearCombination, ufl.expr.Expr)) or is_general_constant(args[0])) \
+          (isinstance(args[0], (int, float, LinearCombination, ufl.core.expr.Expr)) or is_general_constant(args[0])) \
           and isinstance(args[1], dolfin.Function):
             self.add_assignment(args[0], args[1])
             return
@@ -228,9 +228,9 @@ class TimeSystem(object):
                 raise StateException("Solve for %s already registered" % x.name())
             eq = eargs[0]
             solve = copy.copy(args), copy.copy(kwargs)
-            x_deps = ufl.algorithms.extract_coefficients(eq.lhs)
+            x_deps = set(ufl.algorithms.extract_coefficients(eq.lhs))
             if not is_zero_rhs(eq.rhs):
-                x_deps += ufl.algorithms.extract_coefficients(eq.rhs)
+                x_deps.update(ufl.algorithms.extract_coefficients(eq.rhs))
             eq_lhs = eq.lhs
 
             if form_rank(eq_lhs) == 2:
@@ -238,7 +238,7 @@ class TimeSystem(object):
                     if dep is x:
                         raise DependencyException("Invalid non-linear solve")
             if not initial_guess is None:
-                x_deps.append(initial_guess)
+                x_deps.add(initial_guess)
 
         if not hasattr(x, "_time_level_data"):
             raise InvalidArgumentException("Missing time level data")
@@ -1415,7 +1415,7 @@ class ManagedModel(object):
                     f_x = f_solve.x()
                     if isinstance(f_solve, AssignmentSolver):
                         f_rhs = f_solve.rhs()
-                        if isinstance(f_rhs, ufl.expr.Expr):
+                        if isinstance(f_rhs, ufl.core.expr.Expr):
                             f_der = differentiate_expr(f_rhs, parameter)
                             if not isinstance(f_der, ufl.constantvalue.Zero):
                                 dFdm[j][i][f_x] = f_der
@@ -1434,10 +1434,10 @@ class ManagedModel(object):
                         if not is_empty_form(f_der):
                             rank = form_rank(f_der)
                             if rank == 1:
-                                f_der = PALinearForm(f_der)
+                                f_der = PAForm(f_der)
                             else:
                                 assert(rank == 2)
-                                f_der = PABilinearForm(adjoint(f_der, \
+                                f_der = PAForm(adjoint(f_der, \
                                   adjoint_arguments = (dolfin.TestFunction(parameter.function_space()), dolfin.TrialFunction(f_x.function_space()))))
                             dFdm[j][i][f_x] = f_der
 
@@ -1451,7 +1451,7 @@ class ManagedModel(object):
                             cp_cs.add(c)
                         elif isinstance(c, (dolfin.Constant, dolfin.Function, dolfin.Expression)) and not is_static_coefficient(c):
                             update_cs.add(c)
-                elif isinstance(f_der, ufl.expr.Expr):
+                elif isinstance(f_der, ufl.core.expr.Expr):
                     for c in ufl.algorithms.extract_coefficients(f_der):
                         if isinstance(c, dolfin.Function) and hasattr(c, "_time_level_data"):
                             cp_cs.add(c)
@@ -1513,7 +1513,7 @@ class ManagedModel(object):
                         else:
                             assert(isinstance(f_der_a, dolfin.GenericVector))
                             grad[i] -= f_der_a.inner(a_x.vector())
-                    elif isinstance(f_der, ufl.expr.Expr):
+                    elif isinstance(f_der, ufl.core.expr.Expr):
                         f_der = evaluate_expr(f_der, copy = False)
                         if isinstance(f_der, float):
                             if isinstance(grad[i], float):
@@ -1839,7 +1839,7 @@ class ManagedModel(object):
 
         class Packer(object):
             def __init__(self, parameters):
-                p = dolfin.MPI.process_number()
+                p = dolfin.MPI.rank(dolfin.mpi_comm_world())
 
                 l_N = 0
                 l_indices = []
@@ -1854,26 +1854,19 @@ class ManagedModel(object):
                     l_indices.append((l_N, l_N + n))
                     l_N += n
 
-                n_p = dolfin.MPI.num_processes()
+                n_p = dolfin.MPI.size(dolfin.mpi_comm_world())
                 if n_p > 1:
-                    p_N = dolfin.Vector()
-                    p_N.resize((p, p + 1))
-                    p_N.set_local(numpy.array([l_N], dtype = numpy.float_))
-                    p_N.apply("insert")
-                    p_N = numpy.array([int(N + 0.5) for N in p_N.gather(numpy.arange(n_p, dtype = numpy.intc))], dtype = numpy.intc)
+                    import mpi4py.MPI as MPI
+
+                    p_N = numpy.array(MPI.COMM_WORLD.allgather(l_N), dtype = numpy.uint64)
                     g_N = p_N.sum()
 
                     l_arr = numpy.empty(l_N, dtype = numpy.float_)
                     g_indices = p_N[:p].sum();  g_indices = (g_indices, g_indices + l_N)
-                    l_vec = dolfin.Vector()
-                    l_vec.resize(g_indices)
-                    g_range = numpy.arange(g_N, dtype = numpy.intc)
 
                     self.__g_N = g_N
                     self.__l_arr = l_arr
                     self.__g_indices = g_indices
-                    self.__l_vec = l_vec
-                    self.__g_range = g_range
                 else:
                     self.__g_N = l_N
                 self.__p = p
@@ -1887,9 +1880,16 @@ class ManagedModel(object):
                 if self.__n_p == 1:
                     return arr.copy()
                 else:
-                    self.__l_vec.set_local(arr)
-                    self.__l_vec.apply("insert")
-                    return self.__l_vec.gather(self.__g_range)
+                    import mpi4py.MPI as MPI
+
+                    p_arr = MPI.COMM_WORLD.allgather(arr)
+                    g_arr = numpy.empty(self.__g_N, dtype = arr.dtype)
+                    index = 0
+                    for l_arr in p_arr:
+                        g_arr[index:index + l_arr.shape[0]] = l_arr
+                        index += l_arr.shape[0]
+
+                    return g_arr
 
             def serialised_bounds(self, bounds):
                 l_bounds = numpy.empty(self.__l_N, dtype = numpy.float_)
@@ -1973,7 +1973,7 @@ class ManagedModel(object):
                             val = arr[start]
                         else:
                             val = 0.0
-                        parameter.assign(dolfin.MPI.sum(val))
+                        parameter.assign(dolfin.MPI.sum(dolfin.mpi_comm_world(), val))
                     else:
                         assert(isinstance(parameter, dolfin.Function))
                         parameter.vector().set_local(arr[start:end])

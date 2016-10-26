@@ -4,7 +4,7 @@
 # Copyright (C) 2008 Johan Hake
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -277,7 +277,7 @@ def diagnostics(t):
   psi.eval(psi_mid, numpy.array([0.5, 0.5], dtype = numpy.float_))
   psi_mid = abs(float(psi_mid[0]))
   Nu = assemble(dot(grad(T[n]), nm) * ds[bcs](1))
-  if div_U_norm > 7.0e-9:
+  if div_U_norm > 2.0e-8:
     linfo = info_red
   else:
     linfo = info
@@ -355,7 +355,7 @@ system.finalise()
 # Verify incompressibility
 err = div_U.vector().norm("linf")
 print("%.16e" % err)
-assert(err < 7.0e-9)
+assert(err < 2.0e-8)
 
 # Verify pressure zero point
 p0 = numpy.empty(1);  p0[:] = numpy.NAN

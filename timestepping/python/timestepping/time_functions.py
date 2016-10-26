@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -58,18 +58,12 @@ class WrappedFunction(dolfin.Function):
         self.__fn = None
         if isinstance(arg, dolfin.FunctionSpaceBase):
             self.__space = arg
-            if dolfin_version() < (1, 4, 0):
-                ufl.coefficient.Coefficient.__init__(self, self.__space.ufl_element())
-            else:
-                                                                                     # Work around DOLFIN id issues
-                ufl.coefficient.Coefficient.__init__(self, self.__space.ufl_element(), count = dolfin.Constant(0).id())
+                                                                                   # Work around DOLFIN id issues
+            ufl.coefficient.Coefficient.__init__(self, self.__space.ufl_element(), count = dolfin.Constant(0).id())
         elif isinstance(arg, dolfin.Function):
             self.__space = arg.function_space()
-            if dolfin_version() < (1, 4, 0):
-                ufl.coefficient.Coefficient.__init__(self, self.__space.ufl_element())
-            else:
-                                                                                     # Work around DOLFIN id issues
-                ufl.coefficient.Coefficient.__init__(self, self.__space.ufl_element(), count = dolfin.Constant(0).id())
+                                                                                   # Work around DOLFIN id issues
+            ufl.coefficient.Coefficient.__init__(self, self.__space.ufl_element(), count = dolfin.Constant(0).id())
             self.wrap(arg)
         else:
             raise InvalidArgumentException("Require FunctionSpace or Function as first argument")

@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -61,18 +61,15 @@ def add_parameter(parameters, key, default_value):
 # Configure timestepping parameters.
 nest_parameters(dolfin.parameters, "timestepping")
 nest_parameters(dolfin.parameters["timestepping"], "pre_assembly")
-nest_parameters(dolfin.parameters["timestepping"]["pre_assembly"], "forms")
+nest_parameters(dolfin.parameters["timestepping"]["pre_assembly"], "integrals")
 nest_parameters(dolfin.parameters["timestepping"]["pre_assembly"], "linear_forms")
 nest_parameters(dolfin.parameters["timestepping"]["pre_assembly"], "bilinear_forms")
 nest_parameters(dolfin.parameters["timestepping"]["pre_assembly"], "equations")
-add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["forms"], "compress_matrices", True)
-add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["forms"], "expand_form", True)
-add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["forms"], "term_optimisation", True)
-add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["linear_forms"], "compress_matrices", True)
+add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["integrals"], "expand_form", True)
+add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["integrals"], "term_optimisation", True)
 add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["linear_forms"], "expand_form", True)
 add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["linear_forms"], "matrix_optimisation", True)
 add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["linear_forms"], "term_optimisation", True)
-add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["bilinear_forms"], "compress_matrices", True)
 add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["bilinear_forms"], "expand_form", True)
 add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["bilinear_forms"], "term_optimisation", False)
 add_parameter(dolfin.parameters["timestepping"]["pre_assembly"]["equations"], "symmetric_boundary_conditions", False)

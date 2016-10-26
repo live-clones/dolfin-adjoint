@@ -36,7 +36,7 @@ def main(ic, annotate=False):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     forward = main(ic, annotate=True)
     adj_html("forward.html", "forward")
     print "Running adjoint ... "

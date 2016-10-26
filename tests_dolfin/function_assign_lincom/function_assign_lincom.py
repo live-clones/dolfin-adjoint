@@ -12,7 +12,7 @@ if __name__ == "__main__":
     mesh = UnitSquareMesh(4, 4)
     V = FunctionSpace(mesh, "CG", 1)
 
-    m = interpolate(Expression("x[0]"), V, name="m")
+    m = interpolate(Expression("x[0]", degree=1), V, name="m")
     z = main(m)
 
     adj_html("/tmp/forward.html", "forward")

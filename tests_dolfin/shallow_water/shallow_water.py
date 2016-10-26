@@ -13,7 +13,7 @@ W=sw_lib.p1dgp2(mesh)
 
 state=Function(W)
 
-state.interpolate(kelvin.InitialConditions())
+state.interpolate(kelvin.InitialConditions(degree=1))
 
 kelvin.params["basename"] = "p1dgp2"
 kelvin.params["dt"] = 2
@@ -34,7 +34,7 @@ for (adj_state, var) in compute_adjoint(J):
     pass
 
 ic = Function(W)
-ic.interpolate(kelvin.InitialConditions())
+ic.interpolate(kelvin.InitialConditions(degree=1))
 def compute_J(ic):
     state = sw_lib.timeloop_theta(M, G, ic, kelvin.params, annotate=False)
     return assemble(dot(state, state)*dx)
