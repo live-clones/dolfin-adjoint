@@ -4,7 +4,7 @@
 Time-dependent optimal control of the linear scalar wave equation
 =================================================================
 
-.. sectionauthor:: Steven Vandekerckhove <Steven.Vandekerckhove@kuleuven.be>
+.. sectionauthor:: Steven Vandekerckhove
 
 ******************
 Problem definition
@@ -89,12 +89,12 @@ Then, an expression is built for the time dependent source term.
 We need to provide member functions for evaluating the function and its derivative.
 
 .. literalinclude:: ../../_static/time-dependent-wave.py
-   :lines: 25-52
+   :lines: 25-45
 
 Before the inverse problem can be solved, we have to implement the forward problem:
 
 .. literalinclude:: ../../_static/time-dependent-wave.py
-   :lines: 54-101
+   :lines: 46-94
 
 Note that the forward solver has been implemented as straight forward as possible,
 with litte attention for efficiency. E.g., a significant speed-up could be realized
@@ -103,19 +103,19 @@ by re-using the factorization of linear system.
 Also a function is defined to assemble the objective
 
 .. literalinclude:: ../../_static/time-dependent-wave.py
-   :lines: 110-117
+   :lines: 104-112
 
 Now we can have a look at the optimization procedure
 
 .. literalinclude:: ../../_static/time-dependent-wave.py
-   :lines: 118-167
+   :lines: 114-167
 
 The code can be run as follows:
 
 .. code-block:: python
 
     """ Compute  a reference solution (once) """
-    Source = source(t = 0.0, omega = Constant(2e2))
+    Source = source(omega = Constant(2e2), degree=3)
     forward(Source, 2*DOLFIN_PI, True)
 
     """ Start the optimization procedure """
@@ -127,5 +127,4 @@ The complete code can be downloaded `here <../../_static/time-dependent-wave.py>
 Comments
 ********
 
-Running the code results in an approximation for the optimal value for
-:math:`\omega = 199.999986`, which is correct up to the noise level.
+Running the code results in an approximation for the optimal value which is correct up to the noise level will be obtained.
