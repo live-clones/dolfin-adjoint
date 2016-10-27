@@ -7,17 +7,14 @@ class KeyedDict(dict):
     def __init__(self, keyfunc, *args, **kwargs):
         self.keyfunc = keyfunc
         dict.__init__(self, *args, **kwargs)
-        self.keyslist = [] # keep the keys we add in order, for deletion
 
     def __getitem__(self, x):
         return dict.__getitem__(self, self.keyfunc(x))
 
     def __setitem__(self, x, y):
-        self.keyslist.append(self.keyfunc(x))
         return dict.__setitem__(self, self.keyfunc(x), y)
 
     def __delitem__(self, x):
-        self.keyslist.remove(self.keyfunc(x))
         return dict.__delitem__(self, self.keyfunc(x))
 
     def __contains__(self, x):
@@ -30,7 +27,7 @@ class KeyedDict(dict):
             This is crucial for MPI runs where destroying objects in different
             orders might result in MPI deadlocks.
         """
-        for k in self.keyslist:
+        for k in sorted(self.keys()):
             dict.__delitem__(self, k)
 
     def __del__(self):
