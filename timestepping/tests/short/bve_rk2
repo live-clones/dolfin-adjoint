@@ -3,7 +3,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@ ngrid   = 32
 
 lu_solver = {"linear_solver":"lu"}
 
-mesh  = RectangleMesh(0.0, 0.0, L, L, ngrid, ngrid)
+mesh  = RectangleMesh(Point(0.0, 0.0), Point(L, L), ngrid, ngrid)
 space = FunctionSpace(mesh, "CG", 1)
 test  = TestFunction(space)
 trial = TrialFunction(space)

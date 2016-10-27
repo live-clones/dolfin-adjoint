@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,7 @@ class LinearCombination(object):
     def __init__(self, *args):
         for arg in args:
             if not isinstance(arg, tuple) or not len(arg) == 2 \
-              or not isinstance(arg[0], (float, ufl.expr.Expr)) or not isinstance(arg[1], dolfin.Function):
+              or not isinstance(arg[0], (float, ufl.core.expr.Expr)) or not isinstance(arg[1], dolfin.Function):
                 raise InvalidArgumentException("Require tuples of (float or Expr, Function) as arguments")
 
         alpha = [arg[0] for arg in args]
@@ -83,9 +83,9 @@ class LinearCombination(object):
         optional non_symbolic argument has no effect.
         """
 
-        deps = copy.copy(self.__y)
+        deps = set(self.__y)
         for alpha in self.__alpha:
-            deps += ufl.algorithms.extract_coefficients(alpha)
+            deps.update(ufl.algorithms.extract_coefficients(alpha))
 
         return deps
 
@@ -94,16 +94,16 @@ class LinearCombination(object):
         Return all non-linear dependencies associated with the LinearCombination.
         """
 
-        if isinstance(self.__fl, ufl.expr.Expr):
-            nl_deps = []
+        if isinstance(self.__fl, ufl.core.expr.Expr):
+            nl_deps = set()
             for dep in self.dependencies():
                 if isinstance(dep, dolfin.Function):
-                    nl_deps += ufl.algorithms.extract_coefficients(differentiate_expr(self.__fl, dep))
+                    nl_deps.update(ufl.algorithms.extract_coefficients(differentiate_expr(self.__fl, dep)))
                 elif not isinstance(dep, (dolfin.Constant, dolfin.Expression)):
                     raise DependencyException("Invalid dependency")
             return nl_deps
         else:
-            return []
+            return set()
 
     def flatten(self):
         """
@@ -162,7 +162,7 @@ class AssignmentSolver(object):
     """
 
     def __init__(self, y, x):
-        if not isinstance(y, (int, float, LinearCombination, ufl.expr.Expr)) \
+        if not isinstance(y, (int, float, LinearCombination, ufl.core.expr.Expr)) \
           and not is_general_constant(y):
             raise InvalidArgumentException("y must be an int, float, LinearCombination or Expr")
         if not isinstance(x, dolfin.Function):
@@ -179,7 +179,7 @@ class AssignmentSolver(object):
             if x in y.dependencies():
                 raise DependencyException("Assignment is non-linear")
         else:
-            assert(isinstance(y, ufl.expr.Expr))
+            assert(isinstance(y, ufl.core.expr.Expr))
             if x in ufl.algorithms.extract_coefficients(y):
                 raise DependencyException("Assignment is non-linear")
 
@@ -219,14 +219,14 @@ class AssignmentSolver(object):
         """
 
         if isinstance(self.__y, ufl.constantvalue.FloatValue):
-            return []
+            return set()
         elif isinstance(self.__y, dolfin.Function) or is_general_constant(self.__y):
-            return [self.__y]
+            return {self.__y}
         elif isinstance(self.__y, LinearCombination):
             return self.__y.dependencies(non_symbolic = non_symbolic)
         else:
-            assert(isinstance(self.__y, ufl.expr.Expr))
-            return ufl.algorithms.extract_coefficients(self.__y)
+            assert(isinstance(self.__y, ufl.core.expr.Expr))
+            return set(ufl.algorithms.extract_coefficients(self.__y))
 
     def nonlinear_dependencies(self):
         """
@@ -234,15 +234,15 @@ class AssignmentSolver(object):
         """
 
         if isinstance(self.__y, (ufl.constantvalue.FloatValue, dolfin.Function)) or is_general_constant(self.__y):
-            return []
+            return set()
         elif isinstance(self.__y, LinearCombination):
             return self.__y.nonlinear_dependencies()
         else:
-            assert(isinstance(self.__y, ufl.expr.Expr))
-            nl_deps = []
+            assert(isinstance(self.__y, ufl.core.expr.Expr))
+            nl_deps = set()
             for dep in ufl.algorithms.extract_coefficients(self.__y):
                 if isinstance(dep, dolfin.Function):
-                    nl_deps += ufl.algorithms.extract_coefficients(differentiate_expr(self.__y, dep))
+                    nl_deps.update(ufl.algorithms.extract_coefficients(differentiate_expr(self.__y, dep)))
                 elif not isinstance(dep, (dolfin.Constant, dolfin.Expression)):
                     raise DependencyException("Invalid dependency")
             return nl_deps
@@ -258,7 +258,7 @@ class AssignmentSolver(object):
         elif isinstance(self.__y, LinearCombination):
             return self.__y.flatten()
         else:
-            assert(isinstance(self.__y, ufl.expr.Expr))
+            assert(isinstance(self.__y, ufl.core.expr.Expr))
             return self.__y
 
     def x(self):
@@ -289,7 +289,7 @@ class AssignmentSolver(object):
         elif isinstance(self.__y, LinearCombination):
             self.__y.solve(self.__x)
         else:
-            assert(isinstance(self.__y, ufl.expr.Expr))
+            assert(isinstance(self.__y, ufl.core.expr.Expr))
             self.__x.vector()[:] = evaluate_expr(self.__y, copy = False)
 
         return
@@ -325,9 +325,9 @@ class EquationSolver(object):
         if not adjoint_solver_parameters is None and not isinstance(adjoint_solver_parameters, dict):
             raise InvalidArgumentException("adjoint_solver_parameters must be a dictionary")
 
-        x_deps = ufl.algorithms.extract_coefficients(eq.lhs)
+        x_deps = set(ufl.algorithms.extract_coefficients(eq.lhs))
         if not is_zero_rhs(eq.rhs):
-            x_deps += ufl.algorithms.extract_coefficients(eq.rhs)
+            x_deps.update(ufl.algorithms.extract_coefficients(eq.rhs))
 
         is_linear = not x in x_deps
 
@@ -417,9 +417,9 @@ class EquationSolver(object):
         """
 
         d, od = self.tangent_linear()
-        nl_deps = ufl.algorithms.extract_coefficients(d)
+        nl_deps = set(ufl.algorithms.extract_coefficients(d))
         for od_form in od.values():
-            nl_deps += ufl.algorithms.extract_coefficients(od_form)
+            nl_deps.update(ufl.algorithms.extract_coefficients(od_form))
 
         return nl_deps
 
@@ -451,7 +451,7 @@ class EquationSolver(object):
 
         if self.__J is None:
             if self.is_linear():
-                form = action(self.__eq.lhs, self.__x)
+                form = dolfin.action(self.__eq.lhs, self.__x)
             else:
                 form = self.__eq.lhs
             if not is_zero_rhs(self.__eq.rhs):
@@ -511,7 +511,7 @@ class EquationSolver(object):
         a_od = {}
 
         def add_lhs_dep(form, dep, x):
-            add_rhs_dep(action(-form, x), dep, x)
+            add_rhs_dep(dolfin.action(-form, x), dep, x)
             return
         def add_rhs_dep(form, dep, x):
             if isinstance(dep, dolfin.Function):
@@ -586,7 +586,7 @@ class EquationSolver(object):
                 else:
                     form = ufl.form.Form([])
             else:
-                form = action(self.__eq.lhs, self.__x)
+                form = dolfin.action(self.__eq.lhs, self.__x)
         else:
             form = self.__eq.lhs
         if not is_zero_rhs(self.__eq.rhs):

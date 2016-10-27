@@ -2,7 +2,7 @@
 
     min_(u, m) \int_\Omega 1/2 || u - d ||^2 + alpha/2 || f ||^2
 
-    subjecct to
+    subject to
 
     grad \cdot \grad u = f    in \Omega
     u = 0                     on \partial \Omega
@@ -73,10 +73,9 @@ alpha = Constant(1e-6)
 # Define the expressions of the analytical solution -- we choose our data
 # so that the control has an analytic expression
 x = SpatialCoordinate(mesh)
-d = (1/(2*pi**2) + 2*alpha*pi**2)*sin(pi*x[0])*sin(pi*x[1]) # the desired temperature profile
-f_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
-u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])")
-j_analytic = assemble((1./2*(u_analytic-d)**2 + alpha*f_analytic**2)*dx(mesh))
+w = Expression("sin(pi*x[0])*sin(pi*x[1])", degree=3) 
+d = 1/(2*pi**2)
+d = Expression("d*w", d=d, w=w, degree=3)
 
 # Define functional of interest and the reduced functional
 

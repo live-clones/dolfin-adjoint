@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -45,9 +45,8 @@ for form in [inner(test, F ** sc) * dx,
              inner(test, F + sc) * dx,
              inner(test, ufl.classes.Conditional(eq(1, 1), F + sc, F + sc)) * dx
              ]:
-  pform = PALinearForm(form, pre_assembly_parameters = {"term_optimisation":False,
-                                                        "matrix_optimisation":True,
-                                                        "compress_matrices":True})
+  pform = PAForm(form, pre_assembly_parameters = {"term_optimisation":False,
+                                                  "matrix_optimisation":True})
   print(pform.n_pre_assembled(), pform.n_non_pre_assembled())
   assert(pform.n_pre_assembled() == 0)
   assert(pform.n_non_pre_assembled() == 1)
@@ -67,14 +66,17 @@ for form in [inner(test, F) * dx,
              inner(grad(test), as_vector([sc, sc]) * F) * dx,
              inner(as_vector([sc, sc]) * test, grad(F)) * dx,
              inner(grad(test), as_vector([F, 0])) * dx]:
-  pform = PALinearForm(form, pre_assembly_parameters = {"term_optimisation":False,
-                                                        "matrix_optimisation":True,
-                                                        "compress_matrices":True})
+  pform = PAForm(form, pre_assembly_parameters = {"term_optimisation":False,
+                                                  "matrix_optimisation":True})
   print(pform.n_pre_assembled(), pform.n_non_pre_assembled())
   assert(pform.n_pre_assembled() > 0)
   assert(pform.n_non_pre_assembled() == 0)
-  assert(pform._pre_assembled_L is None)
-  assert(len(pform._mult_assembled_L) == 1)
+  n_pform = pform.n()
+  for name in n_pform:
+    if name == "PAMatrixFilter":
+      assert(n_pform[name] == 1)
+    else:
+      assert(n_pform[name] == 0)
   err = (assemble(form) - assemble(pform)).norm("linf")
   print("%.16e" % err)
   assert(err < 2.0e-15)

@@ -4,7 +4,7 @@
 #                    E. Rognes
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,8 @@ from timestepping import *
 dolfin.parameters["form_compiler"]["representation"] = "quadrature"
 
 def viscosity(T):
-    eta = eta0 * exp(-b_val*T/deltaT + c_val*(1.0 - triangle.x[1])/height )
+    y = SpatialCoordinate(mesh)[1]
+    eta = eta0 * exp(-b_val*T/deltaT + c_val*(1.0 - y)/height )
     return eta
 
 def store(T, w, t):
@@ -59,7 +60,7 @@ height = 1.0
 length = 2.0
 nx = 40
 ny = 40
-mesh = RectangleMesh(0, 0, length, height, nx, ny)
+mesh = RectangleMesh(Point(0, 0), Point(length, height), nx, ny)
 
 # Create function spaces
 W = stokes_space(mesh)
@@ -98,7 +99,7 @@ T_ic.interpolate(InitialTemperature(Ra, length))
 system.add_solve(T_ic, T[0])
 eta = viscosity(T[0])
 (a, L, pre) = momentum(W, eta, (Ra*T[0])*g)
-system.add_solve(a == L, w[0], bcs=bcs, solver_parameters={"linear_solver":"mumps"})
+system.add_solve(a == L, w[0], bcs=bcs, solver_parameters={"linear_solver":"umfpack"})
 
 # Define initial and end time
 t = 0.0
@@ -115,7 +116,7 @@ system.add_solve(a == L, T_pr[n + 1], T_bcs, solver_parameters={"krylov_solver":
 # Solve for predicted flow
 eta = viscosity(T_pr[n + 1])
 (a, L, precond) = momentum(W, eta, (Ra*T_pr[n + 1])*g)
-system.add_solve(a == L, w_pr[n + 1], bcs, solver_parameters={"linear_solver":"mumps"})
+system.add_solve(a == L, w_pr[n + 1], bcs, solver_parameters={"linear_solver":"umfpack"})
 
 # Solve for corrected temperature T in terms of predicted and previous velocity
 (a, L) = energy_correction(Q, dt, split(w_pr[n + 1])[0], split(w[n])[0], T[n])
@@ -124,7 +125,7 @@ system.add_solve(a == L, T[n + 1], T_bcs, solver_parameters={"krylov_solver": {"
 # Solve for corrected flow
 eta = viscosity(T[n + 1])
 (a, L, precond) = momentum(W, eta, (Ra*T[n + 1])*g)
-system.add_solve(a == L, w[n + 1], bcs, solver_parameters={"linear_solver":"mumps"})
+system.add_solve(a == L, w[n + 1], bcs, solver_parameters={"linear_solver":"umfpack"})
 
 def update(s, cs = None):
   print("Time = %.5f" % (max(s - 1, 0) * float(dt)))
@@ -138,10 +139,7 @@ def Nusselt():
     # by 0
     markers = FacetFunction("size_t", mesh)
     markers.set_all(0)
-    if dolfin_version() < (1, 3, 0):
-      top = compile_subdomains("near(x[1], %s)" % height)
-    else:
-      top = CompiledSubDomain("near(x[1], %s)" % height)
+    top = CompiledSubDomain("near(x[1], %s)" % height)
     top.mark(markers, 2)
     ds = Measure("ds")[markers]
 
@@ -191,4 +189,4 @@ err = abs(comp - ref)
 print("%.16e" % comp)
 print("%.16e" % ref)
 print("%.16e" % err)
-assert(err < 7.0e-13)
+assert(err < 2.0e-12)

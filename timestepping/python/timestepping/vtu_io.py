@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,7 @@ def read_vtu(filename, space):
         raise InvalidArgumentException("filename must be a string")
     if not isinstance(space, dolfin.FunctionSpaceBase):
         raise InvalidArgumentException("space must be a FunctionSpace")
-    if dolfin.MPI.num_processes() > 1:
+    if dolfin.MPI.size(dolfin.mpi_comm_world()) > 1:
         raise NotImplementedException("read_vtu cannot be used with more than one MPI process")
 
     mesh = space.mesh()
@@ -122,7 +122,7 @@ def read_vtu(filename, space):
         for i in xrange(vtu.GetCellData().GetNumberOfArrays()):
             cell_data = vtu.GetCellData().GetArray(i)
             if not cell_data.GetNumberOfComponents() == 1:
-                raise NotImplementException("%i components not supported by read_vtu" % cell_data.GetNumberOfComponents())
+                raise NotImplementedException("%i components not supported by read_vtu" % cell_data.GetNumberOfComponents())
             assert(cell_data.GetNumberOfTuples() == n)
 
             name = cell_data.GetName()
@@ -155,7 +155,7 @@ def read_vtu(filename, space):
         for i in xrange(vtu.GetPointData().GetNumberOfArrays()):
             point_data = vtu.GetPointData().GetArray(i)
             if not point_data.GetNumberOfComponents() == 1:
-                raise NotImplementException("%i components not supported by read_vtu" % point_data.GetNumberOfComponents())
+                raise NotImplementedException("%i components not supported by read_vtu" % point_data.GetNumberOfComponents())
             assert(point_data.GetNumberOfTuples() == n)
 
             name = point_data.GetName()
@@ -388,7 +388,7 @@ def write_vtu(filename, fns, index = None, t = None):
         if degree == 0:
             for fn in fns[e]:
                 if not fn.value_rank() == 0:
-                    raise NotImplementException("Function rank %i not supported by write_vtu" % fn.value_rank())
+                    raise NotImplementedException("Function rank %i not supported by write_vtu" % fn.value_rank())
                 data = fn.vector().gather(nodes)
                 cell_data = vtk.vtkDoubleArray()
                 cell_data.SetNumberOfComponents(1)
@@ -401,7 +401,7 @@ def write_vtu(filename, fns, index = None, t = None):
         else:
             for fn in fns[e]:
                 if not fn.value_rank() == 0:
-                    raise NotImplementException("Function rank %i not supported by write_vtu" % fn.value_rank())
+                    raise NotImplementedException("Function rank %i not supported by write_vtu" % fn.value_rank())
                 data = fn.vector().gather(nodes)
                 point_data = vtk.vtkDoubleArray()
                 point_data.SetNumberOfComponents(1)
@@ -412,11 +412,11 @@ def write_vtu(filename, fns, index = None, t = None):
                 vtu.GetPointData().AddArray(point_data)
             vtu.GetPointData().SetActiveScalars(names[e][0])
 
-        if dolfin.MPI.num_processes() > 1:
+        if dolfin.MPI.size(dolfin.mpi_comm_world()) > 1:
             writer = vtk.vtkXMLPUnstructuredGridWriter()
-            writer.SetNumberOfPieces(dolfin.MPI.num_processes())
-            writer.SetStartPiece(dolfin.MPI.process_number())
-            writer.SetEndPiece(dolfin.MPI.process_number())
+            writer.SetNumberOfPieces(dolfin.MPI.size(dolfin.mpi_comm_world()))
+            writer.SetStartPiece(dolfin.MPI.rank(dolfin.mpi_comm_world()))
+            writer.SetEndPiece(dolfin.MPI.rank(dolfin.mpi_comm_world()))
             ext = ".pvtu"
         else:
             writer = vtk.vtkXMLUnstructuredGridWriter()

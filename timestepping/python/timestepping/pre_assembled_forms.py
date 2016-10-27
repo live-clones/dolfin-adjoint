@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -28,44 +28,28 @@ from fenics_overrides import *
 from fenics_utils import *
 from statics import *
 from versions import *
+import fenics_utils
 
 __all__ = \
   [
-    "PABilinearForm",
+    "NonPAFilter",
+    "PAFilter",
     "PAForm",
-    "PALinearForm"
+    "PAMatrixFilter",
+    "PAStaticFilter"
   ]
 
-if dolfin_version() < (1, 4, 0):
-    def preprocess_integral(integral):
-        """
-        Given an Integral associated with the given Form, return the integrand and
-        a list of arguments which can be used to construct an Integral from the
-        integrand.
-        """
+def preprocess_integral(integral):
+    """
+    Given an Integral associated with the given Form, return the integrand and
+    a list of arguments which can be used to construct an Integral from the
+    integrand.
+    """
 
-        integrand = integral.integrand()
-        domain_type, domain_description, compiler_data, domain_data = \
-          integral.domain_type(), integral.domain_description(), integral.compiler_data(), integral.domain_data()
-        return integrand, [domain_type, domain_description, compiler_data, domain_data]
-
-    def _assemble_tensor(form, tensor):
-        return assemble(form, tensor = tensor, reset_sparsity = False)
-else:
-    def preprocess_integral(integral):
-        """
-        Given an Integral associated with the given Form, return the integrand and
-        a list of arguments which can be used to construct an Integral from the
-        integrand.
-        """
-
-        integrand = integral.integrand()
-        integral_type, domain, subdomain_id, metadata, subdomain_data = \
-          integral.integral_type(), integral.domain(), integral.subdomain_id(), integral.metadata(), integral.subdomain_data()
-        return integrand, [integral_type, domain, subdomain_id, metadata, subdomain_data]
-
-    def _assemble_tensor(form, tensor):
-        return assemble(form, tensor = tensor)
+    integrand = integral.integrand()
+    integral_type, domain, subdomain_id, metadata, subdomain_data = \
+      integral.integral_type(), integral.domain(), integral.subdomain_id(), integral.metadata(), integral.subdomain_data()
+    return integrand, [integral_type, domain, subdomain_id, metadata, subdomain_data]
 
 def matrix_optimisation(form):
     """
@@ -97,13 +81,13 @@ def matrix_optimisation(form):
     # the linear form
     mat_form = derivative(form, fn,
       # Hack to work around an obscure FEniCS bug
-      expand = dolfin.MPI.num_processes() == 1 or
+      expand = dolfin.MPI.size(dolfin.mpi_comm_world()) == 1 or
         (not is_r0_function_space(args[0].function_space()) and not is_r0_function(fn)))
     if n_non_static_coefficients(mat_form) > 0:
         # The form is non-linear
         return None
     try:
-        rhs_form = rhs(replace(form, {fn:dolfin.TrialFunction(fn.function_space())}))
+        rhs_form = dolfin.rhs(dolfin.replace(form, {fn:dolfin.TrialFunction(fn.function_space())}))
     except ufl.log.UFLException:
         # The form might be inhomogeneous
         return None
@@ -113,6 +97,435 @@ def matrix_optimisation(form):
 
     # Success
     return mat_form, fn
+
+class PAFilter(object):
+    """
+    A pre-assembly filter. This processes input forms for pre-assembly.
+
+    Constructor arguments:
+      quadrature_degree: Quadrature degree used for form assembly.
+      pre_assembly_parameters: Parameters defining detailed optimisation options.
+    """
+
+    def __init__(self, quadrature_degree, pre_assembly_parameters):
+        if not isinstance(quadrature_degree, int) or quadrature_degree < 0:
+            raise InvalidArgumentException("quadrature_degree must be a non-negative integer")
+        if not isinstance(pre_assembly_parameters, dolfin.Parameters):
+            raise InvalidArgumentException("default_pre_assembly_parameters must be a Parameters")
+
+                                                                # No real need to copy here
+        self.pre_assembly_parameters = pre_assembly_parameters#.copy()
+        self._quadrature_degree = quadrature_degree
+        self._form = ufl.form.Form([])
+        self._n = 0
+        self._rank = None
+
+        return
+
+    def name(self):
+        """
+        Return the name of the PAFilter type.
+        """
+
+        return self.__class__.__name__
+
+    def _add(self, form):
+        if not isinstance(form, ufl.form.Form):
+            raise InvalidArgumentException("form must be a Form")
+        elif is_empty_form(form):
+            return
+
+        if self._n == 0:
+            self._form = form
+            self._n += 1
+            self._rank = form_rank(form)
+        else:
+            rank = form_rank(form)
+            if not rank == self._rank:
+                raise InvalidArgumentException("Unexpected form rank: %i" % rank)
+            self._form += form
+            self._n += 1
+
+        return
+
+    def _cache_assemble(self, form):
+        return assembly_cache.assemble(form,
+          form_compiler_parameters = {"quadrature_degree":self._quadrature_degree})
+
+    def _assemble(self, form, tensor = None):
+        return assemble(form, tensor = tensor,
+          form_compiler_parameters = {"quadrature_degree":self._quadrature_degree})
+
+    def add(self, form):
+        """
+        Attempt to add a Form to the PAFilter. Return a (form, n_added) pair,
+        where form is the remaining part of the input Form *not* added to the
+        PAFilter, and n_added indicates the number of terms which *are* added to the
+        PAFilter.
+        """
+
+        if not isinstance(form, ufl.form.Form):
+            raise InvalidArgumentException("form must be a Form")
+
+        return form, 0
+
+    def n(self):
+        """
+        Return the number of terms added to the PAFilter.
+        """
+
+        return self._n
+
+    def rank(self):
+        """
+        Return the rank of the Form associated with the PAFilter.
+        """
+
+        return self._rank
+
+    def pre_assemble(self):
+        """
+        Pre-assemble the PAFilter.
+        """
+
+        return
+
+    def match_tensor(self, tensor = None):
+        """
+        Addition of GenericMatrix s can be more efficient if the sparsity patterns
+        match. Extend the sparsity pattern of the input GenericMatrix and any
+        relevant internally stored GenericMatrix so that their sparsity patterns
+        match. Return the expanded GenericMatrix if tensor is not None. Otherwise
+        return a copy of an internal GenericMatrix if one exists, or None otherwise.
+        Must be called after the pre_assemble method.
+
+        Arguments:
+          tensor: The GenericMatrix whose sparsity pattern is to match any relevant
+                  internally stored GenericMatrix s.
+        """
+
+        return tensor
+
+    def assemble(self, tensor = None, same_nonzero_pattern = False, copy = False):
+        """
+        Return the result of assembling the Form associated with the PAFilter.
+
+        Arguments:
+          tensor: If not None, add the result of assembing the form to tensor.
+          same_nonzero_pattern: If tensor is a GenericMatrix, whether tensor has the
+                                same sparsity pattern as the GenericMatrix which
+                                will be added to it.
+          copy: Whether the result should be a copy. If copy is False then the
+                result should not be modified.
+        """
+
+        raise StateException("Cannot assemble empty Form")
+
+class PAStaticFilter(PAFilter):
+    """
+    A pre-assembly filter which processes static terms.
+
+    Constructor arguments:
+      quadrature_degree: Quadrature degree used for form assembly.
+      pre_assembly_parameters: Parameters defining detailed optimisation options.
+    """
+
+    def __init__(self, quadrature_degree, pre_assembly_parameters):
+        PAFilter.__init__(self, quadrature_degree, pre_assembly_parameters)
+        self.__pre_assembled = None
+
+        return
+
+    def add(self, form):
+        """
+        Attempt to add a Form to the PAFilter. Return a (form, n_added) pair,
+        where form is the remaining part of the input Form *not* added to the
+        PAFilter, and n_added indicates the number of terms which *are* added to the
+        PAFilter.
+        """
+
+        if not isinstance(form, ufl.form.Form):
+            raise InvalidArgumentException("form must be a Form")
+        elif is_empty_form(form):
+            return form, 0
+
+        if is_static_form(form):
+            self._add(form)
+            self.__pre_assembled = None
+            return ufl.form.Form([]), 1
+        else:
+            return form, 0
+
+    def pre_assemble(self):
+        """
+        Pre-assemble the PAFilter.
+        """
+
+        if self._n == 0:
+            return
+
+        self.__pre_assembled = self._cache_assemble(self._form)
+
+        return
+
+    def match_tensor(self, tensor = None):
+        """
+        Addition of GenericMatrix s can be more efficient if the sparsity patterns
+        match. Extend the sparsity pattern of the input GenericMatrix and any
+        relevant internally stored GenericMatrix so that their sparsity patterns
+        match. Return the expanded GenericMatrix if tensor is not None. Otherwise
+        return a copy of an internal GenericMatrix if one exists, or None otherwise.
+        Must be called after the pre_assemble method.
+
+        Arguments:
+          tensor: The GenericMatrix whose sparsity pattern is to match any relevant
+                  internally stored GenericMatrix s.
+        """
+
+        if self.__pre_assembled is None:
+            if self._n == 0:
+                return tensor
+            else:
+                raise StateException("Cannot call match_tensor method when not pre-assembled")
+        elif not self._rank == 2:
+            raise StateException("Unexpected form rank: %i" % self._rank)
+        if not tensor is None and not isinstance(tensor, dolfin.GenericMatrix):
+            raise InvalidArgumentException("tensor must be a GenericMatrix")
+
+        if tensor is None:
+            return self.__pre_assembled.copy()
+        else:
+            assert(isinstance(self.__pre_assembled, dolfin.GenericMatrix))
+            self.__pre_assembled.axpy(0.0, tensor, False)
+            tensor.axpy(0.0, self.__pre_assembled, False)
+            return tensor
+
+    def assemble(self, tensor = None, same_nonzero_pattern = False, copy = False):
+        """
+        Return the result of assembling the Form associated with the PAFilter.
+
+        Arguments:
+          tensor: If not None, add the result of assembing the form to tensor.
+          same_nonzero_pattern: If tensor is a GenericMatrix, whether tensor has the
+                                same sparsity pattern as the GenericMatrix which
+                                will be added to it.
+          copy: Whether the result should be a copy of internal data. If copy is
+                False and tensor is None then the result should not be modified.
+        """
+
+        if self.__pre_assembled is None:
+            if self._n == 0:
+                raise StateException("Cannot assemble empty Form")
+            else:
+                raise StateException("Cannot call assemble method when not pre-assembled")
+
+        L = self.__pre_assembled
+        if tensor is None:
+            if copy:
+                L = L.copy()
+            return L
+        else:
+            if isinstance(L, dolfin.GenericMatrix) and same_nonzero_pattern:
+                tensor.axpy(1.0, L, True)
+            else:
+                tensor += L
+            return tensor
+
+class PAMatrixFilter(PAFilter):
+    """
+    A pre-assembly filter which processes terms which can be converted to a
+    static bi-linear form action.
+
+    Constructor arguments:
+      quadrature_degree: Quadrature degree used for form assembly.
+      pre_assembly_parameters: Parameters defining detailed optimisation options.
+    """
+
+    def __init__(self, quadrature_degree, pre_assembly_parameters):
+        PAFilter.__init__(self, quadrature_degree, pre_assembly_parameters)
+        self.__L = OrderedDict()
+        self.__pre_assembled = None
+
+        return
+
+    def add(self, form):
+        """
+        Attempt to add a Form to the PAFilter. Return a (form, n_added) pair,
+        where form is the remaining part of the input Form *not* added to the
+        PAFilter, and n_added indicates the number of terms which *are* added to the
+        PAFilter.
+        """
+
+        if not isinstance(form, ufl.form.Form):
+            raise InvalidArgumentException("form must be a Form")
+        elif is_empty_form(form):
+            return form, 0
+
+        mform = matrix_optimisation(form)
+        if mform is None:
+            return form, 0
+        mat_form, fn = mform
+
+        self._add(form)
+        if fn in self.__L:
+            self.__L[fn] += mat_form
+        else:
+            self.__L[fn] = mat_form
+        self.__pre_assembled = None
+        return ufl.form.Form([]), 1
+
+    def pre_assemble(self):
+        """
+        Pre-assemble the PAFilter.
+        """
+
+        if self._n == 0:
+            return
+
+        self.__pre_assembled = OrderedDict()
+        for fn in self.__L:
+            self.__pre_assembled[fn] = self._cache_assemble(self.__L[fn])
+
+        return
+
+    def assemble(self, tensor = None, same_nonzero_pattern = False, copy = False):
+        """
+        Return the result of assembling the Form associated with the PAFilter.
+
+        Arguments:
+          tensor: If not None, add the result of assembing the form to tensor.
+          same_nonzero_pattern: If tensor is a GenericMatrix, whether tensor has the
+                                same sparsity pattern as the GenericMatrix which
+                                will be added to it.
+          copy: Whether the result should be a copy of internal data. If copy is
+                False and tensor is None then the result should not be modified.
+        """
+
+        if self.__pre_assembled is None:
+            if self._n == 0:
+                raise StateException("Cannot assemble empty Form")
+            else:
+                raise StateException("Cannot call assemble method when not pre-assembled")
+
+        if tensor is None:
+            fn, mat = self.__pre_assembled.items()[0]
+            L = mat * fn.vector()
+            for fn, mat in self.__pre_assembled.items()[1:]:
+                L += mat * fn.vector()
+            return L
+        else:
+            for fn, mat in self.__pre_assembled.iteritems():
+                tensor += mat * fn.vector()
+            return tensor
+
+class NonPAFilter(PAFilter):
+    """
+    A dummy pre-assembly filter which accepts any Form, and uses standard
+    assembly.
+
+    Constructor arguments:
+      quadrature_degree: Quadrature degree used for form assembly.
+      pre_assembly_parameters: Parameters defining detailed optimisation options.
+    """
+
+    def __init__(self, quadrature_degree, pre_assembly_parameters):
+        PAFilter.__init__(self, quadrature_degree, pre_assembly_parameters)
+        self.__tensor = None
+
+        return
+
+    def add(self, form):
+        """
+        Attempt to add a Form to the PAFilter. Return a (form, n_added) pair,
+        where form is the remaining part of the input Form *not* added to the
+        PAFilter, and n_added indicates the number of terms which *are* added to the
+        PAFilter.
+        """
+
+        if not isinstance(form, ufl.form.Form):
+            raise InvalidArgumentException("form must be a Form")
+        elif is_empty_form(form):
+            return form, 0
+
+        self._add(form)
+        self.__tensor = None
+        return ufl.form.Form([]), 1
+
+    def match_tensor(self, tensor = None):
+        """
+        Addition of GenericMatrix s can be more efficient if the sparsity patterns
+        match. Extend the sparsity pattern of the input GenericMatrix and any
+        relevant internally stored GenericMatrix so that their sparsity patterns
+        match. Return the expanded GenericMatrix if tensor is not None. Otherwise
+        return a copy of an internal GenericMatrix if one exists, or None otherwise.
+        Must be called after the pre_assemble method.
+
+        Arguments:
+          tensor: The GenericMatrix whose sparsity pattern is to match any relevant
+                  internally stored GenericMatrix s.
+        """
+
+        if self._n == 0:
+            return tensor
+        elif not self._rank == 2:
+            raise StateException("Unexpected form rank: %i" % self._rank)
+        if not tensor is None and not isinstance(tensor, dolfin.GenericMatrix):
+            raise InvalidArgumentException("tensor must be a GenericMatrix")
+
+        one = dolfin.Constant(1.0)
+        form = dolfin.replace(self._form, {c:one for c in ufl.algorithms.extract_coefficients(self._form)})
+        if self._rank == 1:
+            tensor = self._assemble(form)
+        elif self._rank == 2:
+            if self.__tensor is None:
+                self.__tensor = self._assemble(form)
+            if tensor is None:
+                tensor = self.__tensor.copy()
+            else:
+                self.__tensor.axpy(0.0, tensor, False)
+                tensor.axpy(0.0, self.__tensor, False)
+        else:
+            raise StateException("Unexpected form rank: %i" % self._rank)
+
+        return tensor
+
+    def assemble(self, tensor = None, same_nonzero_pattern = False, copy = False):
+        """
+        Return the result of assembling the Form associated with the PAFilter.
+
+        Arguments:
+          tensor: If not None, add the result of assembing the form to tensor.
+          same_nonzero_pattern: If tensor is a GenericMatrix, whether tensor has the
+                                same sparsity pattern as the GenericMatrix which
+                                will be added to it.
+          copy: Whether the result should be a copy of internal data. If copy is
+                False and tensor is None then the result should not be modified.
+        """
+
+        if self._n == 0:
+            raise StateException("Cannot assemble empty Form")
+
+        if self._rank == 2:
+            if self.__tensor is None:
+                self.__tensor = L = self._assemble(self._form)
+            else:
+                L = self._assemble(self._form, tensor = self.__tensor)
+            if tensor is None:
+                if copy:
+                    L = L.copy()
+                return L
+            else:
+                if same_nonzero_pattern:
+                    tensor.axpy(1.0, L, True)
+                else:
+                    tensor += L
+                return tensor
+        else:
+            if tensor is None:
+                return self._assemble(self._form)
+            else:
+                tensor += self._assemble(self._form)
+                return tensor
 
 class PAForm(object):
     """
@@ -124,119 +537,130 @@ class PAForm(object):
       pre_assembly_parameters: Parameters defining detailed optimisation options.
     """
 
-    def __init__(self, form, pre_assembly_parameters = {},
-      default_pre_assembly_parameters = dolfin.parameters["timestepping"]["pre_assembly"]["forms"]):
-        if not isinstance(default_pre_assembly_parameters, dolfin.Parameters):
-            raise InvalidArgumentException("default_pre_assembly_parameters must be a Parameters")
+    def __init__(self, form, pre_assembly_parameters = {}):
+        if not isinstance(form, ufl.form.Form) or is_empty_form(form):
+            raise InvalidArgumentException("form must be a non-empty Form")
 
+        rank = form_rank(form)
+        if rank == 0:
+            default_pre_assembly_parameters = dolfin.parameters["timestepping"]["pre_assembly"]["integrals"]
+        elif rank == 1:
+            default_pre_assembly_parameters = dolfin.parameters["timestepping"]["pre_assembly"]["linear_forms"]
+        elif rank == 2:
+            default_pre_assembly_parameters = dolfin.parameters["timestepping"]["pre_assembly"]["bilinear_forms"]
+        else:
+            raise InvalidArgumentException("Unexpected form rank: %i" % rank)
         npre_assembly_parameters = default_pre_assembly_parameters.copy()
         npre_assembly_parameters.update(pre_assembly_parameters)
         pre_assembly_parameters = npre_assembly_parameters;  del(npre_assembly_parameters)
 
+        pa_filters = [PAStaticFilter]
+        if rank == 1 and pre_assembly_parameters["matrix_optimisation"]:
+            pa_filters.append(PAMatrixFilter)
+
+        self.__form = form
+        self.__rank = rank
+        self.__quadrature_degree = form_quadrature_degree(form)
+        self.__deps = set(ufl.algorithms.extract_coefficients(form))
+        self.__is_static = is_static_form(form)
         self.pre_assembly_parameters = pre_assembly_parameters
-        self.__set(form)
+        self.__set_optimise(form, pa_filters)
 
         return
 
-    def __set(self, form):
-        if not isinstance(form, ufl.form.Form) or is_empty_form(form):
-            raise InvalidArgumentException("form must be a non-empty Form")
+    def __set_optimise(self, form, pa_filters):
+        pa_filters = [filter(self.__quadrature_degree, self.pre_assembly_parameters) for filter in pa_filters]
+        non_pa_filter = NonPAFilter(self.__quadrature_degree, self.pre_assembly_parameters)
 
-        self._set_optimise(form)
+        for filter in pa_filters:
+            form, n_added = filter.add(form)
 
-        self.__rank = form_rank(form)
-        self.__deps = ufl.algorithms.extract_coefficients(form)
-
-        return
-
-    def _set_optimise(self, form):
-        if is_static_form(form):
-            self._set_pa([form], [])
-        elif self.pre_assembly_parameters["term_optimisation"]:
-            quadrature_degree = form_quadrature_degree(form)
-
-            pre_assembled_L = []
-            non_pre_assembled_L = []
-
-            for integral in form.integrals():
-                integrand, iargs = preprocess_integral(integral)
-                if self.pre_assembly_parameters["expand_form"]:
-                    if isinstance(integrand, ufl.algebra.Sum):
-                        terms = [(term, expand_expr(term)) for term in integrand.operands()]
+        if not is_empty_form(form):
+            if self.pre_assembly_parameters["expand_form"]:
+                expand_expr = fenics_utils.expand_expr
+            else:
+                def expand_expr(e):
+                    if isinstance(e, ufl.algebra.Sum):
+                        return e.operands()
                     else:
-                        terms = [(integrand, expand_expr(integrand))]
+                        return e
+
+            if self.pre_assembly_parameters["term_optimisation"]:
+                terms = []
+                for integral in form.integrals():
+                    integrand, iargs = preprocess_integral(integral)
+                    def integrand_to_form(expr):
+                        return ufl.form.Form([ufl.Integral(expr, *iargs)])
+                    terms.append((integrand_to_form(integrand), [integrand_to_form(e) for e in expand_expr(integrand)]))
+            else:
+                terms = [(form, [form])]
+            for term in terms:
+                term_n_pa = 0
+                non_pa_terms = []
+                for sterm in term[1]:
+                    for filter in pa_filters:
+                        sterm, n_added = filter.add(sterm)
+                        term_n_pa += n_added
+                    non_pa_terms.append(sterm)
+                if term_n_pa == 0:
+                    non_pa_filter.add(term[0])
                 else:
-                    if isinstance(integrand, ufl.algebra.Sum):
-                        terms = [(term, [term]) for term in integrand.operands()]
-                    else:
-                        terms = [(integrand, [integrand])]
-                for term in terms:
-                    pterm = [], []
-                    for sterm in term[1]:
-                        stform = QForm([ufl.Integral(sterm, *iargs)], quadrature_degree = quadrature_degree)
-                        if is_static_form(stform):
-                            pterm[0].append(stform)
-                        else:
-                            pterm[1].append(stform)
-                    if len(pterm[0]) == 0:
-                        tform = QForm([ufl.Integral(term[0], *iargs)], quadrature_degree = quadrature_degree)
-                        non_pre_assembled_L.append(tform)
-                    else:
-                        pre_assembled_L += pterm[0]
-                        non_pre_assembled_L += pterm[1]
+                    for sterm in non_pa_terms:
+                        non_pa_filter.add(sterm)
 
-            self._set_pa(pre_assembled_L, non_pre_assembled_L)
+        n = {}
+        n_pa = 0
+        filters = []
+        for filter in pa_filters:
+            n_filter = filter.n()
+            n[filter.name()] = n_filter
+            n_pa += n_filter
+            if n_filter > 0:
+                filter.pre_assemble()
+                filters.append(filter)
+        n_non_pa = non_pa_filter.n()
+        if n_non_pa > 0:
+            non_pa_filter.pre_assemble()
+            filters.insert(0, non_pa_filter)
+
+        if self.__rank == 2 and len(filters) > 1:
+            tensor = filters[0].match_tensor()
+            for filter in filters[1:] + filters[:-1]:
+                tensor = filter.match_tensor(tensor = tensor)
+            same_nonzero_pattern = True
         else:
-            self._set_pa([], [form])
+            same_nonzero_pattern = False
 
-        return
-
-    def _set_pa(self, pre_assembled_L, non_pre_assembled_L):
-        if len(pre_assembled_L) == 0:
-            self._pre_assembled_L = None
-        else:
-            l_L = pre_assembled_L[0]
-            for L in pre_assembled_L[1:]:
-                l_L += L
-            self._pre_assembled_L = assembly_cache.assemble(l_L, compress = self.pre_assembly_parameters["compress_matrices"])
-
-        if len(non_pre_assembled_L) == 0:
-            self._non_pre_assembled_L = None
-        else:
-            self._non_pre_assembled_L = non_pre_assembled_L[0]
-            for L in non_pre_assembled_L[1:]:
-                self._non_pre_assembled_L += L
-
-        self._n_pre_assembled = len(pre_assembled_L)
-        self._n_non_pre_assembled = len(non_pre_assembled_L)
+        self.__filters = filters
+        self.__n = n
+        self.__n_pre_assembled = n_pa
+        self.__n_non_pre_assembled = n_non_pa
+        self.__same_nonzero_pattern = same_nonzero_pattern
 
         return
 
     def assemble(self, copy = False):
         """
-        Return the result of assembling the Form associated with the PAForm. If
-        copy is False then existing data may be returned -- it is expected in this
-        case that the return value will never be modified.
+        Return the result of assembling the Form associated with the PAForm.
+
+        Arguments:
+          copy: Whether the result should be a copy of internal data. If copy is
+                False then the result should not be modified.
         """
 
-        if self._non_pre_assembled_L is None:
-            if self._pre_assembled_L is None:
-                raise StateException("Cannot assemble empty form")
-            else:
-                if copy:
-                    L = self._pre_assembled_L.copy()
-                else:
-                    L = self._pre_assembled_L
+        if len(self.__filters) == 0:
+            raise StateException("Cannot assemble empty form")
+        elif len(self.__filters) == 1:
+            return self.__filters[0].assemble(copy = copy)
         else:
-            L = assemble(self._non_pre_assembled_L)
-            if not self._pre_assembled_L is None:
-                L += self._pre_assembled_L
-
-        return L
+            tensor = self.__filters[0].assemble(copy = True)
+            for filter in self.__filters[1:]:
+                tensor = filter.assemble(tensor = tensor, same_nonzero_pattern = self.__same_nonzero_pattern, copy = False)
+            return tensor
 
     def rank(self):
         """
-        Return the Form rank.
+        Return the PAForm rank.
         """
 
         return self.__rank
@@ -246,252 +670,35 @@ class PAForm(object):
         Return whether the PAForm is static.
         """
 
-        return self._n_non_pre_assembled == 0
+        return self.__is_static
+
+    def n(self):
+        """
+        Return a dictionary of name:n_added pairs, indicating the number of terms
+        added to each considered PAFilter.
+        """
+
+        return self.__n
 
     def n_pre_assembled(self):
         """
         Return the number of pre-assembled terms.
         """
 
-        return self._n_pre_assembled
+        return self.__n_pre_assembled
 
     def n_non_pre_assembled(self):
         """
         Return the number of non-pre-assembled terms.
         """
 
-        return self._n_non_pre_assembled
-
-    def n(self):
-        """
-        Return the total number of terms.
-        """
-
-        return self.n_pre_assembled() + self.n_non_pre_assembled()
+        return self.__n_non_pre_assembled
 
     def dependencies(self, non_symbolic = False):
         """
-        Return Form dependencies. The optional non_symbolic has no effect.
+        Return PAForm dependencies. The optional non_symbolic has no effect.
         """
 
         return self.__deps
 
 _assemble_classes.append(PAForm)
-
-class PABilinearForm(PAForm):
-    """
-    A pre-assembled bi-linear form. This is similar to PAForm, but applies
-    additional optimisations specific to bi-linear forms. Also has different
-    default parameters.
-    """
-
-    def __init__(self, form, pre_assembly_parameters = {}):
-        if not form_rank(form) == 2:
-            raise InvalidArgumentException("form must be a rank 2 form")
-
-        PAForm.__init__(self, form,
-          pre_assembly_parameters = pre_assembly_parameters,
-          default_pre_assembly_parameters = dolfin.parameters["timestepping"]["pre_assembly"]["bilinear_forms"])
-
-        if not self._non_pre_assembled_L is None and not self._pre_assembled_L is None:
-            # Work around a (rare) reproducibility issue:
-            # _assemble_tensor(form, tensor = tensor) can give (very slightly)
-            # different results if given matrices with different sparsity patterns.
-
-            # The coefficients may contain invalid data, or be non-wrapping
-            # WrappedFunction s. Replace the coefficients with Constant(1.0).
-            form = self._non_pre_assembled_L
-            one = dolfin.Constant(1.0)
-            repl = {c:one for c in ufl.algorithms.extract_coefficients(form)}
-            form = replace(form, repl)
-
-            # Set up the matrices
-            L = self.__non_pre_assembled_L_tensor = assemble(form)
-            L.axpy(1.0, self._pre_assembled_L, False)
-            self._pre_assembled_L = self._pre_assembled_L.copy()
-            self._pre_assembled_L.axpy(0.0, L, False)
-
-        return
-
-    def assemble(self, copy = False):
-        """
-        Return the result of assembling the Form associated with the PABilinearForm.
-        If copy is False then existing data may be returned -- it is expected in
-        this case that the return value will never be modified.
-        """
-
-        if self._non_pre_assembled_L is None:
-            if self._pre_assembled_L is None:
-                raise StateException("Cannot assemble empty form")
-            else:
-                if copy:
-                    L = self._pre_assembled_L.copy()
-                else:
-                    L = self._pre_assembled_L
-        else:
-            if hasattr(self, "_PABilinearForm__non_pre_assembled_L_tensor"):
-                L = self.__non_pre_assembled_L_tensor
-                _assemble_tensor(self._non_pre_assembled_L, tensor = L)
-                if not self._pre_assembled_L is None:
-                    # The pre-assembled matrix and the non-pre-assembled matrix have
-                    # previously been configured so as to have the same sparsity pattern
-                    # (below)
-                    L.axpy(1.0, self._pre_assembled_L, True)
-                # A copy is not really required here
-                #if copy:
-                #  L = L.copy()
-            else:
-                L = self.__non_pre_assembled_L_tensor = assemble(self._non_pre_assembled_L)
-                assert(self._pre_assembled_L is None)
-
-        return L
-
-class PALinearForm(PAForm):
-    """
-    A pre-assembled linear form. This is similar to PAForm, but applies additional
-    optimisations specific to linear forms. Also has different default parameters.
-    """
-
-    def __init__(self, form, pre_assembly_parameters = {}):
-        if not form_rank(form) == 1:
-            raise InvalidArgumentException("form must be a rank 1 form")
-
-        PAForm.__init__(self, form,
-          pre_assembly_parameters = pre_assembly_parameters,
-          default_pre_assembly_parameters = dolfin.parameters["timestepping"]["pre_assembly"]["linear_forms"])
-
-        return
-
-    def _set_optimise(self, form):
-        pre_assembled_L = []
-        mult_assembled_L = OrderedDict()
-        non_pre_assembled_L = []
-
-        if is_static_form(form):
-            pre_assembled_L.append(form)
-        elif self.pre_assembly_parameters["term_optimisation"]:
-            quadrature_degree = form_quadrature_degree(form)
-
-            for integral in form.integrals():
-                integrand, iargs = preprocess_integral(integral)
-                if self.pre_assembly_parameters["expand_form"]:
-                    if isinstance(integrand, ufl.algebra.Sum):
-                        terms = [(term, expand_expr(term)) for term in integrand.operands()]
-                    else:
-                        terms = [(integrand, expand_expr(integrand))]
-                else:
-                    if isinstance(integrand, ufl.algebra.Sum):
-                        terms = [(term, [term]) for term in integrand.operands()]
-                    else:
-                        terms = [(integrand, [integrand])]
-                for term in terms:
-                    pterm = [], [], []
-                    for sterm in term[1]:
-                        stform = QForm([ufl.Integral(sterm, *iargs)], quadrature_degree = quadrature_degree)
-                        if is_static_form(stform):
-                            pterm[0].append(stform)
-                        elif self.pre_assembly_parameters["matrix_optimisation"]:
-                            mform = matrix_optimisation(stform)
-                            if mform is None:
-                                pterm[2].append(stform)
-                            else:
-                                pterm[1].append(mform)
-                        else:
-                            pterm[2].append(stform)
-                    if len(pterm[0]) == 0 and len(pterm[1]) == 0:
-                        tform = QForm([ufl.Integral(term[0], *iargs)], quadrature_degree = quadrature_degree)
-                        non_pre_assembled_L.append(tform)
-                    else:
-                        pre_assembled_L += pterm[0]
-                        for mform in pterm[1]:
-                            if mform[1] in mult_assembled_L:
-                                mult_assembled_L[mform[1]].append(mform[0])
-                            else:
-                                mult_assembled_L[mform[1]] = [mform[0]]
-                        non_pre_assembled_L += pterm[2]
-        elif self.pre_assembly_parameters["matrix_optimisation"]:
-            mform = matrix_optimisation(form)
-            if mform is None:
-                non_pre_assembled_L.append(form)
-            else:
-                mult_assembled_L[mform[1]] = [mform[0]]
-        else:
-            non_pre_assembled_L.append(form)
-
-        self._set_pa(pre_assembled_L, mult_assembled_L, non_pre_assembled_L)
-
-        return
-
-    def _set_pa(self, pre_assembled_L, mult_assembled_L, non_pre_assembled_L):
-        if len(pre_assembled_L) == 0:
-            self._pre_assembled_L = None
-        else:
-            l_L = pre_assembled_L[0]
-            for L in pre_assembled_L[1:]:
-                l_L += L
-            self._pre_assembled_L = assembly_cache.assemble(l_L)
-
-        n_mult_assembled_L = 0
-        if len(mult_assembled_L) == 0:
-            self._mult_assembled_L = None
-        else:
-            self._mult_assembled_L = []
-            for fn in mult_assembled_L:
-                mat_forms = mult_assembled_L[fn]
-                n_mult_assembled_L += len(mat_forms)
-                mat_form = mat_forms[0]
-                for lmat_form in mat_forms[1:]:
-                    mat_form += lmat_form
-                self._mult_assembled_L.append([assembly_cache.assemble(mat_form, compress = self.pre_assembly_parameters["compress_matrices"]), fn])
-
-        if len(non_pre_assembled_L) == 0:
-            self._non_pre_assembled_L = None
-        else:
-            self._non_pre_assembled_L = non_pre_assembled_L[0]
-            for L in non_pre_assembled_L[1:]:
-                self._non_pre_assembled_L += L
-
-        self._n_pre_assembled = len(pre_assembled_L) + n_mult_assembled_L
-        self._n_non_pre_assembled = len(non_pre_assembled_L)
-        self.__static = (self._n_non_pre_assembled == 0) and (n_mult_assembled_L == 0)
-
-        return
-
-    def assemble(self, copy = False):
-        """
-        Return the result of assembling the Form associated with this PALinearForm.
-        If copy is False then an existing GenericVector may be returned -- it is
-        expected in this case that the return value will never be modified.
-        """
-
-        if self._non_pre_assembled_L is None:
-            if self._mult_assembled_L is None:
-                if self._pre_assembled_L is None:
-                    raise StateException("Cannot assemble empty form")
-                else:
-                    if copy:
-                        L = self._pre_assembled_L.copy()
-                    else:
-                        L = self._pre_assembled_L
-            else:
-                L = self._mult_assembled_L[0][0] * self._mult_assembled_L[0][1].vector()
-                for i in xrange(1, len(self._mult_assembled_L)):
-                    L += self._mult_assembled_L[i][0] * self._mult_assembled_L[i][1].vector()
-                if not self._pre_assembled_L is None:
-                    L += self._pre_assembled_L
-        else:
-            L = assemble(self._non_pre_assembled_L)
-            if not self._mult_assembled_L is None:
-                for i in xrange(len(self._mult_assembled_L)):
-                    L += self._mult_assembled_L[i][0] * self._mult_assembled_L[i][1].vector()
-            if not self._pre_assembled_L is None:
-                L += self._pre_assembled_L
-
-        return L
-
-    def is_static(self):
-        """
-        Return whether the PALinearForm is static.
-        """
-
-        return self.__static

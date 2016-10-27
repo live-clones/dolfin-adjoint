@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -254,10 +254,10 @@ class DiskCheckpointer(Checkpointer):
 
         Checkpointer.__init__(self)
 
-        if dolfin.MPI.process_number() == 0:
+        if dolfin.MPI.rank(dolfin.mpi_comm_world()) == 0:
             if not os.path.exists(dirname):
                 os.mkdir(dirname)
-        dolfin.MPI.barrier()
+        dolfin.MPI.barrier(dolfin.mpi_comm_world())
 
         self.__dirname = dirname
         self.__filenames = {}
@@ -266,7 +266,7 @@ class DiskCheckpointer(Checkpointer):
         return
 
     def __filename(self, key):
-        return os.path.join(self.__dirname, "checkpoint_%s_%i" % (str(key), dolfin.MPI.process_number()))
+        return os.path.join(self.__dirname, "checkpoint_%s_%i" % (str(key), dolfin.MPI.rank(dolfin.mpi_comm_world())))
 
     def checkpoint(self, key, cs):
         """

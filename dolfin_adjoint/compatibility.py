@@ -116,7 +116,7 @@ else:
         # FIXME: need to track all of these things, currently only
         # return the dolfin-compatible ones.
         eq, u, bcs, J, Jp, M, form_compiler_parameters, solver_parameters, \
-            nullspace, transpose_nullspace, options_prefix = backend.solving._extract_args(*args, **kwargs)
+            nullspace, transpose_nullspace, near_nullspace, options_prefix = backend.solving._extract_args(*args, **kwargs)
         return eq, u, bcs, J, None, None, form_compiler_parameters, solver_parameters
 
 

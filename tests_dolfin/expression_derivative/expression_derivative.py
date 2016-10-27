@@ -6,7 +6,7 @@ class SourceExpression(Expression):
         self.c = c
         self.d = d
         self.derivative = derivative
-
+        
     def eval(self, value, x):
 
         if self.derivative is None:
@@ -30,12 +30,12 @@ if __name__ == "__main__":
     c = Constant(2)
     d = Constant(3)
 
-    f = SourceExpression(c, d, degree=1)
+    f = SourceExpression(c, d, degree=3)
     f.dependencies = c, d  # dolfin-adjoint needs to know on which
                            # coefficients this expression depends on
 
     # Provide the derivative coefficients
-    f.user_defined_derivatives = {c: SourceExpression(c, d, derivative=c, degree=1),
-                                  d: SourceExpression(c, d, derivative=d, degree=1)}
+    f.user_defined_derivatives = {c: SourceExpression(c, d, derivative=c, degree=3),
+                                  d: SourceExpression(c, d, derivative=d, degree=3)}
 
     taylor_test_expression(f, V)
