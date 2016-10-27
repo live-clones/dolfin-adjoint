@@ -223,9 +223,7 @@ class ConstantControl(DolfinAdjointControl):
             # Let's see if the form actually depends on the parameter m
             if len(diff_form.integrals()) != 0:
                 dFdm = backend.assemble(diff_form) # actually - dF/dm
-                assert isinstance(dFdm, backend.GenericVector)
-
-                out = dFdm.inner(adjoint.vector())
+                out = adjoint.vector().inner(dFdm)
             else:
                 out = None # dF/dm is zero, return None
 
