@@ -122,7 +122,6 @@ class Functional(libadjoint.Functional):
             if _has_multimesh(functional_value):
                 return backend.assemble_multimesh(functional_value)
             else:
-                #from IPython import embed; embed()
                 return backend.assemble(functional_value)
         else:
             return 0.0
