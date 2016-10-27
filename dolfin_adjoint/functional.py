@@ -118,9 +118,11 @@ class Functional(libadjoint.Functional):
                 backend.info_red("The form passed into Functional must be rank-0 (a scalar)! You have passed in a rank-%s form." % len(args))
                 raise libadjoint.exceptions.LibadjointErrorInvalidInputs
 
-            if hasattr(functional_value.coefficients()[0], '_V'):
+            from utils import _has_multimesh
+            if _has_multimesh(functional_value):
                 return backend.assemble_multimesh(functional_value)
             else:
+                #from IPython import embed; embed()
                 return backend.assemble(functional_value)
         else:
             return 0.0
