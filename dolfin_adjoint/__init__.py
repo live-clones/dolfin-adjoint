@@ -48,5 +48,9 @@ from optimization import optimization
 if backend.__name__ == "dolfin":
     import genericmatrix
     import genericvector
+    import optimization
+    import reduced_functional
+    import pointwise_functional
+    from optimization import optimization
 
 from ui import *
