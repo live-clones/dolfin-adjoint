@@ -78,8 +78,8 @@ V = FunctionSpace(mesh, "CG", 1)
 
 # ... and time:
 
-dt = Constant(0.25)
-T = 1
+dt = Constant(0.1)
+T = 2
 
 # We are considering a time-distributed forcing as control. In the next step,
 # we create one control function for each timestep in the model, and store all
@@ -161,7 +161,7 @@ u, d = solve_heat(ctrls)
 #
 # In code this yields:
 
-alpha = Constant(0e-1)
+alpha = Constant(0e-3)
 regularisation = alpha/2*sum([1/dt*(fb-fa)**2*dx for fb, fa in
     zip(ctrls.values()[1:], ctrls.values()[:-1])])
 
@@ -180,7 +180,7 @@ m = [Control(c) for c in ctrls.values()]
 # Finally, we define the reduced functional and solve the optimisation problem:
 
 rf = ReducedFunctional(J, m)
-opt_ctrls = minimize(rf, options={"maxiter": 20})
+opt_ctrls = minimize(rf, options={"maxiter": 50})
 
 # Depending on the alpha value that we choose, we get different behaviour in the
 # controls: the higher the alpha value, the "smoother" the control function will
@@ -191,17 +191,10 @@ opt_ctrls = minimize(rf, options={"maxiter": 20})
 #     :align: center
 
 
-from matplotlib import pyplot
-x = [c.vector().norm("linf") for c in opt_ctrls]
-x2 = [norm(c) for c in opt_ctrls]
-x3 = [c((0.5, 0.5)) for c in opt_ctrls]
-#from IPython import embed; embed()
-pyplot.plot(x, label="linf")
-pyplot.plot(x2, label="l2")
-pyplot.plot(x3, label="midpoint")
+from matplotlib import pyplot, rc
+rc('text', usetex=True)
+x = [c((0.5, 0.5)) for c in opt_ctrls]
+pyplot.plot(x, label="$\\alpha={}$".format(float(alpha)))
+pyplot.ylim([-3, 3])
 pyplot.legend()
-pyplot.show()
-
-for i, c in enumerate(opt_ctrls):
-    plot(c, title=str(i))
-interactive()
+pyplot.savefig("control_alpha={}.png".format(float(alpha)))
