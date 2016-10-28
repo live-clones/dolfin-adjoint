@@ -1,6 +1,7 @@
 from os import path
 import subprocess
 
+@pytest.mark.skip("Pointwise functional with regularisation is currently not implemented (see documentation in PointwiseFunctional class)")
 def test(request):
     test_file = path.split(path.dirname(str(request.fspath)))[1] + ".py"
     test_dir = path.split(str(request.fspath))[0]
