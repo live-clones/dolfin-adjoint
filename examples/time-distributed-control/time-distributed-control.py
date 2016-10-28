@@ -62,34 +62,33 @@
 
 from fenics import *
 from fenics_adjoint import *
+from collections import OrderedDict
 dt_meas = dt  # Keep a reference to dt, the time-measure of dolfin-adjoint
 
-# Next, we define the expressions for the initial source values :math:`f`, the
-# observational data :math:`d` and the viscosity :math:`\nu`.
+# Next, we define the expressions for observational data :math:`d` and the
+# viscosity :math:`\nu`.
 
-f = Expression("0", t=0)
-data = Expression("16*x[0]*(x[0]-1)*x[1]*(x[1]-1)*sin(pi*t)", t=0)
-nu = Constant(1)
+data = Expression("16*x[0]*(x[0]-1)*x[1]*(x[1]-1)*sin(pi*t)", t=0, degree=4)
+nu = Constant(1e-5)
 
-# Next, we define the discretization in both space:
+# Next, we define the discretization space:
 
-mesh = UnitSquareMesh(16, 16)
+mesh = UnitSquareMesh(8, 8)
 V = FunctionSpace(mesh, "CG", 1)
 
 # ... and time:
 
-dt = Constant(0.01)
-T = 0.5
+dt = Constant(0.25)
+T = 1
 
 # We are considering a time-distributed forcing as control. In the next step,
 # we create one control function for each timestep in the model, and store all
 # controls in a dictionary that maps timestep to control function:
 
-ctrls = {}
+ctrls = OrderedDict()
 t = float(dt)
 while t <= T:
-    f.t = t
-    ctrls[t] = project(Constant(0), V, name="source_{}".format(t), annotate=True)
+    ctrls[t] = Function(V, annotate=True)
     t += float(dt)
 
 # The following function implements a heat equation solver in FEniCS. The
@@ -98,13 +97,13 @@ while t <= T:
 # `annotate` flag in the assignment to enforce that the update of the forcing
 # function is captured in the `dolfin-adjoint` tape:
 
-def solve_heat():
+def solve_heat(ctrls):
     u = TrialFunction(V)
     v = TestFunction(V)
-    f = Function(V)
-    d = Function(V)
 
+    f = Function(V, name="source")
     u_0 = Function(V, name="solution")
+    d = Function(V, name="data")
 
     F = ( (u - u_0)/dt*v + nu*inner(grad(u), grad(v)) - f*v)*dx
     a, L = lhs(F), rhs(F)
@@ -114,11 +113,11 @@ def solve_heat():
     adj_start_timestep(time=t)
     while t <= T:
         # Update source term from control array
-        f.assign(ctrls[t], annotate=True)
+        f.assign(ctrls[t])
 
         # Update data function
         data.t = t
-        d.assign(interpolate(data, V, name="data_{}".format(t)), annotate=True)
+        d.assign(interpolate(data, V), annotate=True)
 
         # Solve PDE
         solve(a == L, u_0, bc)
@@ -127,9 +126,9 @@ def solve_heat():
         t += float(dt)
         adj_inc_timestep(time=t, finished=t>T)
 
-    return u_0, d, ctrls.values()
+    return u_0, d
 
-u, d, ctrls = solve_heat()
+u, d = solve_heat(ctrls)
 
 # With this preparation steps, we are now ready to define the functional.
 # First we discretise the regularisation term
@@ -162,11 +161,12 @@ u, d, ctrls = solve_heat()
 #
 # In code this yields:
 
-alpha = Constant(0e-4)
-regularisation = alpha/2*sum([1/dt*(fb-fa)**2*dx for fb, fa in zip(ctrls[1:], ctrls[:-1])])
+alpha = Constant(0e-1)
+regularisation = alpha/2*sum([1/dt*(fb-fa)**2*dx for fb, fa in
+    zip(ctrls.values()[1:], ctrls.values()[:-1])])
 
 # By default, dolfin-adjoint integrates functionals over the full time-interval.
-# Here, we have already discretised the functional in time, so it is sufficient
+# Since we have manually discretised the functional in time, so it is sufficient
 # to let dolfin-adjoint evaluate the functional at the beginning of the
 # tape evaluation:
 
@@ -175,13 +175,12 @@ regularisation = regularisation*dt_meas[START_TIME]
 # Next, we define the remaining functional terms and controls:
 
 J = Functional((u-d)**2*dx*dt_meas + regularisation)
-m = [Control(c) for c in ctrls]
+m = [Control(c) for c in ctrls.values()]
 
 # Finally, we define the reduced functional and solve the optimisation problem:
 
 rf = ReducedFunctional(J, m)
-opt_ctrls = minimize(rf, options={"maxiter": 10})
-adj_html("forward.html", "forward")
+opt_ctrls = minimize(rf, options={"maxiter": 20})
 
 # Depending on the alpha value that we choose, we get different behaviour in the
 # controls: the higher the alpha value, the "smoother" the control function will
