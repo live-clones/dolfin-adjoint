@@ -13,7 +13,7 @@ from dolfin_adjoint.timeforms import dt
 import dolfin_adjoint.adjlinalg as adjlinalg
 
 class PointwiseFunctional(functional.Functional):
-    '''The Functional class is overloaded to handle specific functionals, 
+    '''The Functional class is overloaded to handle specific functionals,
     where a Functions is evaluated in one or multiple points.
 
     Args:
@@ -26,17 +26,14 @@ class PointwiseFunctional(functional.Functional):
           Default: [None] (assuming a scalar function u)
         Verbose (bool): Show info on the commandline while running
           Default: False
-        Name (str): Name of the functional 
+        Name (str): Name of the functional
         regularisation (Form): the regularisation term (will be evaluated at START_TIME)
         alpha (float): Constant to multiply the misfit terms with
 
-    Some examples:
+    Limitations:
 
-      - Integration over all time:
-
-        .. code-block:: python
-
-          J = Functional(inner(u, u)*dx*dt)
+        - This code need further development to run in parallel.
+        - Taylor checks are not yet correct when using a regularisation term.
 
 
     '''
@@ -55,12 +52,12 @@ class PointwiseFunctional(functional.Functional):
         self.regform  = kwargs.get("regularisation", None)
         self.alpha    = kwargs.get("alpha", 1.0)
         self.index    = kwargs.get("u_ind", [None])
-        
+
         # Prep coords to be considerd as a matrix
         if type(self.coords) is not list:
             self.coords = [self.coords]
             self.refs = [self.refs]
-        
+
         self.basis    = [None]*len(self.coords)
         self.skip     = [False]*len(self.coords)
 
@@ -83,7 +80,7 @@ class PointwiseFunctional(functional.Functional):
         if self.regform is not None:
             self.timeform += self.regform*dt[0]
             self.regfunc  = functional.Functional(self.regform*dt[0])
-            
+
         # check compatibility inputs
         if len(self.coords) != len(self.refs):
             raise RuntimeError("Number of coordinates and observations doesn't match %4i vs %4i" %(len(self.coords), len(self.refs)))
@@ -105,16 +102,16 @@ class PointwiseFunctional(functional.Functional):
             if sum(self.basis[i].vector().array())<1.e-12:
                 if self.verbose: print "coord %i not in domain" %i
                 self.skip[i] = True
-        
+
     #-----------------------------------------------------------------------------------------------------
     # Evaluate functional
     def __call__(self, adjointer, timestep, dependencies, values):
 
-        if self.verbose: 
+        if self.verbose:
             print "eval ", len(values)
             print "timestep ", timestep
             print "\r\n******************"
-            
+
         toi = _time_levels(adjointer, timestep)[0] # time of interest
 
         my   = [0.0]*len(self.coords)
@@ -128,11 +125,6 @@ class PointwiseFunctional(functional.Functional):
                     ref  = self.refs[i][self.times.index(self.times[-1])]
                     my[i] = (solu - float(ref))*(solu - float(ref))
 
-                    if self.verbose:
-                        print "add final contrib"
-                        print ref, " ", float(ref)
-                        print ref, " ", solu
-
                     # if necessary, add one but last contribution
                     if toi in self.times and len(values) > 0:
                         if self.index[i] is None: solu = values[-1].data(self.coords[i])
@@ -140,10 +132,6 @@ class PointwiseFunctional(functional.Functional):
                         ref  = self.refs[i][self.times.index(toi)]
                         my[i] += (solu - float(ref))*(solu - float(ref))
 
-                        if self.verbose:
-                            print "add contrib"
-                            print ref, " ", float(ref)
-                            print ref, " ", solu
                 elif timestep is 0:
                     return backend.assemble(self.regform)
                 else: # normal situation
@@ -151,11 +139,6 @@ class PointwiseFunctional(functional.Functional):
                     else: solu = values[-1].data(self.coords[i])[self.index[i]]
                     ref  = self.refs[i][self.times.index(toi)]
                     my[i] = (solu - float(ref))*(solu - float(ref))
-
-                    if self.verbose:
-                        print "add regular contrib"
-                        print ref, " ", float(ref)
-                        print ref, " ", solu
 
             if self.verbose:
                 print "my eval ", my[i]
@@ -167,14 +150,14 @@ class PointwiseFunctional(functional.Functional):
     # Evaluate functional derivative
     def derivative(self, adjointer, variable, dependencies, values):
         if self.verbose:
-            for dep in dependencies: 
+            for dep in dependencies:
                 print variable.timestep, "derive wrt ", dep.name
         if self.regform is not None and variable.name == self.regform.coefficients()[0].name(): # derivative wrt the contorl
             if self.verbose: " derivatives wrt the controls "
-            #raise RuntimeError("""The derivative of a regularisation term                              doesn't work properly and shouldn't be used""")
-            #from IPython import embed; embed()
+            raise RuntimeError("""The derivative of a regularisation term
+                                  doesn't work properly and shouldn't be used""")
             return self.regfunc.derivative(adjointer, variable, dependencies, values)
-        else: 
+        else:
             # transate finish_time: UGLY!!
             if "FINISH_TIME" in self.times:
                 final_time = _time_levels(adjointer, adjointer.timestep_count - 1)[1]
@@ -212,17 +195,10 @@ class PointwiseFunctional(functional.Functional):
                     else: solu = coef(self.coords[i])[self.index[i]]
                     ff[i] = backend.Constant(self.alpha*2.0*(solu - float(ref)))
 
-                    if self.verbose:
-                        print "ff", float(ff[i])
-                        print "sol", solu
-                        print "ref", float(ref)
-                        print "tsoi", tsoi
-                        print "toi", toi
-
             # Set up linear combinations to be projected
             form = ff[0]*self.basis[0]
             for i in range(1, len(self.coords)): form += ff[i]*self.basis[i]
-                
+
             v = backend.project(form, self.func.function_space())
 
             return adjlinalg.Vector(v)
