@@ -1,5 +1,6 @@
 from os import path
 import subprocess
+import pytest
 
 @pytest.mark.skip("Pointwise functional with regularisation is currently not implemented (see documentation in PointwiseFunctional class)")
 def test(request):
