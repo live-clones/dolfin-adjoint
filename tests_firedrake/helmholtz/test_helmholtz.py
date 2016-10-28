@@ -14,12 +14,18 @@ and the analytical solution
 # Begin demo
 from firedrake import *
 from firedrake_adjoint import *
-# Create mesh and define function space
-n = 5
-mesh = UnitSquareMesh(2 ** n, 2 ** n)
-V = FunctionSpace(mesh, "CG", 1)
+import pytest
 
-def model(s):
+
+@pytest.fixture
+def V():
+    # Create mesh and define function space
+    n = 5
+    mesh = UnitSquareMesh(2 ** n, 2 ** n)
+    return FunctionSpace(mesh, "CG", 1)
+
+
+def model(s, V):
     # Define variational problem
     lmbda = 1
     u = TrialFunction(V)
@@ -40,13 +46,13 @@ def model(s):
     j = assemble(dot(x - f, x - f) * dx)
     return j, x, f
 
-if __name__ == '__main__':
 
+def test_helmholtz(V):
     s = Function(V)
     s.interpolate(Expression("(1+8*pi*pi)*cos(x[0]*pi*2)*cos(x[1]*pi*2)"))
 
     print "Running forward model"
-    j, x, f = model(s)
+    j, x, f = model(s, V)
 
     adj_html("forward.html", "forward")
     print "Replaying forward model"
@@ -60,7 +66,6 @@ if __name__ == '__main__':
 
     parameters["adjoint"]["stop_annotating"] = True
 
-    Jhat = lambda s: model(s)[0]
+    Jhat = lambda s: model(s, V)[0]
     conv_rate = taylor_test(Jhat, m, j, dJdm)
     assert conv_rate > 1.9
-    info_green("Test passed")

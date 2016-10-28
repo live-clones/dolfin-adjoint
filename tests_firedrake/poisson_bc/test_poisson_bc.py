@@ -16,13 +16,16 @@ This has the analytical solution
 """
 from firedrake import *
 from firedrake_adjoint import *
+import pytest
 
-mesh = UnitSquareMesh(10, 10)
-V = FunctionSpace(mesh, "CG", 1)
 
-def model(s):
-    # Create mesh and define function space
+@pytest.fixture
+def V():
+    mesh = UnitSquareMesh(10, 10)
+    return FunctionSpace(mesh, "CG", 1)
 
+
+def model(s, V):
     # Define variational problem
     u = Function(V, name="u")
     v = TestFunction(V)
@@ -39,12 +42,13 @@ def model(s):
 
     return assemble(dot(u - f, u - f) * dx), u, f
 
-if __name__ == '__main__':
+
+def test_poisson_bc(V):
     s = Function(V, name="s")
     s.assign(1)
 
     print "Running forward model"
-    j, u, f = model(s)
+    j, u, f = model(s, V)
 
     adj_html("forward.html", "forward")
     print "Replaying forward model"
@@ -58,7 +62,6 @@ if __name__ == '__main__':
 
     parameters["adjoint"]["stop_annotating"] = True
 
-    Jhat = lambda s: model(s)[0]
+    Jhat = lambda s: model(s, V)[0]
     conv_rate = taylor_test(Jhat, m, j, dJdm, seed=1e-3)
     assert conv_rate > 1.9
-    info_green("Test passed")
