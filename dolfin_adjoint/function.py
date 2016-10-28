@@ -1,6 +1,7 @@
 import backend
 import ufl
-from solving import solve, annotate as solving_annotate, do_checkpoint, register_initial_conditions
+from solving import solve, annotate as solving_annotate, do_checkpoint
+from solving import register_initial_conditions, register_initial_condition
 import libadjoint
 import assignment
 import adjlinalg
@@ -133,10 +134,16 @@ class Function(backend.Function):
             adjglobals.function_names.add(self.adj_name)
             del kwargs["name"]
 
+        annotate = kwargs.pop("annotate", False)
+        to_annotate = utils.to_annotate(annotate)
         backend.Function.__init__(self, *args, **kwargs)
 
         if hasattr(self, 'adj_name'):
             self.rename(self.adj_name, "a Function from dolfin-adjoint")
+
+        if to_annotate:
+            print "Registering", self.name()
+            register_initial_condition(self, adjglobals.adj_variables[self])
 
     def copy(self, *args, **kwargs):
 
