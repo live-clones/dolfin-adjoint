@@ -28,6 +28,6 @@ mJr = ReducedFunctional(mJ, Control(c))
 
 mJr3 = mJr(Constant(3))
 
-#assert mJr.taylor_test(Constant(5)) > 1.9
+assert mJr.taylor_test(Constant(5)) > 1.9
 assert abs(mJr3 - 484.0) < 1e-12
 info_green("Test passed")
