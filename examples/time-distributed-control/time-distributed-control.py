@@ -31,7 +31,7 @@
 #
 # .. math::
 #            \frac{\partial u}{\partial t} - \nu \nabla^{2} u= f(t)
-#             \quad & \textrm{in\phantom{r} } \Omega \times (0, T), \\
+#             \quad & \textrm{in } \Omega \times (0, T), \\
 #            u = 0  \quad & \textrm{for } \Omega \times \{0\} \\
 #            u = 0  \quad & \textrm{for } \partial \Omega \times (0, T).
 #
@@ -45,14 +45,11 @@
 # enforces smoothness of the control in time:
 #
 # .. math::
-#            J(u, f) := \int_0^T \int_\Omega u^2 \textrm{d} \Omega \text{d}t +
+#            J(u, f) := \int_0^T \int_\Omega (u-d)^2 \textrm{d} \Omega \text{d}t +
 #                       \frac{\alpha}{2} \int_0^T \int_\Omega \dot f^2 \textrm{d} \Omega \text{d}t
 #
-# The aim of this example is to compute the sensitivity of :math:`J` with
-# respect to the forcing terms :math:`f`, that is:
-#
-# .. math::
-#            \frac{\textrm{d}J}{\textrm{d} f}
+# The aim of this example is to solve the minimization problem :math:`\min_f J`
+# for some given data :math:`d`. 
 
 # Implementation
 # **************
@@ -139,36 +136,28 @@ u, d = solve_heat(ctrls)
 # Note, that :math:`f` is a piecewise linear function in time over the time intervals :math:`K = [(0, \delta t), (\delta t, 2 \delta t), \dots, (T-\delta
 # t, T)]`. Thus, we can write the integral as a sum over all intervals
 #
+# .. math::
+#             \frac{\alpha}{2} \sum_{a_k, b_k \in K} \int_{a_k}^{b_k} \int_\Omega \dot f(t)^2 \textrm{d} \Omega\text{d}t
+#
+# Discretising the time-derivative yields:
 #
 # .. math::
-#             = \frac{\alpha}{2} \sum_K \int_K \int_\Omega \dot f^2
-#             \textrm{d} \Omega\text{d}t
-#
-# With :math:`K = [a_k, b_k]`, we can continue:
-#
-# .. math::
-#             = \frac{\alpha}{2} \sum_K \int_{a_k}^{b_k} \int_\Omega \dot f(t)^2 \textrm{d} \Omega\text{d}t
-#
-# Discretising the time-derivative finally yields:
-#
-# .. math::
-#             = \frac{\alpha}{2} \sum_K \int_{a_k}^{b_k}
+#             \frac{\alpha}{2} \sum_K \int_{a_k}^{b_k}
 #             \int_\Omega \left(\frac{f(b_k)-
 #             f(a_k)}{b_k-a_k}\right)^2\textrm{d}\Omega \\
 #             = \frac{\alpha}{2} \sum_K (b_k-a_k)^{-1}
 #             \int_\Omega \left(f(b_k)- f(a_k)\right)^2\textrm{d}\Omega
 #
 #
-# In code this yields:
+# In code this is translates to:
 
-alpha = Constant(0e-3)
+alpha = Constant(1e-3)
 regularisation = alpha/2*sum([1/dt*(fb-fa)**2*dx for fb, fa in
     zip(ctrls.values()[1:], ctrls.values()[:-1])])
 
-# By default, dolfin-adjoint integrates functionals over the full time-interval.
-# Since we have manually discretised the functional in time, so it is sufficient
-# to let dolfin-adjoint evaluate the functional at the beginning of the
-# tape evaluation:
+# By default, dolfin-adjoint integrates functionals over the entire time-interval.
+# Since we have manually discretised the regularistation, it is sufficient
+# to tell dolfin-adjoint to evaluate the regularistation at the beginning:
 
 regularisation = regularisation*dt_meas[START_TIME]
 
@@ -182,14 +171,26 @@ m = [Control(c) for c in ctrls.values()]
 rf = ReducedFunctional(J, m)
 opt_ctrls = minimize(rf, options={"maxiter": 50})
 
-# Depending on the alpha value that we choose, we get different behaviour in the
-# controls: the higher the alpha value, the "smoother" the control function will
-# be over time.
+# If we solve this optimisation problem with varying :math:`\alpha` parameters,
+# we observe that we get different behaviour in the controls: the higher the
+# alpha value, the "smoother" the control function becomes. The following plots
+# show the optimised control evaluated at the middle point :math:`(0.5, 0.5)`
+# over time for different :math:`\alpha` values:
 
-# .. image:: plot.png
+# .. image:: control_alpha=0.0001.png
 #     :scale: 50
-#     :align: center
+#     :align: left
+# .. image:: control_alpha=0.001.png
+#     :scale: 50
+#     :align: right
+# .. image:: control_alpha=0.01.png
+#     :scale: 50
+#     :align: left
+# .. image:: control_alpha=0.1.png
+#     :scale: 50
+#     :align: right
 
+# The following code creates these plots:
 
 from matplotlib import pyplot, rc
 rc('text', usetex=True)

@@ -20,6 +20,7 @@ Optimization examples
    stokes-bc-control/stokes-bc-control
    poisson-topology/poisson-topology
    stokes-topology/stokes-topology
+   time-distributed-control/time-distributed-control
    time-dependent-wave/time-dependent-wave
    mpec/mpec
 
