@@ -34,8 +34,7 @@ u_ = Function(V)
 solve(a == L, u_, bc)
 
 # Compute the gradient of a functional
-J = Functional(u_*dPP(1) + u_*dx)
+J = Functional(u_**2*dPP(1) + u_*dx)
 Jhat = ReducedFunctional(J, Control(f))
 
-dJ = compute_gradient(J, Control(f))
-#plot(dJ, interactive=True, title="dJ")
+Jhat.taylor_test(f)

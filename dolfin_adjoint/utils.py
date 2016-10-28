@@ -812,3 +812,16 @@ def function_to_da_function(f):
         # Wrap copy into a dolfin_adjoint.Function
         return function.Function(f.function_space(), f.vector())
     return f
+
+def _has_multimesh(form):
+    multimesh_integral_types = ["cutcell", "overlap", "interface"]
+
+    for integral in form.integrals():
+        if integral.integral_type() in multimesh_integral_types:
+            return True
+
+    for coefficient in form.coefficients():
+        if hasattr(coefficient, "_V"):
+            return True
+
+    return False
