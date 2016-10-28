@@ -42,7 +42,7 @@ def main(ic, annotate=False):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     forward = main(ic, annotate=True)
 
     J = Functional(forward*forward*dx*dt[FINISH_TIME] + forward*forward*dx*dt[START_TIME])
@@ -54,5 +54,5 @@ if __name__ == "__main__":
         return assemble(forward*forward*dx + ic*ic*dx)
 
     minconv = taylor_test(Jfunc, FunctionControl("Velocity"), Jic, dJdic,
-                          seed=1.0e-3, perturbation_direction=interpolate(Expression("cos(x[0])"), V))
+                          seed=1.0e-3, perturbation_direction=interpolate(Expression("cos(x[0])", degree=1), V))
     assert minconv > 1.7

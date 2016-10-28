@@ -4,7 +4,7 @@
 # Copyright (C) 2008 Johan Hake
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -177,7 +177,7 @@ class LimiterSolver(AssignmentSolver):
 
         double alpha = 1.0;
         double T_vals[3];
-        std::vector<la_index> cell_dofs = dofmap->cell_dofs(cell);
+        %s cell_dofs = dofmap->cell_dofs(cell);
         for(size_t i = 0; i < 3;i++){
           double T_val = T_vals[i] = T_i_vec->getitem(cell_dofs[i]) - lT_0;
           if(T_val > DOLFIN_EPS){
@@ -189,7 +189,7 @@ class LimiterSolver(AssignmentSolver):
         for(size_t i = 0;i < 3;i++){
           T_vec->setitem(cell_dofs[i], lT_0 + alpha * T_vals[i]);
         }
-        """,
+        """ % ("std::vector<la_index>" if dolfin_version() < (1, 6, 0) else "const dolfin::ArrayView<const la_index>"),
       finalisation_code = \
         """
         T_vec->apply("insert");

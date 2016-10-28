@@ -11,9 +11,4 @@ adj_params.add("debug_cache", False)
 adj_params.add("symmetric_bcs", False)
 adj_params.add("allow_zero_derivatives", False)
 
-opt_params = Parameters("optimization")
-opt_params.add("test_gradient", False)
-opt_params.add("test_gradient_seed", 0.0001)
-
 parameters.add(adj_params)
-parameters.add(opt_params)

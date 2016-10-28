@@ -51,7 +51,7 @@ def derivative_cb(j, dj, m):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     u = Function(V)
 
     J = Functional(u*u*dx*dt[FINISH_TIME])

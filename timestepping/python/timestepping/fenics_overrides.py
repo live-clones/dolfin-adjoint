@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -33,14 +33,10 @@ __all__ = \
     "_assemble_classes",
     "DirichletBC",
     "LinearSolver",
-    "action",
     "adjoint",
     "assemble",
     "derivative",
-    "homogenize",
-    "lhs",
-    "replace",
-    "rhs"
+    "homogenize"
   ]
 
 # Assembly and linear solver functions and classes used in this module. These
@@ -149,8 +145,7 @@ def adjoint(form, reordered_arguments = None, adjoint_arguments = None):
     """
     Wrapper for the DOLFIN adjoint function. Accepts the additional optional
     adjoint_arguments, which if supplied should be a tuple of Argument s
-    corresponding to the adjoint test and trial functions. Correctly handles
-    QForm s.
+    corresponding to the adjoint test and trial functions.
     """
 
     if adjoint_arguments is None:
@@ -169,64 +164,16 @@ def adjoint(form, reordered_arguments = None, adjoint_arguments = None):
 
         if not test.element() == a_test.element() or not trial.element() == a_trial.element():
             raise InvalidArgumentException("Invalid adjoint_arguments")
-        a_form = replace(a_form, {test:a_test, trial:a_trial})
+        a_form = dolfin.replace(a_form, {test:a_test, trial:a_trial})
 
-    if isinstance(form, QForm):
-        return QForm(a_form, quadrature_degree = form.quadrature_degree())
-    else:
-        return a_form
-
-def replace(e, mapping):
-    """
-    Wrapper for the DOLFIN replace function. Correctly handles QForm s.
-    """
-
-    if not isinstance(mapping, dict):
-        raise InvalidArgumentException("mapping must be a dictionary")
-
-    if len(mapping) == 0:
-        return e
-
-    ne = dolfin.replace(e, mapping)
-    if isinstance(e, QForm):
-        return QForm(ne, quadrature_degree = form_quadrature_degree(e))
-    else:
-        return ne
-
-def lhs(form):
-    """
-    Wrapper for the DOLFIN lhs function. Correctly handles QForm s.
-    """
-
-    if not isinstance(form, ufl.form.Form):
-        raise InvalidArgumentException("form must be a Form")
-
-    nform = dolfin.lhs(form)
-    if isinstance(form, QForm):
-        return QForm(nform, quadrature_degree = form_quadrature_degree(form))
-    else:
-        return nform
-
-def rhs(form):
-    """
-    Wrapper for the DOLFIN rhs function. Correctly handles QForm s.
-    """
-
-    if not isinstance(form, ufl.form.Form):
-        raise InvalidArgumentException("form must be a Form")
-
-    nform = dolfin.rhs(form)
-    if isinstance(form, QForm):
-        return QForm(nform, quadrature_degree = form_quadrature_degree(form))
-    else:
-        return nform
+    return a_form
 
 def derivative(form, u, du = None, expand = True):
     """
     Wrapper for the DOLFIN derivative function. This attempts to select an
-    appropriate du if one is not supplied. Correctly handles QForm s. By default
-    the returned Form is first expanded using ufl.algorithms.expand_derivatives.
-    This can be disabled if the optional expand argument is False.
+    appropriate du if one is not supplied. By default the returned Form is first
+    expanded using ufl.algorithms.expand_derivatives. This can be disabled if the
+    optional expand argument is False.
     """
 
     if du is None:
@@ -243,39 +190,15 @@ def derivative(form, u, du = None, expand = True):
     if expand:
         der = ufl.algorithms.expand_derivatives(der)
 
-    if isinstance(form, QForm):
-        return QForm(der, quadrature_degree = form.quadrature_degree())
-    else:
-        return der
-
-def action(form, coefficient):
-    """
-    Wrapper for the DOLFIN action function. Correctly handles QForm s.
-    """
-
-    if not isinstance(form, ufl.form.Form):
-        raise InvalidArgumentException("form must be a Form")
-    if not isinstance(coefficient, dolfin.Function):
-        raise InvalidArgumentException("coefficient must be a Function")
-
-    nform = dolfin.action(form, coefficient)
-    if isinstance(form, QForm):
-        return QForm(nform, quadrature_degree = form_quadrature_degree(form))
-    else:
-        return nform
+    return der
 
 _assemble_classes = []
 def assemble(*args, **kwargs):
     """
-    Wrapper for the DOLFIN assemble function. Correctly handles PAForm s,
-    TimeSystem s and QForm s.
+    Wrapper for the DOLFIN assemble function.
     """
 
-    if isinstance(args[0], QForm):
-        if "form_compiler_parameters" in kwargs:
-            raise InvalidArgumentException("Cannot supply form_compiler_parameters argument when assembling a QForm")
-        return _assemble(form_compiler_parameters = args[0].form_compiler_parameters(), *args, **kwargs)
-    elif isinstance(args[0], tuple(_assemble_classes)):
+    if isinstance(args[0], tuple(_assemble_classes)):
         return args[0].assemble(*args[1:], **kwargs)
     else:
         return _assemble(*args, **kwargs)

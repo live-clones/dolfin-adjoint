@@ -31,7 +31,7 @@
   showstringspaces = false
 }
 
-\newcommand{\version}{1.4.0+}
+\newcommand{\version}{1.6.0}
 
 \begin{document}
 
@@ -61,7 +61,8 @@ the entire model discretisation. The FEniCS system (for which DOLFIN acts as a
 front-end) uses automated code generation to convert a symbolic representation
 of a finite element spatial discretisation into a working model. The
 \verb+timestepping+ library builds on this principle, adding a syntax to enable
-a symbolic representation of a temporal discretisation.
+a symbolic representation of a temporal discretisation. For further details
+see \citet{maddison2014}.
 
 A machine interpretable representation of a discretisation is amenable to
 automated analysis and manipulation. In particular, if a symbolic representation
@@ -152,20 +153,19 @@ versions:
 \hline
 Dependency  & Tested dependency versions \\
 \hline
-Python  & 2.7.5, 2.7.6 \\
+Python  & 2.7.6 \\
 \hline
-NumPy  & 1.7.1, 1.8.1 \\
-SciPy  & 0.12.0, 0.13.3 \\
-VTK    & 5.8.0, 5.10.1 \\
-PETSc  & 3.3-p7, 3.4.2 \\
+NumPy  & 1.8.2 \\
+SciPy  & 0.13.3 \\
+MPI4Py & 1.3.1 \\
+VTK    & 5.8.0 \\
+PETSc  & 3.5.4, 3.6.1 \\
 \hline
-DOLFIN   & 1.2.0, 1.4.0 \\
-FIAT     & 1.1.0, 1.4.0 \\
-FErari   & 1.0.0 \\
-FFC      & 1.2.0, 1.4.0 \\
-Instant  & 1.2.0, 1.3.0+ \\
-UFC      & 2.2.0, 1.4.0 \\
-UFL      & 1.2.0, 1.4.0
+DOLFIN   & 1.5.0, 1.6.0 \\
+FIAT     & 1.5.0, 1.6.0dev \\
+FFC      & 1.5.0, 1.6.0 \\
+Instant  & 1.5.0, 1.6.0 \\
+UFL      & 1.5.0, 1.6.0 \\
 \hline
 \end{tabular}
 \end{center}
@@ -207,32 +207,6 @@ interface, and hence the standard way of accessing the library is via:
 \begin{lstlisting}
 from dolfin import *
 from timestepping import *
-\end{lstlisting}
-
-\section{Changes to DOLFIN interfaces}\label{sect:wrappers}
-
-The \verb+timestepping+ library provides \verb+Constant+ and \verb+Function+
-functions, which wrap the DOLFIN \verb+dolfin.Constant+ and
-\verb+dolfin.Function+ constructors. The arguments accepted by these functions
-are identical to the arguments accepted by the DOLFIN constructors, except that
-each accepts an optional string \verb+name+ keyword argument defining the
-\verb+Constant+ or \verb+Function+ name.
-
-\subsection*{Examples}
-
-\begin{lstlisting}
-from dolfin import *
-from timestepping import *
-
-# A named Constant
-c = Constant(1.0, name = "c")
-
-# Define a simple structured mesh on the unit interval
-mesh = UnitIntervalMesh(10)
-# P1 function space
-space = FunctionSpace(mesh, "CG", 1)
-# A named Function
-F = Function(space, name = "F")
 \end{lstlisting}
 
 \section{Time level abstraction}
@@ -402,11 +376,10 @@ each specified on an individual time level.
 
 A \verb+TimeFunction+ object is instantiated via:
 \begin{lstlisting}
-tfn = TimeFunction(levels, *args, name = name, **kwargs)
+tfn = TimeFunction(levels, *args, **kwargs)
 \end{lstlisting}
 where \verb+levels+ is a \verb+TimeLevels+, \verb+args+ and \verb+kwargs+ are
-arguments as accepted by a \verb+dolfin.Function+ constructor, and \verb+name+
-is an optional string representing the function name.
+arguments as accepted by a \verb+dolfin.Function+ constructor.
 
 A symbolic representation of a single function, defined on a single time level,
 can be accessed by indexing into the \verb+TimeFunction+ using an integer,
@@ -483,11 +456,11 @@ system.add_assignment(y, x)
 Here \verb+x+ is a \verb+dolfin.Function+ corresponding to a time level of a
 \verb+TimeFunction+, and \verb+y+ is a float, a \verb+dolfin.Constant+, a
 \verb+dolfin.Function+, a \verb+LinearCombination+ (explained below), or a
-general \verb+ufl.expr.Expr+ (an arbitrary expression). This call corresponds to
-an equation in which \verb+x+ is set equal to the value of \verb+y+. The value
-of \verb+y+ must correspond to a either a constant value or a function defined
-in the function space of \verb+x+. The assignment must also be linear, with
-\verb+y+ independent of \verb+x+.
+general \verb+ufl.core.expr.Expr+ (an arbitrary expression). This call
+corresponds to an equation in which \verb+x+ is set equal to the value of
+\verb+y+. The value of \verb+y+ must correspond to a either a constant value or
+a function defined in the function space of \verb+x+. The assignment must also
+be linear, with \verb+y+ independent of \verb+x+.
 
 A \verb+LinearCombination+ is instantiated via:
 \begin{lstlisting}
@@ -495,7 +468,7 @@ lc = LinearCombination(*args)
 \end{lstlisting}
 where the arguments \verb+args+ are an arbitrary list of tuples
 \verb+(alpha, y)+. Each \verb+alpha+ is a float, a \verb+dolfin.Constant+, a
-\verb+dolfin.Function+, or a general \linebreak \verb+ufl.expr.Expr+. The
+\verb+dolfin.Function+, or a general \linebreak \verb+ufl.core.expr.Expr+. The
 \verb+LinearCombination+ then represents the value of $\sum_i \alpha_i y_i$.
 Note that the \verb+LinearCombination+ constructor does not check that all the
 \verb+alpha+ are independent of all the \verb+y+, and consequently does not
@@ -633,11 +606,10 @@ static data, which does not vary throughout the model execution. Additional
 functions are provided to facilitate such optimisations.
 
 The \verb+StaticConstant+ function returns a \verb+dolfin.Constant+ that is
-declared as ``static'. The arguments are identical to the \verb+Constant+
-wrapper (see section \ref{sect:wrappers}). The \verb+StaticFunction+ function
-returns a \verb+dolfin.Function+ that is declared as ``static'. The arguments
-are identical to the \verb+Function+ wrapper (see section
-\ref{sect:wrappers}). The \verb+StaticDirichletBC+ class defines a
+declared as ``static'. The arguments are identical to the DOLFIN \verb+Constant+
+constructor. The \verb+StaticFunction+ function returns a \verb+dolfin.Function+
+that is declared as ``static'. The arguments are identical to the DOLFIN
+\verb+Function+ constructor . The \verb+StaticDirichletBC+ class defines a
 \verb+dolfin.DirichletBC+ that is declared as ``static''. The constructor
 arguments are identical to the \verb+dolfin.DirichletBC+ constructor.
 
@@ -734,8 +706,8 @@ asystem = system.assemble(initialise = initialise)
 \end{lstlisting}
 This returns an \verb+ForwardModel+. If the optional \verb+initialise+ is not
 supplied or is \verb+True+ then, immediately after the \verb+assemble+ call, the
-initialisation stage is complete. Otherwise, the initialisation stage can be
-performed via a subsequent call to the \verb+initialise+ method:
+initialisation stage is complete. If it is \verb+False+ the initialisation stage
+can be performed via a subsequent call to the \verb+initialise+ method:
 \begin{lstlisting}
 asystem.initialise()
 \end{lstlisting}
@@ -942,7 +914,7 @@ Then:
 \begin{equation}
   \left| J \left( \vec{x} \left( \vec{m} + \epsilon \vec{\delta m} \right), \vec{m} + \epsilon \vec{\delta m} \right)
     - J \left( \vec{x} \left( \vec{m} \right), \vec{m} \right) \right|
-    = {\cal O} \epsilon,
+    = {\cal O} \left( \epsilon \right),
 \end{equation}
 converges asymptotically at first order in perturbations of the parameter
 $\vec{m}$. However:
@@ -950,7 +922,7 @@ $\vec{m}$. However:
   \left| J \left( \vec{x} \left( \vec{m} + \epsilon \vec{\delta m} \right), \vec{m} + \epsilon \vec{\delta m} \right)
     - J \left( \vec{x} \left( \vec{m} \right), \vec{m} \right)
     - \epsilon \left< \frac{d J}{d \vec{m}}, \vec{\delta m} \right> \right|
-    = {\cal O} \epsilon^2,
+    = {\cal O} \left( \epsilon^2 \right),
 \end{equation}
 converges asymptotically at second order. Hence the result of a model
 constrained derivative calculation, yielding $d J / d \vec{m}$, can be verified
@@ -1110,7 +1082,7 @@ The \verb+dolfin-adjoint+ library constructs the discrete adjoints of models
 written using the FEniCS system. Specifically, given a model written as a series
 of discrete variational problems using the Python DOLFIN interface,
 \verb+dolfin-adjoint+ constructs a ``tape'' of model equations and uses this
-tape to derive and implement discrete adjoint models \citep{farrell2012}.
+tape to derive and implement discrete adjoint models \citep{farrell2013}.
 \verb+dolfin-adjoint+ provides a number of advanced features, including:
 \begin{enumerate}
   \item Automated derivation of tangent-linear, adjoint, and second order
@@ -1240,18 +1212,6 @@ order = taylor_test(J_p, nu_da, assemble(J), dJ, seed = 1.0e-6)
 # Check the convergence order
 assert(order > 1.99)
 \end{lstlisting}
-
-\section{Limitations}
-
-Not all features provided by the \verb+timestepping+ library may be used in
-combination with \verb+dolfin-adjoint+. In particular the \verb+dolfin-adjoint+
-library supports only assignment operations which can be performed via a call
-to the \verb+assign+ method of \verb+dolfin.Function+ objects. If more general
-assignments are registered (see section \ref{sect:assignments}) then, in the
-\verb+dolfin-adjoint+ annotation of the forward model, these equations are
-converted into a Galerkin projection with default linear solver options. Certain 
-time discretisation specific optimisations are also disabled when combining the
-\verb+timestepping+ library with the \verb+dolfin_adjoint+ library.
 
 \chapter{Time discretisation examples}
 

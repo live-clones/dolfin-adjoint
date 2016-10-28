@@ -22,6 +22,7 @@ RUN bash -c "source ~/fenics.env.conf && \
              PIP_NO_CACHE_DIR=off fenics-update"
 ENV DOLFIN_ADJOINT_VERSION master
 ENV IPOPT_VER=3.12.6
+
 COPY dolfin-adjoint.conf $FENICS_HOME/dolfin-adjoint.conf
 RUN /bin/bash -l -c "source $FENICS_HOME/dolfin-adjoint.conf && \
                      update_libadjoint && \

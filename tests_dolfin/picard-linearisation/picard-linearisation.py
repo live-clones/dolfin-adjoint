@@ -64,7 +64,7 @@ def main(f):
     return u
 
 if __name__ == "__main__":
-    f = interpolate(Expression("sin(x[0])*cos(x[1])"), V, name="SourceTerm")
+    f = interpolate(Expression("sin(x[0])*cos(x[1])", degree=1), V, name="SourceTerm")
     u = main(f)
 
     assert replay_dolfin(tol=0.0, stop=True)

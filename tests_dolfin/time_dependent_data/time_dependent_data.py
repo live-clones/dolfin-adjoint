@@ -17,7 +17,7 @@ u = Function(V, name="u")
 adj_start_timestep(0.0)
 nt = 3
 for t in range(nt):
-    z.interpolate(Expression("t*t", t=t), annotate=True) # ... to make sure this is recorded
+    z.interpolate(Expression("t*t", t=t, degree=2), annotate=True) # ... to make sure this is recorded
     solve(ut*v*dx == m*v*dx, u, []) # ... even though it's not used in the computation
     adj_inc_timestep(t+1, finished=t==nt-1)
 

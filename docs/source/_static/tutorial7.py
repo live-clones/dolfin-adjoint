@@ -1,8 +1,6 @@
 from dolfin import *
 from dolfin_adjoint import *
 
-parameters["num_threads"] = 8
-
 adj_checkpointing(strategy='multistage', steps=11,
                   snaps_on_disk=2, snaps_in_ram=2, verbose=True)
 
@@ -10,7 +8,7 @@ n = 30
 mesh = UnitSquareMesh(n, n)
 V = VectorFunctionSpace(mesh, "CG", 2)
 
-ic = project(Expression(("sin(2*pi*x[0])", "cos(2*pi*x[1])")),  V)
+ic = project(Expression(("sin(2*pi*x[0])", "cos(2*pi*x[1])"), degree=2),  V)
 
 def main(nu):
     u = ic.copy(deepcopy=True)

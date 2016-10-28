@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@ import numpy;  numpy.random.seed(0)
 from dolfin import *
 from timestepping import *
 
-mesh = RectangleMesh(0.0, 0.0, 1.0, 1.0, 10, 10)
+mesh = RectangleMesh(Point(0.0, 0.0), Point(1.0, 1.0), 10, 10)
 
 for mesh, e in [(UnitIntervalMesh(10), [("CG", 1), ("CG", 2), ("CG", 3), ("DG", 0), ("DG", 1), ("DG", 2), ("DG", 3)]),
                 (UnitSquareMesh(10, 10), [("CG", 1), ("CG", 2), ("DG", 0), ("DG", 1), ("DG", 2)]),

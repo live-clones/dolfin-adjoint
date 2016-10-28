@@ -196,7 +196,7 @@ class IPOPTSolver(OptimizationSolver):
                 if param == "tolerance":
                     tol = self.parameters['tolerance']
                     self.pyipopt_problem.num_option('tol', tol)
-                if param == "maximum_iterations":
+                elif param == "maximum_iterations":
                     maxiter = self.parameters['maximum_iterations']
                     self.pyipopt_problem.int_option('max_iter', maxiter)
                 else:

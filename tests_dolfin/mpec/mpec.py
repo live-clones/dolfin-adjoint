@@ -23,7 +23,7 @@ def main():
     def uflmax(a, b):
         return conditional(gt(a, b), a, b)
 
-    f = interpolate(Expression("-std::abs(x[0]*x[1] - 0.5) + 0.25"), V)
+    f = interpolate(Expression("-std::abs(x[0]*x[1] - 0.5) + 0.25", degree=1), V)
     F = inner(grad(y), grad(w))*dx - gamma * inner(smoothmax(-y), w)*dx - inner(f + u, w)*dx
 
     bc = DirichletBC(V, 0.0, "on_boundary")

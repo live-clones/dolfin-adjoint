@@ -58,7 +58,7 @@ def main(ic, annotate=False):
 
     # Define meshes and function spaces
     cg2 = VectorElement("CG", triangle, 2)
-    cg1 = FiniteElement("CG", triangle, 1) 
+    cg1 = FiniteElement("CG", triangle, 1)
     ele = MixedElement([cg2, cg1])
     W = FunctionSpace(mesh, ele)
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
     # Run model
     T0_expr = "0.5*(1.0 - x[1]*x[1]) + 0.01*cos(pi*x[0]/l)*sin(pi*x[1]/h)"
-    T0 = Expression(T0_expr, l=1.0, h=1.0)
+    T0 = Expression(T0_expr, l=1.0, h=1.0, degree=1)
     ic = interpolate(T0, X, name="InitialCondition")
     T = main(ic, annotate=True)
 
@@ -129,5 +129,5 @@ if __name__ == "__main__":
         T = main(ic, annotate=False)
         return assemble(T*T*dx)
 
-    minconv = taylor_test(Jhat, Control(T), Jic, dJdic, seed=1.0e-1)
-    assert minconv > 1.9
+    minconv = taylor_test(Jhat, Control(T), Jic, dJdic, seed=0.5e-1)
+    assert minconv > 1.85

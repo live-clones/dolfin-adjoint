@@ -30,7 +30,7 @@ mesh = UnitSquareMesh(n, n)
 V = FunctionSpace(mesh, "CG", 1)
 W = FunctionSpace(mesh, "CG", 1)
 
-f = interpolate(Expression("0.11"), W, name='Control')
+f = interpolate(Constant(0.11), W, name='Control')
 u = Function(V, name='State')
 v = TestFunction(V)
 

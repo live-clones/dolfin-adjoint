@@ -47,7 +47,7 @@ def main(ic, annotate=False):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     forward = main(ic, annotate=True)
 
     adj_html("burgers_newton_forward.html", "forward")
@@ -68,5 +68,5 @@ if __name__ == "__main__":
 
     HJic = hessian(J, FunctionControl("Velocity"), warn=False)
 
-    minconv = taylor_test(Jfunc, FunctionControl("Velocity"), Jic, dJdic, HJm=HJic, seed=1.0e-3, perturbation_direction=interpolate(Expression("cos(x[0])"), V))
+    minconv = taylor_test(Jfunc, FunctionControl("Velocity"), Jic, dJdic, HJm=HJic, seed=1.0e-3, perturbation_direction=interpolate(Expression("cos(x[0])", degree=1), V))
     assert minconv > 2.7

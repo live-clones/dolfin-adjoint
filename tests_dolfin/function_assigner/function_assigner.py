@@ -28,7 +28,7 @@ def main(u, p):
 
 if __name__ == "__main__":
     u = interpolate(Constant((1,)), V, name="Velocity")
-    p = interpolate(Expression("x[0] + 1.0"), P, name="Pressure")
+    p = interpolate(Expression("x[0] + 1.0", degree=1), P, name="Pressure")
     z = main(u, p)
 
     assert adjglobals.adjointer.equation_count == 5

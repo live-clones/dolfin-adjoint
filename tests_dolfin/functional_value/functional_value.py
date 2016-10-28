@@ -37,10 +37,10 @@ def main(ic, annotate=False):
     return (times, states, u_prev)
 
 if __name__ == "__main__":
-    true_ic = interpolate(Expression("sin(2*pi*x[0])*sin(2*pi*x[1])"), V)
+    true_ic = interpolate(Expression("sin(2*pi*x[0])*sin(2*pi*x[1])", degree=1), V)
     (times, true_states, u) = main(true_ic, annotate=False)
 
-    guess_ic = interpolate(Expression("15 * x[0] * (1 - x[0]) * x[1] * (1 - x[1])"), V)
+    guess_ic = interpolate(Expression("15 * x[0] * (1 - x[0]) * x[1] * (1 - x[1])", degree=4), V)
     (times, computed_states, u) = main(guess_ic, annotate=True)
 
     success = replay_dolfin(tol=0.0, stop=True)

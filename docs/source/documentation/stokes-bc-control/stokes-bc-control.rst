@@ -71,7 +71,9 @@ in the same directory.
 
 ::
 
-  mesh = Mesh("rectangle-less-circle.xdmf")
+  mesh_xdmf = XDMFFile(mpi_comm_world(), "rectangle-less-circle.xdmf")
+  mesh = Mesh()
+  mesh_xdmf.read(mesh)
   
 Then, we define the discrete function spaces. A Taylor-Hood
 finite-element pair is a suitable choice for the Stokes equations.
@@ -82,14 +84,16 @@ defined over the entire domain).
 
 ::
 
-  V = VectorFunctionSpace(mesh, "CG", 2)  # Velocity
-  Q = FunctionSpace(mesh, "CG", 1)        # Pressure
-  W = MixedFunctionSpace([V, Q])
+  V_h = VectorElement("CG", mesh.ufl_cell(), 2)
+  Q_h = FiniteElement("CG", mesh.ufl_cell(), 1)
+  W = FunctionSpace(mesh, V_h * Q_h)
+  V, Q = W.split()
+  
   v, q = TestFunctions(W)
   x = TrialFunction(W)
   u, p = split(x)
   s = Function(W, name="State")
-  g = Function(V, name="Control")
+  g = Function(V.collapse(), name="Control")
   
 The Nitsche method requires the computation of boundary integrals
 over :math:`\partial \Omega_{\textrm{circle}}`.  Therefore, we need
@@ -107,7 +111,7 @@ to create a measure for these integrals, which will be accessible as
   facet_marker.set_all(10)
   Circle().mark(facet_marker, 2)
   
-  ds = Measure("ds")[facet_marker]
+  ds = ds(subdomain_data=facet_marker)
   
 Now we define some parameters, including the Nitsche penalty
 parameter :math:`\gamma` (typically 10), the mesh element size

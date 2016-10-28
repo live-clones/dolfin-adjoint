@@ -8,7 +8,6 @@ import scipy
 import libadjoint
 
 dolfin.set_log_level(ERROR)
-dolfin.parameters["optimization"]["test_gradient"] = True
 
 n = 20
 end = 0.2
@@ -50,7 +49,7 @@ def derivative_cb(j, dj, m):
 
 if __name__ == "__main__":
 
-    ic = project(Expression("sin(2*pi*x[0])"),  V, annotate=False)
+    ic = project(Expression("sin(2*pi*x[0])", degree=1),  V, annotate=False)
     u = ic.copy(deepcopy=True, name='Velocity')
 
     J = Functional(u*u*dx*dt[FINISH_TIME])
@@ -60,7 +59,7 @@ if __name__ == "__main__":
     main(u, annotate=True)
 
     # Run the optimisation
-    lb = project(Expression("-1"),  V)
+    lb = interpolate(Constant(-1),  V)
 
     # Define the reduced funtional
     reduced_functional = ReducedFunctional(J, Control(u, value=ic),
@@ -80,8 +79,7 @@ if __name__ == "__main__":
         print 'Test failed: Optimised functional value exceeds tolerance: ' , final_functional, ' > ', tol, '.'
         sys.exit(1)
 
-    # Run the problem again with SQP, this time for performance reasons with the gradient test switched off
-    dolfin.parameters["optimization"]["test_gradient"] = False
+    # Run the problem again with SQP
 
     # Method specific arguments:
     options = {"SLSQP": {"bounds": (lb, 1)},

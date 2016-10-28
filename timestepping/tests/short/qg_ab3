@@ -3,7 +3,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -31,8 +31,6 @@ from timestepping import *
 import numpy
 
 parameters["form_compiler"]["optimize"] = True
-if dolfin_version() < (1, 3, 0):
-  parameters["form_compiler"]["representation"] = "quadrature"
 
 Constant = StaticConstant
 DirichletBC = StaticDirichletBC
@@ -116,7 +114,7 @@ for i in xrange(1, len(ss)):
 assert(mss < 6.0e-13)
 ss = [Constant(ss[i]) for i in xrange(layers)]
 
-mesh   = RectangleMesh(0.0, 0.0, L, L, ngrid, ngrid)
+mesh   = RectangleMesh(Point(0.0, 0.0), Point(L, L), ngrid, ngrid)
 nm     = FacetNormal(mesh)
 space  = FunctionSpace(mesh, "CG", 1)
 cspace = FunctionSpace(mesh, "R",  0)
@@ -259,7 +257,7 @@ def check(f, ref, tol, scale = None):
   if not scale is None:
     v *= scale
   err = abs(v - ref)
-  if MPI.process_number() == 0:
+  if MPI.rank(mpi_comm_world()) == 0:
     print("%.16e %.16e %.16e" % (v, ref, err))
   assert(err < tol)
   return

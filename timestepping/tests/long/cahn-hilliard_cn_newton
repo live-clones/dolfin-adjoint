@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
-#NT 4
+# #NT 4
 
 # Copyright (C) 2009 Garth N. Wells
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -35,12 +35,12 @@ from timestepping import *
 
 from numpy import random
 
-parameters["num_threads"] = 4
+# parameters["num_threads"] = 4
 
 # Class representing the intial conditions
 class InitialConditions(Expression):
     def __init__(self):
-        random.seed(2 + MPI.process_number())
+        random.seed(2 + MPI.rank(mpi_comm_world()))
     def eval(self, values, x):
         values[0] = 0.63 + 0.02*(0.5 - random.random())
         values[1] = 0.0

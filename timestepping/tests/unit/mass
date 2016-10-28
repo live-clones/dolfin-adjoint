@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014-2016 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +63,7 @@ for solve in system._ManagedModel__forward._ForwardModel__init_solves \
   if isinstance(solve, PAEquationSolver):
     a, L = solve._PAEquationSolver__a, solve._PAEquationSolver__L
     assert(isinstance(a, dolfin.GenericMatrix))
-    assert(isinstance(L, PALinearForm))
+    assert(isinstance(L, PAForm))
     print(solve.x().name(), L.n_pre_assembled(), L.n_non_pre_assembled())
     assert(L.n_non_pre_assembled() == 0)
 

@@ -24,8 +24,6 @@ params["finish_time"]=100
 params["dt"]=params["finish_time"]/4000.
 
 class InitialConditions(Expression):
-    def __init__(self):
-        pass
     def eval(self, values, X):
         values[0]=params['eta0']*sqrt(params['g']*params['depth'])*cos(pi*X[0]/3000)
         values[1]=0.
