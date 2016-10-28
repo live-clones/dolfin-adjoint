@@ -1,22 +1,32 @@
-import random
-
 from firedrake import *
 from firedrake_adjoint import *
-import sys
+import pytest
 
-mesh = UnitSquareMesh(4, 4)
-V3 = FunctionSpace(mesh, "CG", 3)
-V2 = FunctionSpace(mesh, "CG", 2)
-firedrake.parameters["adjoint"]["record_all"] = True
 
-def main(ic, annotate=False):
-    soln = project(ic, V2, annotate=annotate)
-    return soln
+@pytest.fixture
+def mesh():
+    return UnitSquareMesh(4, 4)
 
-if __name__ == "__main__":
+
+@pytest.fixture
+def V3(mesh):
+    return FunctionSpace(mesh, "CG", 3)
+
+
+@pytest.fixture
+def V2(mesh):
+    return FunctionSpace(mesh, "CG", 2)
+
+
+def main(ic, V2, annotate=False):
+    return project(ic, V2, annotate=annotate)
+
+
+def test_projection(V2, V3):
+    firedrake.parameters["adjoint"]["record_all"] = True
 
     ic = project(Expression("x[0]*(x[0]-1)*x[1]*(x[1]-1)"), V3)
-    soln = main(ic, annotate=True)
+    soln = main(ic, V2, annotate=True)
 
     adj_html("projection_forward.html", "forward")
     assert replay_dolfin(tol=1e-12, stop=True)
@@ -26,9 +36,8 @@ if __name__ == "__main__":
     dJdic = compute_gradient(J, FunctionControl(ic), forget=False)
 
     def J(ic):
-        soln = main(ic, annotate=False)
+        soln = main(ic, V2, annotate=False)
         return assemble(soln*soln*dx)
 
     minconv = taylor_test(J, FunctionControl(ic), Jic, dJdic)
     assert minconv > 1.9
-    info_green("Test passed")

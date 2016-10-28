@@ -1,29 +1,12 @@
 """ Solves a MMS problem with smooth control """
-tao_args = """-tao_monitor
-            -tao_view
-            -tao_nls_ksp_type gltr
-            -tao_nls_pc_type none
-            -tao_ntr_pc_type none
-           """.split()
-import sys
-sys.argv += tao_args
 from firedrake import *
 from firedrake_adjoint import *
+import pytest
+
 try:
     from petsc4py import PETSc
-    PETSc.TAO
-except Exception:
-    import sys
-    info_blue("PETSc bindings with TAO support unavailable, skipping test")
-    sys.exit(0)
-
-
-# Set options
-firedrake.set_log_level(ERROR)
-#firedrake.set_log_level(DBG)
-parameters['std_out_all_processes'] = False
-print "Tao arguments:", tao_args
-#parameters.parse(tao_args)
+except ImportError:
+    pass
 
 
 def solve_pde(u, V, m):
@@ -32,8 +15,10 @@ def solve_pde(u, V, m):
     bc = DirichletBC(V, 0.0, "on_boundary")
     solve(F == 0, u, bc)
 
-if __name__ == "__main__":
 
+@pytest.mark.skipif("petsc4py.PETSc" not in sys.modules or not hasattr(PETSc, "TAO"),
+                    reason="PETSc bindings with TAO support unavailable")
+def test_optimization_tao():
     n = 100
     mesh = UnitSquareMesh(n, n)
     V = FunctionSpace(mesh, "CG", 1)
@@ -53,6 +38,12 @@ if __name__ == "__main__":
     # Run the optimisation
     rf = ReducedFunctional(J, FunctionControl(m, value=m))
     problem = MinimizationProblem(rf)
+    opts = PETSc.Options()
+    opts["tao_monitor"] = None
+    opts["tao_view"] = None
+    opts["tao_nls_ksp_type"] = "gltr"
+    opts["tao_nls_pc_type"] = "none"
+    opts["tao_ntr_pc_type"] = "none"
     parameters = {'method': 'nls',
                   'max_it': 20,
                   'fatol': 0.0,
@@ -64,21 +55,19 @@ if __name__ == "__main__":
     solver = TAOSolver(problem, parameters=parameters)
     m_opt = solver.solve()
 
-    #plot(m_opt, interactive=True)
-
     solve_pde(u, V, m_opt)
 
+    x, y = SpatialCoordinate(mesh)
     # Define the analytical expressions
-    m_analytic = Expression("sin(pi*x[0])*sin(pi*x[1])")
-    u_analytic = Expression("1/(2*pi*pi)*sin(pi*x[0])*sin(pi*x[1])")
+    m_analytic = sin(pi*x)*sin(pi*y)
+    u_analytic = 1.0/(2*pi*pi)*sin(pi*x)*sin(pi*y)
 
     # Compute the error
-    control_error = errornorm(m_analytic, m_opt)
-    state_error = errornorm(u_analytic, u)
+    control_error = sqrt(assemble((m_analytic - m_opt)**2*dx))
+    state_error = sqrt(assemble((u_analytic - u)**2*dx))
 
-    #print "Control error", control_error
-    #print "State error", state_error
-
+    assert control_error < 0.01
+    assert state_error < 1e-5
     # Check that values are below the threshold
     tao_p = solver.get_tao()
     assert tao_p.gnorm < 1e-9

@@ -291,13 +291,12 @@ class Matrix(libadjoint.Matrix):
             mat_type = self.solver_parameters.get("mat_type")
             assemble = lambda x: backend.assemble(self.data, mat_type=mat_type)
         else:
-            assemble = backend.assemble
-        if not self.cache:
-            if hasattr(self.data.arguments()[0], '_V_multi'):
-                return backend.assemble_multimesh(self.data)
+            if hasattr(self.data.arguments()[0], "_V_multi"):
+                assemble = backend.assemble_multimesh
             else:
-                return backend.assemble(self.data)
-
+                assemble = backend.assemble
+        if not self.cache:
+            return assemble(self.data)
         else:
             if self.data in caching.assembled_adj_forms:
                 if backend.parameters["adjoint"]["debug_cache"]:
@@ -307,11 +306,7 @@ class Matrix(libadjoint.Matrix):
                 if backend.parameters["adjoint"]["debug_cache"]:
                     backend.info_red("Got an assembly cache miss")
 
-                if hasattr(self.data.arguments()[0], '_V_multi'):
-                    M = backend.assemble_multimesh(self.data)
-                else:
-                    M = backend.assemble(self.data)
-
+                M = assemble(self.data)
                 caching.assembled_adj_forms[self.data] = M
                 return M
 
