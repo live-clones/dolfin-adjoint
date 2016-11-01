@@ -1,6 +1,8 @@
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
+np.random.seed(seed=21) 
+
 
 # Define mesh
 mesh = UnitSquareMesh(10, 10)
