@@ -24,10 +24,8 @@ regularisation term is implemented.
 
 Problem definition
 ******************
-We consider the heat equation with a time-dependent source term that acts as
+We consider the heat equation with a time-dependent source term :math:`f`, which will be
 our control variable:
-
-The partial differential equation for this example is the time-dependent heat-equation:
 
 .. math::
            \frac{\partial u}{\partial t} - \nu \nabla^{2} u= f(t)
