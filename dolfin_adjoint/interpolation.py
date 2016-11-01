@@ -22,23 +22,28 @@ def interpolate(v, V, annotate=None, name=None):
 
     to_annotate = utils.to_annotate(annotate)
 
-    if isinstance(v, backend.Function) and to_annotate:
-        rhsdep = adjglobals.adj_variables[v]
-        if adjglobals.adjointer.variable_known(rhsdep):
-            rhs = InterpolateRHS(v, V)
-            identity_block = utils.get_identity_block(V)
+    if to_annotate:
+        if isinstance(v, backend.Function):
+            rhsdep = adjglobals.adj_variables[v]
+            if adjglobals.adjointer.variable_known(rhsdep):
+                rhs = InterpolateRHS(v, V)
+                identity_block = utils.get_identity_block(V)
 
-            solving.register_initial_conditions(zip(rhs.coefficients(),rhs.dependencies()), linear=True)
+                solving.register_initial_conditions(zip(rhs.coefficients(),rhs.dependencies()), linear=True)
 
-            dep = adjglobals.adj_variables.next(out)
+                dep = adjglobals.adj_variables.next(out)
 
-            if backend.parameters["adjoint"]["record_all"]:
-                adjglobals.adjointer.record_variable(dep, libadjoint.MemoryStorage(adjlinalg.Vector(out)))
+                if backend.parameters["adjoint"]["record_all"]:
+                    adjglobals.adjointer.record_variable(dep, libadjoint.MemoryStorage(adjlinalg.Vector(out)))
 
-            initial_eq = libadjoint.Equation(dep, blocks=[identity_block], targets=[dep], rhs=rhs)
-            cs = adjglobals.adjointer.register_equation(initial_eq)
+                initial_eq = libadjoint.Equation(dep, blocks=[identity_block], targets=[dep], rhs=rhs)
+                cs = adjglobals.adjointer.register_equation(initial_eq)
 
-            solving.do_checkpoint(cs, dep, rhs)
+                solving.do_checkpoint(cs, dep, rhs)
+
+        else:
+            outvar = adjglobals.adj_variables[out]
+            solving.register_initial_conditions([[out, outvar], ], linear=True)
 
     return out
 
