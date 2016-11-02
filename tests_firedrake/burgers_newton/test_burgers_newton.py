@@ -47,6 +47,7 @@ def main(ic, annotate=annotate):
     return u_
 
 
+@pytest.mark.xfail
 def test_burgers_newton(V):
     ic = project(Expression("sin(2*pi*x[0])"), V)
 
