@@ -47,7 +47,6 @@ def main(ic, annotate=annotate):
     return u_
 
 
-@pytest.mark.xfail
 def test_burgers_newton(V):
     ic = project(Expression("sin(2*pi*x[0])"), V)
 
@@ -67,5 +66,5 @@ def test_burgers_newton(V):
 
     HJic = hessian(J, FunctionControl("Velocity"), warn=False)
 
-    minconv = taylor_test(Jfunc, FunctionControl("Velocity"), Jic, dJdic, HJm=HJic, seed=1.0e-3, perturbation_direction=interpolate(Expression("cos(x[0])"), V))
+    minconv = taylor_test(Jfunc, FunctionControl("Velocity"), Jic, dJdic, HJm=HJic, seed=1.0e-3, perturbation_direction=interpolate(Expression("cos(x[0])"), V, annotate=False))
     assert minconv > 2.7
