@@ -76,7 +76,7 @@ if dolfin.__version__ > '1.2.0':
             return self.coeffs
 
         def __str__(self):
-            return hashlib.md5(str(self.form)).hexdigest()
+            return hashlib.md5(str(self.form).encode('utf8')).hexdigest()
 
         def __call__(self, dependencies, values):
 

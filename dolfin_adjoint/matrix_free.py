@@ -137,8 +137,9 @@ class AdjointPETScKrylovSolver(backend.PETScKrylovSolver):
                 assert hasattr(A, "set_dependencies"), "Need a set_dependencies method to replace your values, if you have nonlinear dependencies ... "
 
             rhs = adjrhs.RHS(b.form)
-
-            diag_name = hashlib.md5(str(hash(A)) + str(random.random())).hexdigest()
+            
+            key = '{}{}'.format(hash(A), random.random()).encode('utf8')
+            diag_name = hashlib.md5(key).hexdigest()
             diag_block = libadjoint.Block(diag_name, dependencies=dependencies, test_hermitian=backend.parameters["adjoint"]["test_hermitian"], test_derivative=backend.parameters["adjoint"]["test_derivative"])
 
             solving.register_initial_conditions(zip(rhs.coefficients(), rhs.dependencies()) + zip(coeffs, dependencies), linear=False, var=None)

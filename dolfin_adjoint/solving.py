@@ -137,7 +137,8 @@ def annotate(*args, **kwargs):
     # Set up the data associated with the matrix on the left-hand side. This goes on the diagonal
     # of the 'large' system that incorporates all of the timelevels, which is why it is prefixed
     # with diag.
-    diag_name = hashlib.md5(str(hash(eq_lhs)) + str(hash(eq_rhs)) + str(u) + str(random.random())).hexdigest() # we don't have a useful human-readable name, so take the md5sum of the string representation of the forms
+    key = '{}{}{}{}'.format(hash(eq_lhs), hash(eq_rhs), u, random.random()).encode('utf8')
+    diag_name = hashlib.md5(key).hexdigest() # we don't have a useful human-readable name, so take the md5sum of the string representation of the forms
     diag_deps = [adjglobals.adj_variables[coeff] for coeff in ufl.algorithms.extract_coefficients(eq_lhs) if hasattr(coeff, "function_space")]
     diag_coeffs = [coeff for coeff in ufl.algorithms.extract_coefficients(eq_lhs) if hasattr(coeff, "function_space")]
 

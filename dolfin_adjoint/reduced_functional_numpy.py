@@ -128,7 +128,7 @@ class ReducedFunctionalNumPy(ReducedFunctional):
         http://www.pyopt.org/
         '''
         import pyOpt
-        from . import optimization.constraints
+        from .optimization import constraints
 
         constraints = optimization.constraints.canonicalise(constraints)
 

@@ -130,7 +130,7 @@ class RHS(libadjoint.RHS):
 
     def __str__(self):
 
-        return hashlib.md5(str(self.form)).hexdigest()
+        return hashlib.md5(str(self.form).encode('utf8')).hexdigest()
 
 class NonlinearRHS(RHS):
     '''For nonlinear problems, the source term isn't assembled in the usual way.
