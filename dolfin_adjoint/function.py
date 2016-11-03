@@ -1,14 +1,15 @@
+from __future__ import print_function
 import backend
 import ufl
-from solving import solve, annotate as solving_annotate, do_checkpoint
-from solving import register_initial_conditions, register_initial_condition
+from .solving import solve, annotate as solving_annotate, do_checkpoint
+from .solving import register_initial_conditions, register_initial_condition
 import libadjoint
-import assignment
-import adjlinalg
-import adjglobals
-import utils
-import misc
-import compatibility
+from . import assignment
+from . import adjlinalg
+from . import adjglobals
+from . import utils
+from . import misc
+from . import compatibility
 
 dolfin_assign = misc.noannotations(backend.Function.assign)
 dolfin_split  = misc.noannotations(backend.Function.split)
@@ -142,7 +143,7 @@ class Function(backend.Function):
             self.rename(self.adj_name, "a Function from dolfin-adjoint")
 
         if to_annotate:
-            print "Registering", self.name()
+            print("Registering", self.name())
             register_initial_condition(self, adjglobals.adj_variables[self])
 
     def copy(self, *args, **kwargs):
@@ -293,7 +294,7 @@ def _check_mul_and_division(e, linear_comb, scalar_weight=1.0, multi_index=None)
 
     # FIXME: What should be checked!?
     same_multi_index = lambda x, y: len(x.free_indices()) == len(y.free_indices()) \
-                and x.index_dimensions().values() == y.index_dimensions().values()
+                and list(x.index_dimensions().values()) == list(y.index_dimensions().values())
 
     assert(isinstance(scalar_weight, float))
 

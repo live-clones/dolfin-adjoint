@@ -1,16 +1,16 @@
 import libadjoint
-from controls import *
+from .controls import *
 from backend import info_red, info_blue, info, info_green, parameters
 import backend
-import adjglobals
+from . import adjglobals
 import backend
-import constant
-import adjresidual
+from . import constant
+from . import adjresidual
 import ufl.algorithms
-from enlisting import enlist, delist
+from .enlisting import enlist, delist
 from numpy import ndarray
-from functional import Functional
-import misc
+from .functional import Functional
+from . import misc
 
 def replay_dolfin(forget=False, tol=0.0, stop=False):
 
@@ -107,7 +107,7 @@ def compute_tlm(parameter, forget=False):
 
 def compute_gradient(J, param, forget=True, ignore=[], callback=lambda var, output: None, project=False):
     if not isinstance(J, Functional):
-        raise ValueError, "J must be of type dolfin_adjoint.Functional."
+        raise ValueError("J must be of type dolfin_adjoint.Functional.")
 
     flag = misc.pause_annotation()
 
@@ -282,7 +282,7 @@ class BasicHessian(libadjoint.Matrix):
                         elif isinstance(Hm[i], float):
                             Hm[i] += out[i]
                         else:
-                            raise ValueError, "Do not know what to do with this"
+                            raise ValueError("Do not know what to do with this")
                 return Hm
 
             func_timer = backend.Timer("Hessian action (derivative formula)")
@@ -347,7 +347,7 @@ class BasicHessian(libadjoint.Matrix):
 
         # OK! Now add the model input and output vectors.
         if len(self.m.controls) != 1:
-            raise ValueError, "Sorry, only support single controls at the moment."
+            raise ValueError("Sorry, only support single controls at the moment.")
         data = adjlinalg.Vector(self.m.data()[0])
         options['input'] = data
         options['output'] = data
@@ -384,7 +384,7 @@ class compute_gradient_tlm(object):
     you have many functionals and few parameters.'''
     def __init__(self, J, m, forget=True, callback=lambda var, output: None, project=False):
         if not isinstance(J, Functional):
-            raise ValueError, "J must be of type dolfin_adjoint.Functional."
+            raise ValueError("J must be of type dolfin_adjoint.Functional.")
 
 
         self.J = J

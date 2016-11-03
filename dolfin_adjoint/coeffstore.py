@@ -38,7 +38,7 @@ class CoeffStore(object):
 
         coeff = str(coeff)
 
-        if not self.coeffs.has_key(coeff):
+        if coeff not in self.coeffs:
             self.coeffs[coeff] = (self.libadjoint_timestep, 0)
 
         (timestep, iteration) = self.coeffs[coeff]

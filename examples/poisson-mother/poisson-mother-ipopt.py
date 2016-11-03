@@ -9,6 +9,7 @@
 
 
 """
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -64,6 +65,6 @@ f.assign(f_opt)
 solve(F == 0, u, bc)
 control_error = errornorm(f_analytic, f_opt)
 state_error = errornorm(u_analytic, u)
-print "h(min):           %e." % mesh.hmin()
-print "Error in state:   %e." % state_error
-print "Error in control: %e." % control_error
+print("h(min):           %e." % mesh.hmin())
+print("Error in state:   %e." % state_error)
+print("Error in control: %e." % control_error)

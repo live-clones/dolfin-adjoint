@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 from paper import Z
 import glob
@@ -15,7 +16,7 @@ def look_at_adjoints(dirname, var_name):
     norm1s = []
     for no in equation_nos:
         f = "%s/adjoint_%s_%d.xml" % (dirname, var_name, no)
-        print "Treating %s" % f
+        print("Treating %s" % f)
         file = File(f)
         file >> z
         (sigma0, sigma1, v, gamma) = z.split()
@@ -37,8 +38,8 @@ def look_at_forwards(dirname):
     iterations.sort()
     times = [float(f.split("_")[-1][:-4]) for f in forwards]
     times.sort()
-    print iterations
-    print times
+    print(iterations)
+    print(times)
 
     z = Function(Z)
     w = Function(Z.sub(2).collapse())
@@ -54,7 +55,7 @@ def look_at_forwards(dirname):
         norms += [assemble(inner(sigma0[2,:], sigma0[2,:])*dx)]
 
         cg_s = project(sigma0[2,:], vCG1)
-        print "Saving .vtu at t = %g" % t
+        print("Saving .vtu at t = %g" % t)
         pvds << cg_s
 
     return times, norms

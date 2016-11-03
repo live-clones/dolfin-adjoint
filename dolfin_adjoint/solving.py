@@ -1,10 +1,13 @@
+from __future__ import print_function
+
+from itertools import chain
 import ufl
 import ufl.classes
 import ufl.algorithms
 import ufl.operators
 
 import backend
-import compatibility
+from . import compatibility
 
 import libadjoint
 import libadjoint.exceptions
@@ -15,19 +18,19 @@ import os
 import os.path
 import random
 
-import assembly
-import expressions
-import constant
-import coeffstore
-import adjrhs
-import adjglobals
-import adjlinalg
-import misc
+from . import assembly
+from . import expressions
+from . import constant
+from . import coeffstore
+from . import adjrhs
+from . import adjglobals
+from . import adjlinalg
+from . import misc
 if backend.__name__ == "dolfin":
-    import lusolver
-    import multimesh_assembly
-import utils
-import caching
+    from . import lusolver
+    from . import multimesh_assembly
+from . import utils
+from . import caching
 
 def annotate(*args, **kwargs):
     '''This routine handles all of the annotation, recording the solves as they
@@ -110,7 +113,7 @@ def annotate(*args, **kwargs):
             assert not hasattr(args[0], 'bcs') and not hasattr(args[2], 'bcs')
             eq_bcs = []
     else:
-        print "args[0].__class__: ", args[0].__class__
+        print("args[0].__class__: ", args[0].__class__)
         raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to annotate your equation, sorry!")
 
     # Suppose we are solving for a variable w, and that variable shows up in the
@@ -158,7 +161,8 @@ def annotate(*args, **kwargs):
     # relevant adjoint equations for the adjoint variables associated with
     # the initial conditions.
     assert len(rhs.coefficients()) == len(rhs.dependencies())
-    register_initial_conditions(zip(rhs.coefficients(),rhs.dependencies()) + zip(diag_coeffs, diag_deps), linear=linear, var=var)
+    register_initial_conditions(chain(
+        zip(rhs.coefficients(),rhs.dependencies()), zip(diag_coeffs, diag_deps)), linear=linear, var=var)
 
     # c.f. the discussion above. In the linear case, we want to bump the
     # timestep number /after/ all of the dependencies' timesteps have been

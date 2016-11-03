@@ -25,6 +25,7 @@ on an L-shaped domain using Chorin's splitting method."""
 
 # Begin demo
 
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -155,9 +156,9 @@ if __name__ == "__main__":
 
     ratio = replay_time / fwd_time
 
-    print "Forward time: ", fwd_time
-    print "Replay time: ", replay_time
-    print "Ratio: ", ratio
+    print("Forward time: ", fwd_time)
+    print("Replay time: ", replay_time)
+    print("Ratio: ", ratio)
 
     assert success
     if '--ignore' not in sys.argv:
@@ -169,9 +170,9 @@ if __name__ == "__main__":
     dJdm = compute_gradient(J, m)
     adj_time = adj_timer.stop()
 
-    print "Adjoint time: ", adj_time
+    print("Adjoint time: ", adj_time)
     ratio = adj_time / fwd_time
-    print "Ratio: ", ratio
+    print("Ratio: ", ratio)
 
     if '--ignore' not in sys.argv:
         assert ratio < 1.5

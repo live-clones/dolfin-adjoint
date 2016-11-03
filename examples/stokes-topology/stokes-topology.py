@@ -74,6 +74,7 @@
 # First, the :py:mod:`dolfin` and :py:mod:`dolfin_adjoint` modules are
 # imported:
 
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -224,16 +225,16 @@ if __name__ == "__main__":
             self.tmpvec = Function(A)
 
         def function(self, m):
-            print "Evaluting constraint residual"
+            print("Evaluting constraint residual")
             self.tmpvec.vector()[:] = m
 
             # Compute the integral of the control over the domain
             integral = self.smass.inner(self.tmpvec.vector())
-            print "Current control integral: ", integral
+            print("Current control integral: ", integral)
             return [self.V - integral]
 
         def jacobian(self, m):
-            print "Computing constraint Jacobian"
+            print("Computing constraint Jacobian")
             return [-self.smass]
 
         def output_workspace(self):

@@ -11,6 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+from __future__ import print_function
 import sys, os, datetime
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -62,7 +63,7 @@ for mod_name in MOCK_MODULES:
     try:
         importlib.import_module(mod_name)
     except:
-        print "Generating mock module %s." % mod_name
+        print("Generating mock module %s." % mod_name)
         sys.modules[mod_name] = Mock()
 import backend
 backend.__name__ = "dolfin"

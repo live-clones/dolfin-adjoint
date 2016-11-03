@@ -1,11 +1,12 @@
+from __future__ import print_function
 import dolfin
 import ufl
-import solving
+from . import solving
 import libadjoint
-import adjlinalg
-import adjglobals
-import misc
-import utils
+from . import adjlinalg
+from . import adjglobals
+from . import misc
+from . import utils
 
 krylov_solvers = []
 adj_krylov_solvers = []
@@ -264,7 +265,7 @@ def transpose_operators(operators):
             pass
 
         else:
-            print "op.__class__: ", op.__class__
+            print("op.__class__: ", op.__class__)
             raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to transpose anything else!")
 
     return out

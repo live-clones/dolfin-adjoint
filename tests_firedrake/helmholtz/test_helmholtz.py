@@ -12,6 +12,7 @@ and the analytical solution
 """
 
 # Begin demo
+from __future__ import print_function
 from firedrake import *
 from firedrake_adjoint import *
 import pytest
@@ -51,17 +52,17 @@ def test_helmholtz(V):
     s = Function(V)
     s.interpolate(Expression("(1+8*pi*pi)*cos(x[0]*pi*2)*cos(x[1]*pi*2)"))
 
-    print "Running forward model"
+    print("Running forward model")
     j, x, f = model(s, V)
 
     adj_html("forward.html", "forward")
-    print "Replaying forward model"
+    print("Replaying forward model")
     assert replay_dolfin(tol=1e-13, stop=True)
 
     J = Functional(inner(x-f, x-f)*dx*dt[FINISH_TIME])
     m = FunctionControl(s)
 
-    print "Running adjoint model"
+    print("Running adjoint model")
     dJdm = compute_gradient(J, m, forget=None)
 
     parameters["adjoint"]["stop_annotating"] = True

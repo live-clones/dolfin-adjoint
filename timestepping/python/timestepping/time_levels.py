@@ -20,7 +20,7 @@ from collections import OrderedDict
 import copy
 from fractions import Fraction
 
-from exceptions import *
+from .exceptions import *
 
 __all__ = \
   [
@@ -265,7 +265,7 @@ class TimeLevels(object):
             elif level > last_past_level:
                 raise InvalidArgumentException("Cannot map future to future levels")
 
-        if not len(set(cycle_map.values())) == len(cycle_map.values()):
+        if not len(set(cycle_map.values())) == len(list(cycle_map.values())):
             raise InvalidArgumentException("cycle_map must be one-to-one")
 
         cm_levels = sorted(cycle_map.keys())
@@ -274,11 +274,11 @@ class TimeLevels(object):
             ncycle_map[level] = cycle_map[level]
         cycle_map = ncycle_map
 
-        key_levels = cycle_map.keys()
+        key_levels = list(cycle_map.keys())
         for level in cycle_map.values():
             if level in key_levels:
                 key_levels.remove(level)
-        val_levels = cycle_map.values()
+        val_levels = list(cycle_map.values())
         for level in cycle_map.keys():
             if level in val_levels:
                 val_levels.remove(level)

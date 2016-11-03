@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 
 from dolfin import *
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     forward = main(ic, annotate=True)
     adj_html("forward.html", "forward")
-    print "Running adjoint ... "
+    print("Running adjoint ... ")
 
     J = Functional(forward*forward*dx*dt[FINISH_TIME])
     m = FunctionControl("Velocity")

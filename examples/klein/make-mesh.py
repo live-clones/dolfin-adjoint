@@ -5,6 +5,7 @@ Parametric description taken from
 http://paulbourke.net/geometry/klein/
 """
 
+from __future__ import print_function
 from dolfin import *
 import numpy
 
@@ -35,7 +36,7 @@ class TopBottomPeriodicBoundary(SubDomain):
         #print "map(%s): %s" % (x, y)
 
 def wrap_mesh(mesh, pbs):
-    print "Wrapping input mesh: # vertices == ", mesh.num_vertices()
+    print("Wrapping input mesh: # vertices == ", mesh.num_vertices())
 
     def merge_slave_pairs(merged, new_map):
         for key in merged:
@@ -91,7 +92,7 @@ def wrap_mesh(mesh, pbs):
             editor.add_vertex(vertex_map[i], coords[i])
 
     editor.close()
-    print "Wrapped output mesh: # vertices == ", wrapped_mesh.num_vertices()
+    print("Wrapped output mesh: # vertices == ", wrapped_mesh.num_vertices())
     return wrapped_mesh
 
 wrapped_mesh = wrap_mesh(mesh, [LeftRightPeriodicBoundary(), TopBottomPeriodicBoundary()])

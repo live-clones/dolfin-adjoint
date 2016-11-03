@@ -1,14 +1,15 @@
-import cPickle as pickle
+from __future__ import print_function
+import six.moves.cPickle as pickle
 import hashlib
 import libadjoint
-import utils
+from . import utils
 from backend import Function, Constant, info_red, info_green, File
 from dolfin_adjoint import drivers, compatibility
 from dolfin_adjoint.adjglobals import adjointer, mem_checkpoints, disk_checkpoints, adj_reset_cache
-from functional import Functional
-from enlisting import enlist, delist
-from controls import DolfinAdjointControl, ListControl
-from misc import noannotations
+from .functional import Functional
+from .enlisting import enlist, delist
+from .controls import DolfinAdjointControl, ListControl
+from .misc import noannotations
 
 
 class ReducedFunctional(object):
@@ -116,7 +117,7 @@ class ReducedFunctional(object):
 
         for control in controls:
             if not isinstance(control, DolfinAdjointControl):
-                print control.__class__
+                print(control.__class__)
                 raise TypeError("control should be a Control")
 
         if not isinstance(scale, float):
@@ -390,7 +391,7 @@ def value_hash(value):
     elif isinstance (value, list):
         return "".join(map(value_hash, value))
     else:
-        raise Exception, "Don't know how to take a hash of %s" % value
+        raise Exception("Don't know how to take a hash of %s" % value)
 
 
 def cache_load(value, V):
@@ -414,5 +415,5 @@ def cache_store(value, cache):
         File(filename) << value
         return filename
     else:
-        raise Exception, "Don't know how to store %s" % value
+        raise Exception("Don't know how to store %s" % value)
     return

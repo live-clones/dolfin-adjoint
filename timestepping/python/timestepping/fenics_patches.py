@@ -49,8 +49,8 @@ import numpy
 import types
 import ufl
 
-from embedded_cpp import *
-from versions import *
+from .embedded_cpp import *
+from .versions import *
 
 __all__ = []
 

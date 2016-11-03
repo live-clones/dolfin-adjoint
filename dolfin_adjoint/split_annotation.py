@@ -2,10 +2,10 @@
 import backend
 import libadjoint
 
-import solving
-import assignment
-import expressions
-import adjrhs
+from . import solving
+from . import assignment
+from . import expressions
+from . import adjrhs
 
 import hashlib
 import random

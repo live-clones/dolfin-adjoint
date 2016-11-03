@@ -4,11 +4,11 @@ import ufl.algorithms
 import backend
 import hashlib
 
-import solving
-import adjglobals
-import adjlinalg
-from timeforms import NoTime, StartTimeConstant, FinishTimeConstant, dt
-from timeforms import FINISH_TIME
+from . import solving
+from . import adjglobals
+from . import adjlinalg
+from .timeforms import NoTime, StartTimeConstant, FinishTimeConstant, dt
+from .timeforms import FINISH_TIME
 
 
 class Functional(libadjoint.Functional):
@@ -76,7 +76,7 @@ class Functional(libadjoint.Functional):
             timeform = timeform*dt[FINISH_TIME]
 
             if not timeform.is_functional():
-                raise Exception, "Your functional must have rank 0, but is has rank >0"
+                raise Exception("Your functional must have rank 0, but is has rank >0")
 
         self.timeform = timeform
         self.verbose = verbose
@@ -118,7 +118,7 @@ class Functional(libadjoint.Functional):
                 backend.info_red("The form passed into Functional must be rank-0 (a scalar)! You have passed in a rank-%s form." % len(args))
                 raise libadjoint.exceptions.LibadjointErrorInvalidInputs
 
-            from utils import _has_multimesh
+            from .utils import _has_multimesh
             if _has_multimesh(functional_value):
                 return backend.assemble_multimesh(functional_value)
             else:
@@ -141,7 +141,7 @@ class Functional(libadjoint.Functional):
         d = ufl.algorithms.expand_derivatives(d)
 
         if len(d.integrals()) == 0:
-            raise SystemExit, "This isn't supposed to happen -- your functional is supposed to depend on %s" % variable
+            raise SystemExit("This isn't supposed to happen -- your functional is supposed to depend on %s" % variable)
         return adjlinalg.Vector(d)
 
     def second_derivative(self, adjointer, variable, dependencies, values, contraction):
@@ -158,7 +158,7 @@ class Functional(libadjoint.Functional):
         d = ufl.algorithms.expand_derivatives(d)
         d = backend.derivative(d, values[dependencies.index(variable)].data, contraction.data)
         if len(d.integrals()) == 0:
-            raise SystemExit, "This isn't supposed to happen -- your functional is supposed to depend on %s" % variable
+            raise SystemExit("This isn't supposed to happen -- your functional is supposed to depend on %s" % variable)
         return adjlinalg.Vector(d)
 
     def _derivative_timesteps(self, adjointer, variable):

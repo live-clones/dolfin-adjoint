@@ -1,4 +1,4 @@
-import optimization_problem
+from . import optimization_problem
 import backend
 
 class OptimizationSolver(object):

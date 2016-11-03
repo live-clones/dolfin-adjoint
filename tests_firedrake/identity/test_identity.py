@@ -1,3 +1,4 @@
+from __future__ import print_function
 from firedrake import *
 from firedrake_adjoint import *
 import pytest
@@ -30,20 +31,20 @@ def test_identity(V):
     s = Function(V)
     s.interpolate(Expression("1"))
 
-    print "Running forward model"
+    print("Running forward model")
     j, x = model(s, V)
 
-    print "Replaying forward model"
+    print("Replaying forward model")
     assert replay_dolfin(tol=1e-12, stop=True)
 
     J = Functional(x**2*dx*dt[FINISH_TIME])
     m = FunctionControl(s)
 
-    print "Running the adjoint model"
+    print("Running the adjoint model")
     for i in compute_adjoint(J, forget=None):
         pass
 
-    print "Computing the gradient with the adjoint model"
+    print("Computing the gradient with the adjoint model")
     dJdm = compute_gradient(J, m, forget=None)
 
     parameters["adjoint"]["stop_annotating"] = True

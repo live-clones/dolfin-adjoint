@@ -1,7 +1,9 @@
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 import numpy
 import sys
+import six
 
 class parameters(dict):
     '''Parameter dictionary. This subclasses dict so defaults can be set.'''
@@ -10,7 +12,7 @@ class parameters(dict):
         self["theta"]=0.5
 
         # Apply dict after defaults so as to overwrite the defaults
-        for key,val in dict.iteritems():
+        for key,val in six.iteritems(dict):
             self[key]=val
 
         self.required={
@@ -22,8 +24,8 @@ class parameters(dict):
             }
 
     def check(self):
-        for key, error in self.required.iteritems():
-            if not self.has_key(key):
+        for key, error in six.iteritems(self.required):
+            if key not in self:
                 sys.stderr.write("Missing parameter: "+key+"\n"+
                                  "This is used to set the "+error+"\n")
                 raise KeyError
@@ -197,7 +199,7 @@ def timeloop_theta(M, G, rhs_contr, ufl, ufr, state, params, annotate=True):
 
 def replay(state,params):
 
-    print "Replaying forward run"
+    print("Replaying forward run")
 
     for i in range(adjointer.equation_count):
         (fwd_var, output) = adjointer.get_forward_solution(i)
@@ -210,10 +212,10 @@ def replay(state,params):
 
 def adjoint(state, params, functional):
 
-    print "Running adjoint"
+    print("Running adjoint")
 
     for i in range(adjointer.equation_count)[::-1]:
-        print "  solving adjoint equation ", i
+        print("  solving adjoint equation ", i)
         (adj_var, output) = adjointer.get_adjoint_solution(i, functional)
 
         s=libadjoint.MemoryStorage(output)

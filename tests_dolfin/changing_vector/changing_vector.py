@@ -3,6 +3,7 @@ Implementation of Burger's equation with nonlinear solve in each
 timestep
 """
 
+from __future__ import print_function
 import sys
 
 from dolfin import *
@@ -51,6 +52,6 @@ if __name__ == "__main__":
     ic = project(Expression("sin(2*pi*x[0])", degree=1),  V)
     main(ic, annotate=True)
 
-    print "Running forward replay .... "
+    print("Running forward replay .... ")
     success = replay_dolfin(forget=False) # <------ should catch it here
     assert not success

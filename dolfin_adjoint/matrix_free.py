@@ -1,13 +1,14 @@
+from __future__ import print_function
 import ufl
 import backend
 
 import libadjoint
 
-import solving
-import expressions
-import adjrhs
-import adjlinalg
-import adjglobals
+from . import solving
+from . import expressions
+from . import adjrhs
+from . import adjlinalg
+from . import adjglobals
 
 import hashlib
 import copy
@@ -140,7 +141,7 @@ class AdjointPETScKrylovSolver(backend.PETScKrylovSolver):
             diag_name = hashlib.md5(str(hash(A)) + str(random.random())).hexdigest()
             diag_block = libadjoint.Block(diag_name, dependencies=dependencies, test_hermitian=backend.parameters["adjoint"]["test_hermitian"], test_derivative=backend.parameters["adjoint"]["test_derivative"])
 
-            solving.register_initial_conditions(zip(rhs.coefficients(),rhs.dependencies()) + zip(coeffs, dependencies), linear=False, var=None)
+            solving.register_initial_conditions(zip(rhs.coefficients(), rhs.dependencies()) + zip(coeffs, dependencies), linear=False, var=None)
 
             var = adjglobals.adj_variables.next(x.function)
 
@@ -301,7 +302,7 @@ def transpose_operators(operators):
             pass
 
         else:
-            print "op.__class__: ", op.__class__
+            print("op.__class__: ", op.__class__)
             raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to transpose anything else!")
 
     return out

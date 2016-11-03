@@ -1,5 +1,6 @@
 """ Solves an optimisation problem with the Burgers equation as constraint """
 
+from __future__ import print_function
 import sys
 from firedrake import *
 from firedrake_adjoint import *
@@ -88,8 +89,8 @@ def test_optimization_scipy(V, method, options):
     # Run the optimisation
     # Define the reduced funtional
     def derivative_cb(j, dj, m):
-        print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(),
-                                                      m.vector().max())
+        print("j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(),
+                                                      m.vector().max()))
 
     reduced_functional = ReducedFunctional(J, Control(u, value=ic),
                                            derivative_cb_post=derivative_cb)

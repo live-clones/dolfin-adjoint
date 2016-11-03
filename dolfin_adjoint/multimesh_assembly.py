@@ -1,7 +1,7 @@
 import backend
 import copy
-import utils
-import caching
+from . import utils
+from . import caching
 
 backend_assemble_multimesh = backend.assemble_multimesh
 def assemble_multimesh(*args, **kwargs):

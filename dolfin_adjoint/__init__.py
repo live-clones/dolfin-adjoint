@@ -26,31 +26,31 @@ if not 'backend' in sys.modules:
     sys.modules['backend'] = dolfin
 backend = sys.modules['backend']
 
-import options
-import solving
-import assembly
-import expressions
-import utils
-import assignment
-import functional
-import split_annotation
-import constant
+from . import options
+from . import solving
+from . import assembly
+from . import expressions
+from . import utils
+from . import assignment
+from . import functional
+from . import split_annotation
+from . import constant
 
 if backend.__name__ == "dolfin":
-    import lusolver
+    from . import lusolver
 
-import gst
-import function
+from . import gst
+from . import function
 
-import optimization
-import reduced_functional
-from optimization import optimization
+from . import optimization
+from . import reduced_functional
+from .optimization import optimization
 if backend.__name__ == "dolfin":
-    import genericmatrix
-    import genericvector
-    import optimization
-    import reduced_functional
-    import pointwise_functional
-    from optimization import optimization
+    from . import genericmatrix
+    from . import genericvector
+    from . import optimization
+    from . import reduced_functional
+    from . import pointwise_functional
+    from .optimization import optimization
 
-from ui import *
+from .ui import *

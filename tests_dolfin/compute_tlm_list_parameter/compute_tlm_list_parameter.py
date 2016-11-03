@@ -1,3 +1,4 @@
+from __future__ import print_function
 import random
 
 from dolfin import *
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     dJdm_adm = compute_gradient(J, m, forget=False)
     dJdm_adm = float(dJdm_adm[0])*float(p[0]) + float(dJdm_adm[1])*float(p[1])
 
-    print "dJdm_tlm: ", dJdm_tlm
-    print "dJdm_adm: ", dJdm_adm
+    print("dJdm_tlm: ", dJdm_tlm)
+    print("dJdm_adm: ", dJdm_adm)
 
     assert abs(dJdm_tlm - dJdm_adm) < 1.0e-12

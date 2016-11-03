@@ -10,6 +10,7 @@
 
 
 """
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -69,9 +70,9 @@ class VolumeConstraint(InequalityConstraint):
         vecmax   = m.vector().max()
         vecmin   = m.vector().min()
         if MPI.rank(mpi_comm_world()) == 0:
-            print "Current control integral: ", integral
-            print "Maximum of control: ", vecmax
-            print "Minimum of control: ", vecmin
+            print("Current control integral: ", integral)
+            print("Maximum of control: ", vecmax)
+            print("Minimum of control: ", vecmin)
         return [self.Vol - integral]
 
     def jacobian_action(self, m, dm, result):

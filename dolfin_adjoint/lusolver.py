@@ -1,11 +1,11 @@
 import dolfin
-import solving
-import assembly
+from . import solving
+from . import assembly
 import libadjoint
-import adjglobals
-import adjlinalg
-import misc
-import utils
+from . import adjglobals
+from . import adjlinalg
+from . import misc
+from . import utils
 
 lu_solvers = []
 adj_lu_solvers = []

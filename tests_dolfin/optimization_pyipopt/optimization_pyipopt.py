@@ -1,6 +1,7 @@
 """ Solves an optimisation problem with the Burgers equation as constraint, using
 the pyipopt Python bindings to IPOPT"""
 
+from __future__ import print_function
 import sys
 
 from dolfin import *
@@ -47,7 +48,7 @@ def main(u, annotate=False):
         adj_inc_timestep(time=t, finished = t>end)
 
 def derivative_cb(j, dj, m):
-    print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(), m.vector().max())
+    print("j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(), m.vector().max()))
 
 if __name__ == "__main__":
 

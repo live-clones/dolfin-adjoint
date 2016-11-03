@@ -1,4 +1,5 @@
 """ Solves a MMS problem with smooth control """
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 try:
@@ -20,7 +21,7 @@ tao_args = """--petsc.tao_monitor
             --petsc.tao_nls_pc_type none
             --petsc.tao_ntr_pc_type none
            """.split()
-print "Tao arguments:", tao_args
+print("Tao arguments:", tao_args)
 parameters.parse(tao_args)
 
 def solve_pde(u, V, m):

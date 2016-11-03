@@ -2,6 +2,7 @@
 Naive implementation of Burgers' equation, goes oscillatory later
 """
 
+from __future__ import print_function
 import sys
 
 from dolfin import *
@@ -68,7 +69,7 @@ if __name__ == "__main__":
 
     replay_dolfin()
 
-    print "Running adjoint ... "
+    print("Running adjoint ... ")
     J = Functional(forward*forward*dx*dt[FINISH_TIME])
     for (adjoint, var) in compute_adjoint(J, forget=False):
         pass

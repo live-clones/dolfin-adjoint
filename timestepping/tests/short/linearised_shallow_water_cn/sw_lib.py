@@ -19,9 +19,11 @@
 # Modified version of shallow_water test from dolfin-adjoint bzr trunk 636
 # Code first added: 2013-04-26
 
+from __future__ import print_function
 from dolfin import *
 import numpy
 import sys
+import six
 
 class parameters(dict):
     '''Parameter dictionary. This subclasses dict so defaults can be set.'''
@@ -30,7 +32,7 @@ class parameters(dict):
         self["theta"]=0.5
 
         # Apply dict after defaults so as to overwrite the defaults
-        for key,val in dict.iteritems():
+        for key,val in six.iteritems(dict):
             self[key]=val
 
         self.required={
@@ -42,8 +44,8 @@ class parameters(dict):
             }
 
     def check(self):
-        for key, error in self.required.iteritems():
-            if not self.has_key(key):
+        for key, error in six.iteritems(self.required):
+            if key not in self:
                 sys.stderr.write("Missing parameter: "+key+"\n"+
                                  "This is used to set the "+error+"\n")
                 raise KeyError
@@ -130,7 +132,7 @@ def construct_shallow_water(W,params):
     except KeyError:
         F=0
 
-    if params.has_key("big_spring"):
+    if "big_spring" in params:
         print("big spring active: ", params["big_spring"])
         C+=inner(v,n)*inner(u,n)*params["big_spring"]*ds
 
@@ -224,7 +226,7 @@ def replay(state,params):
 
     print("Replaying forward run")
 
-    for i in xrange(adjointer.equation_count):
+    for i in range(adjointer.equation_count):
         (fwd_var, output) = adjointer.get_forward_solution(i)
 
         s=libadjoint.MemoryStorage(output)

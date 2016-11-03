@@ -1,9 +1,9 @@
 import dolfin
-import solving
+from . import solving
 import libadjoint
-import adjglobals
-import adjlinalg
-import utils
+from . import adjglobals
+from . import adjlinalg
+from . import utils
 
 class NewtonSolver(dolfin.NewtonSolver):
     '''This object is overloaded so that solves using this class are automatically annotated,

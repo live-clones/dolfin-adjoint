@@ -22,10 +22,10 @@ import copy
 import dolfin
 import ufl
 
-from exceptions import *
-from fenics_overrides import *
-from fenics_utils import *
-from versions import *
+from .exceptions import *
+from .fenics_overrides import *
+from .fenics_utils import *
+from .versions import *
 
 __all__ = \
   [
@@ -165,7 +165,7 @@ class AssemblyCache(object):
             counts[form_rank(key[0])] += 1
 
         dolfin.info("Assembly cache status:")
-        for i in xrange(3):
+        for i in range(3):
             dolfin.info("Pre-assembled rank %i forms: %i" % (i, counts[i]))
 
         return
@@ -184,7 +184,7 @@ class AssemblyCache(object):
                     raise InvalidArgumentException("Arguments must be Constant s or Function s")
 
             for dep in args:
-                for key in copy.copy(self.__cache.keys()):
+                for key in copy.copy(list(self.__cache.keys())):
                     form = key[0]
                     if dep in ufl.algorithms.extract_coefficients(form):
                         del(self.__cache[key])

@@ -134,7 +134,7 @@ def gather(vec):
             except TypeError:
                 arr = vec.gather(numpy.arange(vec.size(), dtype='intc'))
         elif isinstance(vec, list):
-            return map(gather, vec)
+            return list(map(gather, vec))
         else:
             arr = vec  # Assume it's a gathered numpy array already
     else:

@@ -3,6 +3,7 @@ on an L-shaped domain using Chorin's splitting method."""
 
 """This variant uses Picard iteration via the solver interface."""
 
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -133,7 +134,7 @@ while t < T + DOLFIN_EPS:
     # Move to next time step
     up0.assign(up1)
     t += dt
-    print "t =", t
+    print("t =", t)
 
 # Hold plot
 interactive()

@@ -14,6 +14,7 @@ This has the analytical solution
 
   u(x, y) = 42*x[1]
 """
+from __future__ import print_function
 from firedrake import *
 from firedrake_adjoint import *
 import pytest
@@ -47,17 +48,17 @@ def test_poisson_bc(V):
     s = Function(V, name="s")
     s.assign(1)
 
-    print "Running forward model"
+    print("Running forward model")
     j, u, f = model(s, V)
 
     adj_html("forward.html", "forward")
-    print "Replaying forward model"
+    print("Replaying forward model")
     assert replay_dolfin(tol=0.0, stop=True)
 
     J = Functional(inner(u - f, u - f) * dx * dt[FINISH_TIME])
     m = FunctionControl(s)
 
-    print "Running adjoint model"
+    print("Running adjoint model")
     dJdm = compute_gradient(J, m, forget=None)
 
     parameters["adjoint"]["stop_annotating"] = True

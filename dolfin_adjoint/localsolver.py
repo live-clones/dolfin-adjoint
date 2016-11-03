@@ -1,12 +1,12 @@
 import dolfin
-import solving
-import assembly
+from . import solving
+from . import assembly
 import libadjoint
-import adjglobals
-import adjlinalg
-import misc
-import utils
-import caching
+from . import adjglobals
+from . import adjlinalg
+from . import misc
+from . import utils
+from . import caching
 
 class LocalSolverMatrix(adjlinalg.Matrix):
     def solve(self, var, b):

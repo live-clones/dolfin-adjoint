@@ -1,4 +1,5 @@
 """ Solves a MMS problem with smooth control """
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 try:
@@ -47,7 +48,7 @@ def solve_optimal_control(n):
                            "Major print level": 1,
                            "Minor print level": 1})
     res = snopt(nlp, sens_type=grad)
-    print snopt.getInform(res[-1]["value"])
+    print(snopt.getInform(res[-1]["value"]))
     m.vector()[:] = res[1]
 
     #plot(m, interactive=True)
@@ -65,7 +66,7 @@ def solve_optimal_control(n):
     return control_error, state_error
 
 control_error, state_error = solve_optimal_control(n=50)
-print "Error in control: ", control_error
-print "Error in state: ", state_error
+print("Error in control: ", control_error)
+print("Error in state: ", state_error)
 
 assert state_error < 0.0002

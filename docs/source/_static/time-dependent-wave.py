@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
@@ -128,7 +129,7 @@ def optimize(dbg=False):
     if dbg:
         # Check the recorded tape
         success = replay_dolfin(tol = 0.0, stop = True)
-        print "replay: ", success
+        print("replay: ", success)
 
         # for the equations recorded on the forward run
         adj_html("forward.html", "forward")
@@ -147,7 +148,7 @@ def optimize(dbg=False):
         refs += noise
 
     # map refs to be constant
-    refs = map(Constant, refs)
+    refs = list(map(Constant, refs))
 
     # Define the control
     control = Control(Omega)
@@ -157,7 +158,7 @@ def optimize(dbg=False):
     
     # compute the gradient
     dJd0 = compute_gradient(J, control)
-    print "gradient = ", float(dJd0)
+    print("gradient = ", float(dJd0))
     
     # Prepare the reduced functional
     reduced_functional = ReducedFunctional(J, control, eval_cb_post = eval_cb)
@@ -167,7 +168,7 @@ def optimize(dbg=False):
                      tol=1.0e-12, options = {"disp": True,"gtol":1.0e-12})
 
     # Print the obtained optimal value for the controls
-    print "omega = %f" %float(omega_opt)
+    print("omega = %f" %float(omega_opt))
 
 if __name__ == "__main__":
     if '-r' in sys.argv:

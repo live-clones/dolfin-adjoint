@@ -3,6 +3,7 @@ Implementation of Burger's equation with nonlinear solve in each
 timestep
 """
 
+from __future__ import print_function
 import sys
 import numpy
 import random
@@ -73,14 +74,14 @@ if __name__ == "__main__":
     perturbed_soln = main(perturbed_ic, annotate=False)
 
     final_norm = (perturbed_soln.vector() - forward_copy.vector()).norm("l2")/factor
-    print "Norm of initial perturbation: ", ic_norm
-    print "Norm of final perturbation: ", final_norm
+    print("Norm of initial perturbation: ", ic_norm)
+    print("Norm of final perturbation: ", final_norm)
     ratio = final_norm / ic_norm
-    print "Ratio: ", ratio
-    print "Predicted growth of perturbation: ", sigma
+    print("Ratio: ", ratio)
+    print("Predicted growth of perturbation: ", sigma)
 
     prediction_error = abs(sigma - ratio)/ratio * 100
-    print "Prediction error: ", prediction_error,  "%"
+    print("Prediction error: ", prediction_error,  "%")
     assert prediction_error < 2
 
     try:
@@ -98,13 +99,13 @@ if __name__ == "__main__":
     perturbed_soln = main(perturbed_ic, annotate=False)
 
     final_norm = sqrt(assemble(inner(perturbed_soln - forward_copy, perturbed_soln - forward_copy)*dx))/factor
-    print "Norm of initial perturbation: ", ic_norm
-    print "Norm of final perturbation (after solve): ", final_norm
-    print "Norm of final perturbation (from SVD): ", sqrt(assemble(inner(u, u)*dx))
+    print("Norm of initial perturbation: ", ic_norm)
+    print("Norm of final perturbation (after solve): ", final_norm)
+    print("Norm of final perturbation (from SVD): ", sqrt(assemble(inner(u, u)*dx)))
     ratio = final_norm / ic_norm
-    print "Ratio: ", ratio
-    print "Predicted growth of perturbation: ", sigma
+    print("Ratio: ", ratio)
+    print("Predicted growth of perturbation: ", sigma)
 
     prediction_error = abs(sigma - ratio)/ratio * 100
-    print "Prediction error: ", prediction_error,  "%"
+    print("Prediction error: ", prediction_error,  "%")
     assert prediction_error < 2

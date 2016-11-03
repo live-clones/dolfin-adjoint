@@ -9,6 +9,7 @@
 
 
 """
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -72,9 +73,9 @@ class VolumeConstraint(InequalityConstraint):
         cmin = m.vector().min()
 
         if MPI.rank(mpi_comm_world()) == 0:
-            print "Current control integral: ", integral
-            print "Maximum of control: ", cmax
-            print "Minimum of control: ", cmin
+            print("Current control integral: ", integral)
+            print("Maximum of control: ", cmax)
+            print("Minimum of control: ", cmin)
         return [self.volume - integral]
 
     def jacobian_action(self, m, dm, result):
@@ -109,7 +110,7 @@ parameters = {
 solver = OptizelleSolver(problem, inner_product="L2", parameters=parameters)
 f_opt = solver.solve()
 plot(f_opt, interactive=True)
-print "Volume: ", assemble(f_opt*dx)
+print("Volume: ", assemble(f_opt*dx))
 
 
 # Define the expressions of the analytical solution
@@ -123,6 +124,6 @@ f.assign(f_opt)
 solve(F == 0, u, bc)
 control_error = errornorm(f_analytic, f_opt)
 state_error = errornorm(u_analytic, u)
-print "h(min):           %e." % mesh.hmin()
-print "Error in state:   %e." % state_error
-print "Error in control: %e." % control_error
+print("h(min):           %e." % mesh.hmin())
+print("Error in state:   %e." % state_error)
+print("Error in control: %e." % control_error)

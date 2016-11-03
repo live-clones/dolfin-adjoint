@@ -43,7 +43,7 @@ mesh = UnitSquareMesh(n, 2*n)
 def randomly_refine(initial_mesh, ratio_to_refine= .3):
     numpy.random.seed(0)
     cf = CellFunction('bool', initial_mesh)
-    for k in xrange(len(cf)):
+    for k in range(len(cf)):
         if numpy.random.rand() < ratio_to_refine:
             cf[k] = True
     return refine(initial_mesh, cell_markers = cf)

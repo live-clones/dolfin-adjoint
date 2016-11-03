@@ -1,3 +1,4 @@
+from __future__ import print_function
 try:
     from dolfin import BackwardEuler
 except ImportError:
@@ -103,15 +104,15 @@ if __name__ == "__main__":
     ## Step 3. Check ADM correctness
 
     dJdm = compute_gradient(J, m, forget=False)
-    print "param: ", float(params[param_idx])
-    print "dJdm: ", float(dJdm)
+    print("param: ", float(params[param_idx]))
+    print("dJdm: ", float(dJdm))
 ##    #dJdm = Constant(float(dJdm) * dt)
     ptb   = 0.0001*float(params[param_idx])
     a_ptb = Constant(float(params[param_idx]) + ptb)
     J_base  = Jhat(params[param_idx])
     J_ptb   = Jhat(a_ptb)
     dJdm_fd = (J_ptb - J_base)/ptb
-    print "dJdm_fd: ", dJdm_fd
+    print("dJdm_fd: ", dJdm_fd)
 
     minconv_adm = taylor_test(Jhat, m, Jm, dJdm, seed=1.0e1)
     assert minconv_adm > 1.8

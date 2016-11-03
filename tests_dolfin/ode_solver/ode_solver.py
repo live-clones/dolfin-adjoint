@@ -1,3 +1,4 @@
+from __future__ import print_function
 try:
     from dolfin import BackwardEuler
 except ImportError:
@@ -78,8 +79,8 @@ if __name__ == "__main__":
                 if dt == dts[-1]:
                     plt.plot(xs, exact_ys, label="Exact solution")
 
-        print "Errors: ", errors
-        print "Convergence order: ", convergence_order(errors)
+        print("Errors: ", errors)
+        print("Convergence order: ", convergence_order(errors))
 
         assert min(convergence_order(errors)) > 0.8
 
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     else:
         dt = 0.1
         (u, xs, ys) = main(u, form(u, time), time, Solver, dt=dt)
-        print "Solution: ", ys[-1]
+        print("Solution: ", ys[-1])
 
     ## Step 1. Check replay correctness
 
@@ -111,7 +112,7 @@ if __name__ == "__main__":
     def Jhat(ic):
         time = Constant(0.0)
         (u, xs, ys) = main(ic, form(ic, time), time, Solver, dt=dt)
-        print "Perturbed functional value: ", assemble(inner(u, u)*dx)
+        print("Perturbed functional value: ", assemble(inner(u, u)*dx))
         return assemble(inner(u, u)*dx)
 
     dJdm = compute_gradient_tlm(J, m, forget=False)

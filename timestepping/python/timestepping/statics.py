@@ -19,8 +19,8 @@
 import dolfin
 import ufl
 
-from exceptions import *
-from fenics_overrides import *
+from .exceptions import *
+from .fenics_overrides import *
 
 __all__ = \
   [

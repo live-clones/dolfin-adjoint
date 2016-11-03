@@ -1,14 +1,14 @@
 import dolfin
 import ufl.algorithms
 import libadjoint
-import solving
-import adjlinalg
-import adjglobals
+from . import solving
+from . import adjlinalg
+from . import adjglobals
 import hashlib
-import utils
-import caching
-import expressions
-import constant
+from . import utils
+from . import caching
+from . import expressions
+from . import constant
 
 if dolfin.__version__ > '1.2.0':
     class PointIntegralSolver(dolfin.PointIntegralSolver):

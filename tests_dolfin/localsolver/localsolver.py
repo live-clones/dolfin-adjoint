@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 import ufl
@@ -63,7 +64,7 @@ if __name__ == "__main__":
 
     info_blue("Replaying")
     rep = replay_dolfin(forget=False, tol=0.0, stop=True)
-    print rep
+    print(rep)
 
     info_blue("Computing adjoint")
     J = Functional(inner(u, u)*dx)
@@ -72,10 +73,10 @@ if __name__ == "__main__":
     dJdm = compute_gradient(J, m, forget = False)
 
     def Jhat(m):
-        print "Evaluating with c: ", float(m)
+        print("Evaluating with c: ", float(m))
         u = main(m, annotate = False)
         J = assemble(inner(u, u)*dx)
-        print "Functional: ", J
+        print("Functional: ", J)
         return J
 
     minconv = taylor_test(Jhat, m, Jm, dJdm, seed=1.0e-3)

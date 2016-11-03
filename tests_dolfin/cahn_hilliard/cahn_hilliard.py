@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import random
 from dolfin import *
@@ -119,7 +120,7 @@ if __name__ == "__main__":
     dJdic = compute_gradient(J, FunctionControl("Solution"), forget=False)
     Hic = hessian(J, FunctionControl("Solution"), warn=False)
 
-    print "Functional value: ", j
+    print("Functional value: ", j)
 
     def J(ic):
         u, j = main(ic, annotate=False)

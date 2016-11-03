@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 import libadjoint
@@ -39,8 +40,8 @@ if __name__ == "__main__":
         (lamda, m) = eps[i]
         output = HJm(m)
         residual = assemble(inner(lamda*m - output, lamda*m - output)*dx)
-        print "(%02d) eigenvector: " % i, m.vector().array()
-        print "(%02d) lambda: " % i, lamda
-        print "(%02d) residual^2: " % i, residual
+        print("(%02d) eigenvector: " % i, m.vector().array())
+        print("(%02d) lambda: " % i, lamda)
+        print("(%02d) residual^2: " % i, residual)
 
         assert residual < 1.0e-10

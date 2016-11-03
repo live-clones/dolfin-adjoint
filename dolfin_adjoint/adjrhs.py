@@ -2,9 +2,9 @@ import libadjoint
 import backend
 import ufl
 import ufl.algorithms
-import adjglobals
-import adjlinalg
-import utils
+from . import adjglobals
+from . import adjlinalg
+from . import utils
 
 def find_previous_variable(var):
     ''' Returns the previous instance of the given variable. '''
@@ -16,7 +16,7 @@ def find_previous_variable(var):
             prev_var.var.iteration = prev_var.iteration_count(adjglobals.adjointer) - 1
             return prev_var
 
-    raise libadjoint.exceptions.LibadjointErrorInvalidInputs, 'No previous variable found'
+    raise libadjoint.exceptions.LibadjointErrorInvalidInputs('No previous variable found')
 
 def _extract_function_coeffs(form):
     for c in ufl.algorithms.extract_coefficients(form):

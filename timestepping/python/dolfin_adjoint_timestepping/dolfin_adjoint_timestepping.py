@@ -68,7 +68,7 @@ def get_constant(a):
         return a
     else:
         return constant_objects[a]
-dolfin_adjoint.constant.get_constant.func_code = get_constant.func_code
+dolfin_adjoint.constant.get_constant.__code__ = get_constant.__code__
 
 fenics_overrides._KrylovSolver = dolfin_adjoint.KrylovSolver
 fenics_overrides._LinearSolver = dolfin_adjoint.LinearSolver
@@ -137,7 +137,7 @@ del(ForwardModel_finalise)
 __AssignmentSolver__init__orig = AssignmentSolver.__init__
 def AssignmentSolver__init__(self, *args, **kwargs):
     __AssignmentSolver__init__orig(self, *args, **kwargs)
-    solve_orig = self.solve.im_class.solve
+    solve_orig = self.solve.__self__.__class__.solve
     # Equation annotation based on solve in solving.py
     def solve(self, *args, **kwargs):
         # Annotate an assignment solve
@@ -159,7 +159,7 @@ del(AssignmentSolver__init__)
 __EquationSolver__init__orig = EquationSolver.__init__
 def EquationSolver__init__(self, *args, **kwargs):
     __EquationSolver__init__orig(self, *args, **kwargs)
-    solve_orig = self.solve.im_class.solve
+    solve_orig = self.solve.__self__.__class__.solve
     # Equation annotation based on solve in solving.py
     def solve(self, *args, **kwargs):
         # Annotate an equation solve

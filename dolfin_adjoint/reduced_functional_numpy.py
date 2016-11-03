@@ -1,11 +1,12 @@
+from __future__ import print_function
 import numpy as np
 from backend import info, info_red, Constant, Function, TestFunction, TrialFunction, assemble, inner, dx, info_red
 from dolfin_adjoint import constant, utils
 from dolfin_adjoint.adjglobals import adjointer, adj_reset_cache
-from reduced_functional import ReducedFunctional
-from utils import gather
+from .reduced_functional import ReducedFunctional
+from .utils import gather
 from functools import partial
-import misc
+from . import misc
 
 class ReducedFunctionalNumPy(ReducedFunctional):
     ''' This class implements the reduced functional for given functional and
@@ -87,7 +88,7 @@ class ReducedFunctionalNumPy(ReducedFunctional):
             the Hessian action at the latest forward run is returned. '''
 
         if not hasattr(self, "H"):
-            raise NotImplementedError, "Hessian computation not supported."
+            raise NotImplementedError("Hessian computation not supported.")
 
         m = [p.data() for p in self.controls]
         if m_array is not None:
@@ -127,7 +128,7 @@ class ReducedFunctionalNumPy(ReducedFunctional):
         http://www.pyopt.org/
         '''
         import pyOpt
-        import optimization.constraints
+        from . import optimization.constraints
 
         constraints = optimization.constraints.canonicalise(constraints)
 
@@ -221,7 +222,7 @@ def copy_data(m):
     elif hasattr(m, "copy"):
         return m.copy()
     else:
-        raise TypeError, 'Unknown control type %s.' % str(type(m))
+        raise TypeError('Unknown control type %s.' % str(type(m)))
 
 def get_global(m_list):
     ''' Takes a list of distributed objects and returns one np array containing their (serialised) values '''
@@ -256,7 +257,7 @@ def get_global(m_list):
             m_global += a.tolist()
 
         else:
-            raise TypeError, 'Unknown control type %s.' % str(type(m))
+            raise TypeError('Unknown control type %s.' % str(type(m)))
 
     return np.array(m_global, dtype='d')
 
@@ -286,8 +287,8 @@ def set_local(coeffs, global_array):
             m[:] = global_array[offset:offset+len(m)]
             offset += len(m)
         else:
-            print "Argument coeffs must be a list of Coefficients."
-            raise TypeError, 'Unknown type %s' % m.__class__
+            print("Argument coeffs must be a list of Coefficients.")
+            raise TypeError('Unknown type %s' % m.__class__)
 
 
 ReducedFunctionalNumpy = ReducedFunctionalNumPy

@@ -1,5 +1,6 @@
 # Author: Steven Vandekerckhove <Steven.Vandekerckhove@kuleuven.be>
 
+from __future__ import print_function
 import libadjoint
 from ufl import *
 import ufl.algorithms
@@ -100,7 +101,7 @@ class PointwiseFunctional(functional.Functional):
 
             # Failsaife for parallel
             if sum(self.basis[i].vector().array())<1.e-12:
-                if self.verbose: print "coord %i not in domain" %i
+                if self.verbose: print("coord %i not in domain" %i)
                 self.skip[i] = True
 
     #-----------------------------------------------------------------------------------------------------
@@ -108,9 +109,9 @@ class PointwiseFunctional(functional.Functional):
     def __call__(self, adjointer, timestep, dependencies, values):
 
         if self.verbose:
-            print "eval ", len(values)
-            print "timestep ", timestep
-            print "\r\n******************"
+            print("eval ", len(values))
+            print("timestep ", timestep)
+            print("\r\n******************")
 
         toi = _time_levels(adjointer, timestep)[0] # time of interest
 
@@ -141,8 +142,8 @@ class PointwiseFunctional(functional.Functional):
                     my[i] = (solu - float(ref))*(solu - float(ref))
 
             if self.verbose:
-                print "my eval ", my[i]
-                print "eval ", timestep, " times ", _time_levels(adjointer, timestep)
+                print("my eval ", my[i])
+                print("eval ", timestep, " times ", _time_levels(adjointer, timestep))
 
         return self.alpha*sum(my)
 
@@ -151,7 +152,7 @@ class PointwiseFunctional(functional.Functional):
     def derivative(self, adjointer, variable, dependencies, values):
         if self.verbose:
             for dep in dependencies:
-                print variable.timestep, "derive wrt ", dep.name
+                print(variable.timestep, "derive wrt ", dep.name)
         if self.regform is not None and variable.name == self.regform.coefficients()[0].name(): # derivative wrt the contorl
             if self.verbose: " derivatives wrt the controls "
             raise RuntimeError("""The derivative of a regularisation term
@@ -163,13 +164,13 @@ class PointwiseFunctional(functional.Functional):
                 final_time = _time_levels(adjointer, adjointer.timestep_count - 1)[1]
                 self.times[self.times.index("FINISH_TIME")] = final_time
 
-            if self.verbose: print "derive ", variable.timestep, " num values ", len(values)
+            if self.verbose: print("derive ", variable.timestep, " num values ", len(values))
             timesteps = self._derivative_timesteps(adjointer, variable)
 
             ff    = [backend.Constant(0.0)]*len(self.coords)
             for i in range(len(self.coords)):
                 if self.skip[i]:
-                    if self.verbose: print "skipped"
+                    if self.verbose: print("skipped")
                 else:
                     if len(timesteps) is 1: # only occurs at start and finish time
                         tsoi = timesteps[-1]

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 import ufl.algorithms
@@ -174,10 +175,10 @@ def little_taylor_test_dlambdadm(m):
         without_gradient.append(J_adj_m(m_tilde) - Jm)
         with_gradient.append(without_gradient[-1] - grad_J_adj_m(m, m_ptb))
 
-    print "Taylor remainders for J(adj(m)) without gradient information: ", without_gradient
-    print "Convergence orders for above Taylor remainders: ", convergence_order(without_gradient)
-    print "Taylor remainders for J(adj(m)) with gradient information: ", with_gradient
-    print "Convergence orders for above Taylor remainders: ", convergence_order(with_gradient)
+    print("Taylor remainders for J(adj(m)) without gradient information: ", without_gradient)
+    print("Convergence orders for above Taylor remainders: ", convergence_order(without_gradient))
+    print("Taylor remainders for J(adj(m)) with gradient information: ", with_gradient)
+    print("Convergence orders for above Taylor remainders: ", convergence_order(with_gradient))
 
     assert min(convergence_order(with_gradient)) > 1.8
 
@@ -210,10 +211,10 @@ def little_taylor_test_dudm(m):
         correction = grad_J_u_m(m, m_ptb)
         with_gradient.append(without_gradient[-1] - correction)
 
-    print "Taylor remainders for J(u(m)) without gradient information: ", without_gradient
-    print "Convergence orders for above Taylor remainders: ", convergence_order(without_gradient)
-    print "Taylor remainders for J(u(m)) with gradient information: ", with_gradient
-    print "Convergence orders for above Taylor remainders: ", convergence_order(with_gradient)
+    print("Taylor remainders for J(u(m)) without gradient information: ", without_gradient)
+    print("Convergence orders for above Taylor remainders: ", convergence_order(without_gradient))
+    print("Taylor remainders for J(u(m)) with gradient information: ", with_gradient)
+    print("Convergence orders for above Taylor remainders: ", convergence_order(with_gradient))
 
     assert min(convergence_order(with_gradient)) > 1.8
 

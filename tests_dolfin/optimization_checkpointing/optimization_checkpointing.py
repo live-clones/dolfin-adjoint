@@ -1,5 +1,6 @@
 """ Solves an optimisation problem with the Burgers equation as constraint """
 
+from __future__ import print_function
 import sys
 
 from dolfin import *
@@ -45,7 +46,7 @@ def main(u, annotate=False):
         adj_inc_timestep(time=t, finished = t>end)
 
 def derivative_cb(j, dj, m):
-    print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(), m.vector().max())
+    print("j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(), m.vector().max()))
 
 if __name__ == "__main__":
 
@@ -65,7 +66,7 @@ if __name__ == "__main__":
     reduced_functional = ReducedFunctional(J, Control(u, value=ic),
             derivative_cb_post=derivative_cb)
 
-    print "\n === Solving problem with L-BFGS-B. === \n"
+    print("\n === Solving problem with L-BFGS-B. === \n")
     try:
         u_opt = minimize(reduced_functional, method = 'L-BFGS-B', bounds = (lb, 1), tol = 1e-10, options = {'disp': True})
     except ImportError:
@@ -74,9 +75,9 @@ if __name__ == "__main__":
 
     tol = 1e-9
     final_functional = reduced_functional(u_opt)
-    print "Final functional value: ", final_functional
+    print("Final functional value: ", final_functional)
     if final_functional > tol:
-        print 'Test failed: Optimised functional value exceeds tolerance: ' , final_functional, ' > ', tol, '.'
+        print('Test failed: Optimised functional value exceeds tolerance: ' , final_functional, ' > ', tol, '.')
         sys.exit(1)
 
     # Run the problem again with SQP
@@ -95,7 +96,7 @@ if __name__ == "__main__":
               }
 
     for method in ["SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Nelder-Mead", "CG"]: #, "Powell"]:
-        print "\n === Solving problem with %s. ===\n" % method
+        print("\n === Solving problem with %s. ===\n" % method)
         u_opt.assign(ic, annotate = False)
         reduced_functional(u_opt)
         u_opt = minimize(reduced_functional,

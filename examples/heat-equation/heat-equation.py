@@ -1,3 +1,4 @@
+from __future__ import print_function
 from fenics import *
 from fenics_adjoint import *
 
@@ -22,7 +23,7 @@ def main(ic, annotate=False):
     timestep = 0
 
     while t < T:
-        print "Solving for t == %s" % (t + dt)
+        print("Solving for t == %s" % (t + dt))
         F = inner((u_next - u_prev)/Constant(dt), v)*dx + inner(grad(u_mid), grad(v))*dx
         solve(F == 0, u_next, J=derivative(F, u_next), annotate=annotate)
         u_prev.assign(u_next, annotate=annotate)

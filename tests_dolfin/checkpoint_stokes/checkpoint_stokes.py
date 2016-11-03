@@ -16,6 +16,7 @@ for all s
 
 """
 
+from __future__ import print_function
 import sys
 from math import ceil
 
@@ -118,7 +119,7 @@ if __name__ == "__main__":
     T = main(ic, annotate=True)
 
 
-    print "Running adjoint ... "
+    print("Running adjoint ... ")
     J = Functional(T*T*dx*dt[FINISH_TIME])
     m = Control(ic)
 

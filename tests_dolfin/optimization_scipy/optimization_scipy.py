@@ -1,5 +1,6 @@
 """ Solves an optimisation problem with the Burgers equation as constraint """
 
+from __future__ import print_function
 import sys
 
 from dolfin import *
@@ -40,8 +41,8 @@ def main(u, annotate=False):
         adj_inc_timestep(time=t, finished = t>end)
 
 def derivative_cb(j, dj, m):
-    print "j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(),
-                                                  m.vector().max())
+    print("j = %f, max(dj) = %f, max(m) = %f." % (j, dj.vector().max(),
+                                                  m.vector().max()))
 
 if __name__ == "__main__":
 
@@ -62,14 +63,14 @@ if __name__ == "__main__":
     assert reduced_functional.taylor_test(ic, test_hessian=True)
 
     try:
-        print "\n === Solving problem with L-BFGS-B. === \n"
+        print("\n === Solving problem with L-BFGS-B. === \n")
         u_opt = minimize(reduced_functional, method = 'L-BFGS-B', bounds = (lb, 1), tol = 1e-10, options = {'disp': True})
 
         tol = 1e-9
         final_functional = reduced_functional(u_opt)
-        print "Final functional value: ", final_functional
+        print("Final functional value: ", final_functional)
         if final_functional > tol:
-            print 'Test failed: Optimised functional value exceeds tolerance: ' , final_functional, ' > ', tol, '.'
+            print('Test failed: Optimised functional value exceeds tolerance: ' , final_functional, ' > ', tol, '.')
             sys.exit(1)
 
         # Run the problem again with SQP
@@ -88,7 +89,7 @@ if __name__ == "__main__":
                   }
 
         for method in ["Newton-CG", "SLSQP", "BFGS", "COBYLA", "TNC", "L-BFGS-B", "Nelder-Mead", "CG"]:
-            print "\n === Solving problem with %s. ===\n" % method
+            print("\n === Solving problem with %s. ===\n" % method)
             # Reset control value
             reduced_functional(ic)
             u_opt = minimize(reduced_functional,

@@ -1,22 +1,23 @@
+from __future__ import print_function
 import libadjoint
 from backend import info_red, info_blue, info, warning
-import adjglobals
+from . import adjglobals
 import backend
 import numpy
-import constant
-import adjresidual
-import adjlinalg
+from . import constant
+from . import adjresidual
+from . import adjlinalg
 import ufl.algorithms
-import projection
-import functional
-import drivers
+from . import projection
+from . import functional
+from . import drivers
 import math
-import compatibility
-import controls
-from enlisting import enlist
-from controls import ListControl, Control
-from compatibility import gather  # NOQA
-from misc import noannotations
+from . import compatibility
+from . import controls
+from .enlisting import enlist
+from .controls import ListControl, Control
+from .compatibility import gather  # NOQA
+from .misc import noannotations
 
 
 def scale(obj, factor):
@@ -88,7 +89,7 @@ def test_initial_condition_adjoint(J, ic, final_adjoint, seed=0.01, perturbation
        series remainder, which should be 2 if the adjoint is working
        correctly.'''
 
-    import function
+    from . import function
 
     # We will compute the gradient of the functional with respect to the initial condition,
     # and check its correctness with the Taylor remainder convergence test.
@@ -504,7 +505,7 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
     # Perform the Taylor tests for each control
     min_conv = 1e10
     for i in range(len(m.controls)):
-        print "\nRunning Taylor test for control {}".format(i)
+        print("\nRunning Taylor test for control {}".format(i))
         conv = _taylor_test_single_control(J_cmp(J, i), m[i], Jm, dJdm[i],
                 HJm_cmp(i), seed, perturbation_direction[i], value[i])
         min_conv = min(min_conv, conv)
@@ -513,11 +514,11 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
 
 
 def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value):
-    import function
+    from . import function
 
     # Check inputs
     if not isinstance(m, libadjoint.Parameter):
-        raise ValueError, "m must be a valid control instance."
+        raise ValueError("m must be a valid control instance.")
 
     def get_const(val):
         if isinstance(val, str):
@@ -714,8 +715,8 @@ have a linear or constant constraint dependency (e.g. check that the Taylor \
 remainder are all 0).")
         else:
             if not minconv > 1.9:
-                raise Exception, "The Taylor test failed when checking the \
-derivative with respect to the %i'th dependency." % (i+1)
+                raise Exception("The Taylor test failed when checking the \
+derivative with respect to the %i'th dependency." % (i+1))
 
     adjglobals.adj_reset()
 
@@ -807,7 +808,7 @@ def get_identity_block(fn_space):
     return identity_block
 
 def function_to_da_function(f):
-    import function
+    from . import function
     if not isinstance(f, function.Function):
         # Wrap copy into a dolfin_adjoint.Function
         return function.Function(f.function_space(), f.vector())

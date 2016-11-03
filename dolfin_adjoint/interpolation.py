@@ -1,10 +1,10 @@
-import solving
+from . import solving
 import backend
 import libadjoint
 import ufl
-import adjglobals
-import adjlinalg
-import utils
+from . import adjglobals
+from . import adjlinalg
+from . import utils
 
 def interpolate(v, V, annotate=None, name=None):
     '''The interpolate call changes Function data, and so it too must be annotated so that the
