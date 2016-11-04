@@ -2,7 +2,7 @@ from os import path
 import pytest
 import subprocess
 
-@pytest.mark.xfail(reason="Not supported yet")
+@pytest.mark.skip(reason="Not supported yet")
 def test(request):
     test_file = path.split(path.dirname(str(request.fspath)))[1] + ".py"
     test_dir = path.split(str(request.fspath))[0]
