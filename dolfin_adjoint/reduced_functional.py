@@ -386,7 +386,12 @@ def value_hash(value):
         return str(float(value))
     elif isinstance(value, Function):
         m = hashlib.md5()
-        m.update(str(value.vector().norm("l2")) + str(value.vector().norm("l1")) + str(value.vector().norm("linf")))
+        m.update('{}{}{}'.format(
+            value.vector().norm("l2"),
+            value.vector().norm("l1"),
+            value.vector().norm("linf"),
+            ).encode('utf8')
+        )
         return m.hexdigest()
     elif isinstance (value, list):
         return "".join(map(value_hash, value))
