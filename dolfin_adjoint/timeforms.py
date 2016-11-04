@@ -118,6 +118,9 @@ class TimeTerm(object):
     def __div__(self, factor):
         return TimeTerm(1. / factor * self.form, self.time)
 
+    # Python 3 has two div operators:
+    __truediv__ = __floordiv__ = __div__
+
     def __repr__(self):
         return "TimeTerm("+self.form.__repr__()+",time = "+\
             repr(self.time)+")"
@@ -178,6 +181,9 @@ class TimeForm(object):
 
     def __div__(self, factor):
         return TimeForm([term / factor for term in self.terms])
+
+    # Python 3 has two div operators:
+    __truediv__ = __floordiv__ = __div__
 
     def __repr__(self):
         return "TimeForm("+repr(self.terms)+")"

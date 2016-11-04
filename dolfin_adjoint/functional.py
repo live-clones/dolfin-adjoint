@@ -105,6 +105,9 @@ class Functional(libadjoint.Functional):
     def __div__(self, factor):
         return Functional(self.timeform / factor, self.verbose, self.name)
 
+    # Python 3 has two div operators:
+    __truediv__ = __floordiv__ = __div__
+
     def __neg__(self):
         return Functional(- self.timeform, self.verbose, self.name)
 
