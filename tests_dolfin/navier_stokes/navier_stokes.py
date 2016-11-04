@@ -151,9 +151,6 @@ if __name__ == "__main__":
     soln = main(ic)
     parameters["adjoint"]["stop_annotating"] = True
 
-    adj_html("forward.html", "forward")
-    adj_html("adjoint.html", "adjoint")
-
     J = Functional(inner(soln, soln)**1*dx*dt[FINISH_TIME] + inner(soln, soln)*dx*dt[START_TIME])
     m = Control(soln)
     Jm = assemble(inner(soln, soln)**1*dx + inner(ic, ic)*dx)
@@ -162,7 +159,6 @@ if __name__ == "__main__":
     HJm  = lambda m_dot: rf.hessian(m_dot)
 
     def J(ic):
-        print "ic", ic
         soln = main(ic)
         return assemble(inner(soln, soln)*dx + inner(ic, ic)*dx)
 

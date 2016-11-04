@@ -24,9 +24,6 @@ M, G=sw_lib.construct_shallow_water(W, kelvin.params)
 
 state = sw_lib.timeloop_theta(M, G, state, kelvin.params)
 
-adj_html("sw_forward.html", "forward")
-adj_html("sw_adjoint.html", "adjoint")
-
 replay_dolfin()
 J = Functional(dot(state, state)*dx*dt[FINISH_TIME])
 f_direct = assemble(dot(state, state)*dx)
@@ -40,8 +37,4 @@ def compute_J(ic):
     return assemble(dot(state, state)*dx)
 
 minconv = utils.test_initial_condition_adjoint(compute_J, ic, adj_state, seed=0.001)
-if minconv < 1.9:
-    exit_code = 1
-else:
-    exit_code = 0
-sys.exit(exit_code)
+assert minconv > 1.9
