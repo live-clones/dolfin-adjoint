@@ -41,7 +41,7 @@ def interpolate(v, V, annotate=None, name=None):
 
                 solving.do_checkpoint(cs, dep, rhs)
 
-        else:
+        elif annotate is not None:
             outvar = adjglobals.adj_variables[out]
             solving.register_initial_conditions([[out, outvar], ], linear=True)
 
