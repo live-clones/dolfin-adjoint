@@ -130,7 +130,7 @@ class ReducedFunctional(object):
     def __del__(self):
 
         if hasattr(self, 'cache') and self.cache is not None:
-            pickle.dump(self._cache, open(self.cache, "w"))
+            pickle.dump(self._cache, open(self.cache, "wb"))
 
     @noannotations
     def __call__(self, value):
