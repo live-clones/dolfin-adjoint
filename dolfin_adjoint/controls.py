@@ -1,5 +1,4 @@
 import numpy
-import types
 import backend
 import ufl
 import libadjoint
@@ -11,8 +10,6 @@ from . import constant
 from . import adjrhs
 from . import utils
 
-from backend import info, info_blue, info_red
-from .adjrhs import adj_get_forward_equation
 from .constant import get_constant
 from .enlisting import enlist
 from functools import reduce

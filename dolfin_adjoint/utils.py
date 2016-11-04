@@ -1,21 +1,14 @@
 from __future__ import print_function
+import math
+import numpy
+
 import libadjoint
 from backend import info_red, info_blue, info, warning
-from . import adjglobals
 import backend
-import numpy
-from . import constant
-from . import adjresidual
-from . import adjlinalg
-import ufl.algorithms
-from . import projection
-from . import functional
-from . import drivers
-import math
+from . import adjglobals
 from . import compatibility
-from . import controls
+from . import constant
 from .enlisting import enlist
-from .controls import ListControl, Control
 from .compatibility import gather  # NOQA
 from .misc import noannotations
 
@@ -176,6 +169,8 @@ def test_initial_condition_tlm(J, dJ, ic, seed=0.01, perturbation_direction=None
        This function returns the order of convergence of the Taylor
        series remainder, which should be 2 if the TLM is working
        correctly.'''
+
+    import controls
 
     # We will compute the gradient of the functional with respect to the initial condition,
     # and check its correctness with the Taylor remainder convergence test.
@@ -427,6 +422,7 @@ def test_gradient_array(J, dJdx, x, seed = 0.01, perturbation_direction = None):
 def taylor_remainder_with_gradient(m, Jm, dJdm, functional_value, perturbation, ic=None):
     """ Compute the Taylor remainder with the provided gradient information. Note that this
     computes the remainder for just one functional value. """
+    from . import controls
     if isinstance(m, controls.ConstantControl):
         remainder = abs(functional_value - Jm - float(dJdm)*perturbation)
     elif isinstance(m, controls.ConstantControls):
@@ -455,6 +451,9 @@ def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None
        (i.e., takes in a vector and returns a vector). In that case, an additional
        Taylor remainder is computed, which should converge at order 3 if the Hessian
        is correct.'''
+
+    from . import controls
+    from .controls import ListControl
 
     info_blue("Running Taylor remainder convergence test ... ")
 
@@ -514,7 +513,7 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
 
 
 def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value):
-    from . import function
+    from . import function, controls
 
     # Check inputs
     if not isinstance(m, libadjoint.Parameter):
@@ -673,6 +672,8 @@ def taylor_test_expression(exp, V, seed=None):
     seed: The initial perturbation coefficient for the taylor test.
 
     Warning: This function resets the adjoint tape! """
+    from . import drivers, functional, projection
+    from .controls import Control
 
     adjglobals.adj_reset()
 
@@ -785,6 +786,7 @@ class DolfinAdjointVariable(libadjoint.Variable):
         return ts
 
 def get_identity_block(fn_space):
+    from . import adjlinalg
     block_name = "Identity: %s" % str(fn_space)
     if len(block_name) > int(libadjoint.constants.adj_constants["ADJ_NAME_LEN"]):
         block_name = block_name[0:int(libadjoint.constants.adj_constants["ADJ_NAME_LEN"])-1]

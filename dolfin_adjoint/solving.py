@@ -14,21 +14,14 @@ import libadjoint.exceptions
 
 import hashlib
 import copy
-import os
-import os.path
 import random
 
-from . import assembly
 from . import expressions
 from . import constant
-from . import coeffstore
 from . import adjrhs
 from . import adjglobals
 from . import adjlinalg
 from . import misc
-if backend.__name__ == "dolfin":
-    from . import lusolver
-    from . import multimesh_assembly
 from . import utils
 from . import caching
 
