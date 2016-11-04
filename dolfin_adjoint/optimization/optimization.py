@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import backend
 from ..reduced_functional_numpy import ReducedFunctionalNumPy, get_global
@@ -5,6 +6,7 @@ from ..reduced_functional import ReducedFunctional
 from ..utils import gather
 from ..compatibility import rank
 from ..misc import noannotations
+import six
 
 def serialise_bounds(rf_np, bounds):
     ''' Converts bounds to an array of (min, max) tuples and serialises it in a parallel environment. '''
@@ -13,7 +15,7 @@ def serialise_bounds(rf_np, bounds):
         bounds = np.array([[b] for b in bounds])
 
     if len(bounds) != 2:
-        raise ValueError, "The 'bounds' parameter must be of the form [lower_bound, upper_bound] for one parameter or [ [lower_bound1, lower_bound2, ...], [upper_bound1, upper_bound2, ...] ] for multiple parameters."
+        raise ValueError("The 'bounds' parameter must be of the form [lower_bound, upper_bound] for one parameter or [ [lower_bound1, lower_bound2, ...], [upper_bound1, upper_bound2, ...] ] for multiple parameters.")
 
     bounds_arr = [[], []]
     for i in range(2):
@@ -36,12 +38,12 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
     try:
         from scipy.optimize import minimize as scipy_minimize
     except ImportError:
-        print "**************** Deprecated warning *****************"
-        print "You have an unusable installation of scipy. This version is not supported by dolfin-adjoint."
+        print("**************** Deprecated warning *****************")
+        print("You have an unusable installation of scipy. This version is not supported by dolfin-adjoint.")
 
         try:
             import scipy
-            print "Version: %s\tFile: %s" % (scipy.__version__, scipy.__file__)
+            print("Version: %s\tFile: %s" % (scipy.__version__, scipy.__file__))
         except:
             pass
 
@@ -83,7 +85,7 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
         kwargs["hessp"] = H
 
     if "constraints" in kwargs:
-        from constraints import canonicalise, InequalityConstraint, EqualityConstraint
+        from .constraints import canonicalise, InequalityConstraint, EqualityConstraint
         constraints = canonicalise(kwargs["constraints"])
         scipy_c = []
         for c in constraints:
@@ -92,7 +94,7 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
             elif isinstance(c, EqualityConstraint):
                 typestr = "eq"
             else:
-                raise Exception, "Unknown constraint class"
+                raise Exception("Unknown constraint class")
 
             def jac(x):
                 out = c.jacobian(x)
@@ -105,8 +107,8 @@ def minimize_scipy_generic(rf_np, method, bounds = None, **kwargs):
         try:
             from scipy.optimize import basinhopping
         except ImportError:
-            print "**************** Outdated scipy version warning *****************"
-            print "The basin hopping optimisation algorithm requires scipy >= 0.12."
+            print("**************** Outdated scipy version warning *****************")
+            print("The basin hopping optimisation algorithm requires scipy >= 0.12.")
             raise ImportError
 
         del kwargs["options"]
@@ -136,7 +138,7 @@ def minimize_custom(rf_np, bounds=None, **kwargs):
         algo = kwargs["algorithm"]
         del kwargs["algorithm"]
     except KeyError:
-        raise KeyError, 'When using a "Custom" optimisation method, you must pass the optimisation function as the "algorithm" parameter. Make sure that this function accepts the same arguments as scipy.optimize.minimize.'
+        raise KeyError('When using a "Custom" optimisation method, you must pass the optimisation function as the "algorithm" parameter. Make sure that this function accepts the same arguments as scipy.optimize.minimize.')
 
     m = [p.data() for p in rf_np.controls]
     m_global = rf_np.obj_to_array(m)
@@ -152,7 +154,7 @@ def minimize_custom(rf_np, bounds=None, **kwargs):
     try:
         rf_np.set_controls(np.array(res))
     except Exception as e:
-        raise e, "Failed to update the optimised control values. Are you sure your custom optimisation algorithm returns an array containing the optimised values?"
+        raise e("Failed to update the optimised control values. Are you sure your custom optimisation algorithm returns an array containing the optimised values?")
     m = [p.data() for p in rf_np.controls]
     return m
 
@@ -173,9 +175,9 @@ optimization_algorithms_dict = {'L-BFGS-B': ('The L-BFGS-B implementation in sci
 def print_optimization_methods():
     ''' Prints the available optimization methods '''
 
-    print 'Available optimization methods:'
-    for function_name, (description, func) in optimization_algorithms_dict.iteritems():
-        print function_name, ': ', description
+    print('Available optimization methods:')
+    for function_name, (description, func) in six.iteritems(optimization_algorithms_dict):
+        print(function_name, ': ', description)
 
 @noannotations
 def minimize(rf, method='L-BFGS-B', scale=1.0, **kwargs):
@@ -212,7 +214,7 @@ def minimize(rf, method='L-BFGS-B', scale=1.0, **kwargs):
     try:
         algorithm = optimization_algorithms_dict[method][1]
     except KeyError:
-        raise KeyError, 'Unknown optimization method ' + method + '. Use print_optimization_methods() to get a list of the available methods.'
+        raise KeyError('Unknown optimization method ' + method + '. Use print_optimization_methods() to get a list of the available methods.')
 
     if algorithm == minimize_scipy_generic:
         # For scipy's generic inteface we need to pass the optimisation method as a parameter.

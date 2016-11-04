@@ -1,3 +1,4 @@
+from __future__ import print_function
 import random
 import sys
 from datetime import datetime
@@ -95,9 +96,9 @@ def main(ic, annotate=False):
 
     while (t < T):
         t += dt
-        print "Starting solve at t=%s: " % t, datetime.now().isoformat()
+        print("Starting solve at t=%s: " % t, datetime.now().isoformat())
         solve(L == 0, u, J=a, solver_parameters=parameters, annotate=annotate)
-        print "Finished solve at t=%s: " % t, datetime.now().isoformat()
+        print("Finished solve at t=%s: " % t, datetime.now().isoformat())
 
         if annotate:
             file << (u.split()[0], t)

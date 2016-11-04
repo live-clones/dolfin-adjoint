@@ -1,3 +1,4 @@
+from __future__ import print_function
 import random
 from dolfin import *
 from math import sqrt
@@ -80,9 +81,9 @@ def main(ic):
     while (t < T):
         t += dt
         u0.assign(u)
-        print "Starting solve at t=%s: " % t, os.popen("date").read()
+        print("Starting solve at t=%s: " % t, os.popen("date").read())
         solve(L == 0, u, J=a, solver_parameters=parameters)
-        print "Finished solve at t=%s: " % t, os.popen("date").read()
+        print("Finished solve at t=%s: " % t, os.popen("date").read())
 
     return u
 

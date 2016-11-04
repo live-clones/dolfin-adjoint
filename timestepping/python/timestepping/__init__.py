@@ -16,42 +16,42 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from fenics_patches import *
-from parameters import *
+from .fenics_patches import *
+from .parameters import *
 
-import caches
-import checkpointing
-import equation_solvers
-import embedded_cpp
-import exceptions
-import fenics_overrides
-import fenics_utils
-import pre_assembled_adjoint
-import pre_assembled_equations
-import pre_assembled_forms
-import statics
-import time_functions
-import time_levels
-import time_systems
-import versions
-import vtu_io
+from . import caches
+from . import checkpointing
+from . import equation_solvers
+from . import embedded_cpp
+from . import exceptions
+from . import fenics_overrides
+from . import fenics_utils
+from . import pre_assembled_adjoint
+from . import pre_assembled_equations
+from . import pre_assembled_forms
+from . import statics
+from . import time_functions
+from . import time_levels
+from . import time_systems
+from . import versions
+from . import vtu_io
 
-from caches import *
-from checkpointing import *
-from equation_solvers import *
-from embedded_cpp import *
-from exceptions import *
-from fenics_overrides import *
-from fenics_utils import *
-from pre_assembled_adjoint import *
-from pre_assembled_equations import *
-from pre_assembled_forms import *
-from statics import *
-from time_functions import *
-from time_levels import *
-from time_systems import *
-from versions import *
-from vtu_io import *
+from .caches import *
+from .checkpointing import *
+from .equation_solvers import *
+from .embedded_cpp import *
+from .exceptions import *
+from .fenics_overrides import *
+from .fenics_utils import *
+from .pre_assembled_adjoint import *
+from .pre_assembled_equations import *
+from .pre_assembled_forms import *
+from .statics import *
+from .time_functions import *
+from .time_levels import *
+from .time_systems import *
+from .versions import *
+from .vtu_io import *
 
 __doc__ = \
 """

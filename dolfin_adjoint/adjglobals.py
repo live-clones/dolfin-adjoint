@@ -1,12 +1,8 @@
-import coeffstore
-import expressions
-import caching
+from . import coeffstore
+from . import expressions
+from . import caching
 import libadjoint
 from dolfin_adjoint import backend
-if backend.__name__ == "dolfin":
-    from petsc_krylov_solver import reset_petsc_krylov_solvers
-    from krylov_solver import reset_krylov_solvers
-    import lusolver
 
 # Create the adjointer, the central object that records the forward solve
 # as it happens.
@@ -74,6 +70,9 @@ def adj_reset_cache():
     caching.pis_fwd_to_adj.clear()
 
     if backend.__name__ == "dolfin":
+        from .petsc_krylov_solver import reset_petsc_krylov_solvers
+        from .krylov_solver import reset_krylov_solvers
+        from . import lusolver
         lusolver.lu_solvers = [None] * len(lusolver.lu_solvers)
         lusolver.adj_lu_solvers = [None] * len(lusolver.adj_lu_solvers)
         reset_petsc_krylov_solvers()

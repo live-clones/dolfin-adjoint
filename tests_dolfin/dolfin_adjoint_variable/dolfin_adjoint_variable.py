@@ -24,7 +24,7 @@ assert var.timestep == 4
 assert var.iteration == 0
 assert max(abs(var.tape_value().vector().array() - 5)) < 1e-12
 
-assert var.known_timesteps() == range(5)
+assert var.known_timesteps() == list(range(5))
 
 # Alternatively we can use negative indices to get the latest Variable
 var = DolfinAdjointVariable(u_new, timestep=-2, iteration=-1)

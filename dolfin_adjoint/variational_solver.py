@@ -1,10 +1,10 @@
 import backend
-import solving
+from . import solving
 import libadjoint
-import adjglobals
-import adjlinalg
-import utils
-import compatibility
+from . import adjglobals
+from . import adjlinalg
+from . import utils
+from . import compatibility
 
 class NonlinearVariationalProblem(backend.NonlinearVariationalProblem):
     '''This object is overloaded so that solves using this class are automatically annotated,

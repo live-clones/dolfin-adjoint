@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 import sys
@@ -31,10 +32,10 @@ def main(nu):
         adj_inc_timestep()
 
 def eval_cb(j, m):
-    print "j = %f, m = %f." % (j, float(m))
+    print("j = %f, m = %f." % (j, float(m)))
 
 def derivative_cb(j, dj, m):
-    print "j = %f, dj = %f, m = %f." % (j, dj, float(m))
+    print("j = %f, dj = %f, m = %f." % (j, dj, float(m)))
 
 def replay_cb(var, data, m):
     #print "Got data for variable %s at m = %f." % (var, float(m))
@@ -58,7 +59,7 @@ if __name__ == "__main__":
 
         tol = 1e-4
         if reduced_functional(nu_opt) > tol:
-            print 'Test failed: Optimised functional value exceeds tolerance: ', reduced_functional(nu_opt), ' > ', tol, '.'
+            print('Test failed: Optimised functional value exceeds tolerance: ', reduced_functional(nu_opt), ' > ', tol, '.')
             sys.exit(1)
     except ImportError:
         info_red("No suitable scipy version found. Aborting test.")

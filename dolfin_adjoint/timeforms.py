@@ -1,29 +1,66 @@
+from __future__ import absolute_import
 import ufl
 import libadjoint
 
 class TimeConstant(object):
     def __init__(self, label):
         self.label = label
+
+    def __ge__(self, other):
+        return self == other or self > other
+
+    def __le__(self, other):
+        return self == other or self < other
+
     def __repr__(self):
         return 'TimeConstant("'+self.label+'")'
+
 
 class StartTimeConstant(TimeConstant):
     def __init__(self):
         TimeConstant.__init__(self, "START_TIME")
-    def __cmp__(self, other):
-        if isinstance(other, StartTimeConstant):
-            return 0
-        return -1
+
+    # def __cmp__(self, other):
+    #     # only called on Python 2, possibly unnecessary
+    #     if isinstance(other, StartTimeConstant):
+    #         return 0
+    #     return -1
+
+    def __eq__(self, other):
+        return isinstance(other, StartTimeConstant)
+
+    def __lt__(self, other):
+        if self == other:
+            return False
+        return True
+
+    def __gt__(self, other):
+        return False
+
     def __repr__(self):
         return "StartTimeConstant()"
 
 class FinishTimeConstant(TimeConstant):
     def __init__(self):
         TimeConstant.__init__(self, "FINISH_TIME")
-    def __cmp__(self, other):
-        if isinstance(other, FinishTimeConstant):
-            return 0
-        return 1
+
+    # def __cmp__(self, other):
+    #     # only called on Python 2, possibly unnecessary
+    #     if isinstance(other, FinishTimeConstant):
+    #         return 0
+    #     return 1
+    #
+    def __eq__(self, other):
+        return isinstance(other, FinishTimeConstant)
+
+    def __lt__(self, other):
+        return False
+
+    def __gt__(self, other):
+        if self == other:
+            return False
+        return True
+
     def __repr__(self):
         return "FinishTimeConstant()"
 
@@ -80,6 +117,9 @@ class TimeTerm(object):
 
     def __div__(self, factor):
         return TimeTerm(1. / factor * self.form, self.time)
+
+    # Python 3 has two div operators:
+    __truediv__ = __floordiv__ = __div__
 
     def __repr__(self):
         return "TimeTerm("+self.form.__repr__()+",time = "+\
@@ -141,6 +181,9 @@ class TimeForm(object):
 
     def __div__(self, factor):
         return TimeForm([term / factor for term in self.terms])
+
+    # Python 3 has two div operators:
+    __truediv__ = __floordiv__ = __div__
 
     def __repr__(self):
         return "TimeForm("+repr(self.terms)+")"

@@ -65,6 +65,7 @@
 # First, the :py:mod:`dolfin` and :py:mod:`dolfin_adjoint` modules are
 # imported:
 
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -224,7 +225,7 @@ if __name__ == "__main__":
 
             integral = self.smass.inner(self.tmpvec.vector())
             if MPI.rank(mpi_comm_world()) == 0:
-                print "Current control integral: ", integral
+                print("Current control integral: ", integral)
             return [self.V - integral]
 
         def jacobian(self, m):

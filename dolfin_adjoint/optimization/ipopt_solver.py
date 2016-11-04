@@ -1,7 +1,8 @@
-from optimization_solver import OptimizationSolver
-from optimization_problem import MaximizationProblem
+from __future__ import print_function
+from .optimization_solver import OptimizationSolver
+from .optimization_problem import MaximizationProblem
 from ..reduced_functional_numpy import ReducedFunctionalNumPy
-import constraints
+from . import constraints
 from ..compatibility import rank
 from ..enlisting import delist
 from ..utils import gather
@@ -166,7 +167,7 @@ class IPOPTSolver(OptimizationSolver):
                     rows = []
                     for i in range(nconstraints):
                         rows += [i] * ncontrols
-                    cols = range(ncontrols) * nconstraints
+                    cols = list(range(ncontrols)) * nconstraints
                     return (numpy.array(rows), numpy.array(cols))
                 else:
                     return numpy.array(gather(constraint.jacobian(x)))
@@ -217,7 +218,7 @@ class IPOPTSolver(OptimizationSolver):
         elif hasattr(m, "value_size"):
             return backend.Constant(m(()))
         else:
-            raise TypeError, 'Unknown control type %s.' % str(type(m))
+            raise TypeError('Unknown control type %s.' % str(type(m)))
 
     def solve(self):
         """Solve the optimization problem and return the optimized controls."""

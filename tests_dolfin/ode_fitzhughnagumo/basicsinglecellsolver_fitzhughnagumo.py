@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 
 try:
@@ -44,7 +45,7 @@ def main(model, ics=None, annotate=False):
         global V
         ics = interpolate(Constant((-84.9, 0.1)), solver.VS)
         #ics = project(model.initial_conditions(), solver.VS)
-        print "Initial conditions: ", ics.vector().array()
+        print("Initial conditions: ", ics.vector().array())
         V = solver.VS
 
     (vs_, vs) = solver.solution_fields()
@@ -64,8 +65,8 @@ if __name__ == "__main__":
     u = main(model(), annotate=True)
     parameters["adjoint"]["stop_annotating"] = True
 
-    print "Solution: ", u.vector().array()
-    print "Base functional value: ", assemble(inner(u, u)*dx)
+    print("Solution: ", u.vector().array())
+    print("Base functional value: ", assemble(inner(u, u)*dx))
 
     ## Step 1. Check replay correctness
 
@@ -85,10 +86,10 @@ if __name__ == "__main__":
     Jm = assemble(inner(u, u)*dx)
 
     def Jhat(ic):
-        print "Perturbed initial condition: ", ic.vector().array()
+        print("Perturbed initial condition: ", ic.vector().array())
         u = main(model(), ics=ic)
-        print "Perturbed functional value: ", assemble(inner(u, u)*dx)
-        print "Perturbed solution: ", u.vector().array()
+        print("Perturbed functional value: ", assemble(inner(u, u)*dx))
+        print("Perturbed solution: ", u.vector().array())
         return assemble(inner(u, u)*dx)
 
     tlm = False

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -36,4 +37,4 @@ if __name__ == "__main__":
     gst = compute_gst("Velocity", "Velocity", nsv=3)
     for i in range(gst.ncv):
         sigma = gst.get_gst(i)
-        print "Growth rate of vector %s: %s" % (i, sigma)
+        print("Growth rate of vector %s: %s" % (i, sigma))

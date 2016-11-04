@@ -24,7 +24,7 @@ import dolfin
 import instant
 import numpy
 
-from exceptions import *
+from .exceptions import *
 
 __all__ = \
   [
@@ -76,12 +76,12 @@ class EmbeddedCpp(object):
             if not isinstance(arg, str):
                 raise InvalidArgumentException("Argument name must be a string")
         for arg in kwargs.values():
-            if not arg in [int, float, int_arr, double_arr, long_arr] + self.__boost_classes.keys():
+            if not arg in [int, float, int_arr, double_arr, long_arr] + list(self.__boost_classes.keys()):
                 raise InvalidArgumentException("Argument type must be int, float, int_arr, long_arr, double_arr, DirichletBC, Function, GenericMatrix, GenericVector or Mesh")
 
         args = copy.copy(kwargs)
         for arg in args:
-            if arg in self.__boost_classes.keys():
+            if arg in list(self.__boost_classes.keys()):
                 cls = self.__boost_classes[arg]
                 while not isinstance(cls, str):
                     cls = self.__boost_classes[cls]
@@ -135,7 +135,7 @@ class EmbeddedCpp(object):
                 argtypes.append(numpy.ctypeslib.ndpointer(ctypes.c_double, flags = "C_CONTIGUOUS"))
             else:
                 name_mangle = name
-                while name_mangle in self.__args.keys():
+                while name_mangle in list(self.__args.keys()):
                     name_mangle = "%s_" % name_mangle
                 args += "void* %s" % name_mangle
                 argtypes.append(ctypes.c_void_p)

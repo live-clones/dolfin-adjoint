@@ -21,13 +21,13 @@ import copy
 import dolfin
 import ufl
 
-from caches import *
-from equation_solvers import *
-from exceptions import *
-from fenics_overrides import *
-from fenics_utils import *
-from pre_assembled_forms import *
-from statics import *
+from .caches import *
+from .equation_solvers import *
+from .exceptions import *
+from .fenics_overrides import *
+from .fenics_utils import *
+from .pre_assembled_forms import *
+from .statics import *
 
 __all__ = \
   [

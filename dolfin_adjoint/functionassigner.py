@@ -1,9 +1,9 @@
 import backend
-import utils
-import adjglobals
-import solving
+from . import utils
+from . import adjglobals
+from . import solving
 import libadjoint
-import adjlinalg
+from . import adjlinalg
 
 if hasattr(backend, 'FunctionAssigner'):
     class FunctionAssigner(backend.FunctionAssigner):

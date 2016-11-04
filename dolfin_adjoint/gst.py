@@ -1,8 +1,8 @@
-import adjglobals
-import adjlinalg
+from . import adjglobals
+from . import adjlinalg
 import libadjoint
 import backend
-import controls
+from . import controls
 import math
 
 def compute_gst(ic, final, nsv, ic_norm="mass", final_norm="mass", which=1):

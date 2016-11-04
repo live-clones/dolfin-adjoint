@@ -1,5 +1,6 @@
 """Verify the tangent linear model of example 5.2 in 10.1007/s10589-009-9307-9"""
 
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     y = main()
     fwd_time = fwd.stop()
 
-    print "fwd_time: ", fwd_time
+    print("fwd_time: ", fwd_time)
 
     J = Functional(0.5*inner(y - yd, y - yd)*dx*dt[FINISH_TIME] + alpha/2*inner(u, u)*dx*dt[START_TIME])
     m = TimeConstantParameter(u)
@@ -46,5 +47,5 @@ if __name__ == "__main__":
     dJ = compute_gradient(J, m)
     adj_time = adj.stop()
 
-    print "adj_time: ", adj_time
-    print "ratio: ", (fwd_time + adj_time) / (fwd_time)
+    print("adj_time: ", adj_time)
+    print("ratio: ", (fwd_time + adj_time) / (fwd_time))

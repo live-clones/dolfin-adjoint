@@ -17,13 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
-import cPickle
+import six.moves.cPickle as pickle
 import copy
 import os
 
 import dolfin
 
-from exceptions import *
+from .exceptions import *
 
 __all__ = \
   [
@@ -175,7 +175,7 @@ class MemoryCheckpointer(Checkpointer):
 
         c_cs = self.__cache[key]
         if cs is None:
-            cs = c_cs.keys()
+            cs = list(c_cs.keys())
 
         for c in cs:
             self._Checkpointer__unpack(c, c_cs[c])
@@ -233,7 +233,7 @@ class MemoryCheckpointer(Checkpointer):
         if len(keep) == 0:
             self.__cache = {}
         else:
-            for key in copy.copy(self.__cache.keys()):
+            for key in copy.copy(list(self.__cache.keys())):
                 if not key in keep:
                     del(self.__cache[key])
 
@@ -288,7 +288,7 @@ class DiskCheckpointer(Checkpointer):
 
         filename = self.__filename(key)
         handle = open(filename, "wb")
-        pickler = cPickle.Pickler(handle, -1)
+        pickler = pickle.Pickler(handle, -1)
         pickler.dump(c_cs)
 
         self.__filenames[key] = filename
@@ -311,10 +311,10 @@ class DiskCheckpointer(Checkpointer):
             cs = [c.id() for c in cs]
 
         handle = open(self.__filename(key), "rb")
-        pickler = cPickle.Unpickler(handle)
+        pickler = pickle.Unpickler(handle)
         c_cs = pickler.load()
         if cs is None:
-            cs = c_cs.keys()
+            cs = list(c_cs.keys())
 
         id_map = self.__id_map[key]
         for c_id in cs:
@@ -344,7 +344,7 @@ class DiskCheckpointer(Checkpointer):
         if not isinstance(tolerance, float) or tolerance < 0.0:
             raise InvalidArgumentException("tolerance must be a non-negative float")
         handle = open(self.__filename(key), "rb")
-        pickler = cPickle.Unpickler(handle)
+        pickler = pickle.Unpickler(handle)
         c_cs = pickler.load()
 
         try:
@@ -391,7 +391,7 @@ class DiskCheckpointer(Checkpointer):
             self.__id_map = {}
         else:
             keep = [str(key) for key in keep]
-            for key in copy.copy(self.__filenames.keys()):
+            for key in copy.copy(list(self.__filenames.keys())):
                 if not key in keep:
          #         os.remove(self.__filenames[key])
                     del(self.__filenames[key])

@@ -14,34 +14,34 @@ class Constraint(object):
         c(m) must return a numpy array or a dolfin Function or Constant.
         """
 
-        raise NotImplementedError, "Constraint.function must be supplied"
+        raise NotImplementedError("Constraint.function must be supplied")
 
     def jacobian(self, m):
         """Returns the full Jacobian matrix as a list of vector-like objects representing the gradient of the constraint function with respect to the parameter m.
 
            The objects returned must be of the same type as m's data."""
 
-        raise NotImplementedError, "Constraint.jacobian not implemented"
+        raise NotImplementedError("Constraint.jacobian not implemented")
 
     def jacobian_action(self, m, dm, result):
         """Computes the Jacobian action of c(m) in direction dm and stores the result in result. """
 
-        raise NotImplementedError, "Constraint.jacobian_action is not implemented"
+        raise NotImplementedError("Constraint.jacobian_action is not implemented")
 
     def jacobian_adjoint_action(self, m, dp, result):
         """Computes the Jacobian adjoint action of c(m) in direction dp and stores the result in result. """
 
-        raise NotImplementedError, "Constraint.jacobian_adjoint_action is not implemented"
+        raise NotImplementedError("Constraint.jacobian_adjoint_action is not implemented")
 
     def hessian_action(self, m, dm, dp, result):
         """Computes the Hessian action of c(m) in direction dm and dp and stores the result in result. """
 
-        raise NotImplementedError, "Constraint.hessian_action is not implemented"
+        raise NotImplementedError("Constraint.hessian_action is not implemented")
 
     def output_workspace(self):
         """Return an object like the output of c(m) for calculations."""
 
-        raise NotImplementedError, "Constraint.output_workspace must be supplied"
+        raise NotImplementedError("Constraint.output_workspace must be supplied")
 
     def _get_constraint_dim(self):
         """Returns the number of constraint components."""

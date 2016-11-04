@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 
 class Dirichlet(SubDomain):
@@ -102,7 +103,7 @@ def solve_move():
     # plot(u1.part(0), interactive=True)
  
     u0 = project(g,V)
-    print "L2 error: ", assemble_multimesh((u1-u0)**2*dX)
+    print("L2 error: ", assemble_multimesh((u1-u0)**2*dX))
 
     plot(u1.part(0),title='Approx p0')
     plot(u1.part(1),title='Approx p1')

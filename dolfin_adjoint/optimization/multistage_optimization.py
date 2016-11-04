@@ -1,5 +1,5 @@
 from dolfin import info_green, refine
-from optimization import minimize, maximize
+from .optimization import minimize, maximize
 
 
 def minimize_multistage(rf, coarse_mesh, levels):

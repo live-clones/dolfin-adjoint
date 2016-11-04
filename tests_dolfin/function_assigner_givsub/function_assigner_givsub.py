@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -58,7 +59,7 @@ if __name__ == "__main__":
         J_ptb = assemble(form(v_ptb))
         dJdm_fd.vector()[i] = (J_ptb - Jm)/eps
 
-    print "dJdm_fd: ", list(dJdm_fd.vector())
+    print("dJdm_fd: ", list(dJdm_fd.vector()))
 
     dJdm_tlm_result = Function(Z)
     dJdm_tlm = compute_gradient_tlm(J, m, forget=False)
@@ -67,7 +68,7 @@ if __name__ == "__main__":
         test_vec.vector()[i] = 1.0
         dJdm_tlm_result.vector()[i] = dJdm_tlm.inner(test_vec.vector())
 
-    print "dJdm_tlm: ", list(dJdm_tlm_result.vector())
+    print("dJdm_tlm: ", list(dJdm_tlm_result.vector()))
 
 
 

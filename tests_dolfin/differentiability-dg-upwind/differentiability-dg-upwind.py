@@ -17,6 +17,7 @@ F(u) = action(advection(u), T).
 
 """
 
+from __future__ import print_function
 from numpy import random
 from dolfin import *
 
@@ -108,7 +109,7 @@ if __name__ == "__main__":
         grad_errors.append((perturbed - unperturbed - derivative_action(w, dw)).norm("l2"))
 
     # Now print the orders of convergence:
-    print "Finite differencing errors: ", fd_errors
-    print "Finite difference convergence order (should be 1): ", convergence_order(fd_errors)
-    print "Gradient errors: ", grad_errors
-    print "Gradient convergence order: ", convergence_order(grad_errors)
+    print("Finite differencing errors: ", fd_errors)
+    print("Finite difference convergence order (should be 1): ", convergence_order(fd_errors))
+    print("Gradient errors: ", grad_errors)
+    print("Gradient convergence order: ", convergence_order(grad_errors))

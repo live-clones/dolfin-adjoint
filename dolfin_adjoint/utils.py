@@ -1,22 +1,16 @@
+from __future__ import print_function
+import math
+import numpy
+
 import libadjoint
 from backend import info_red, info_blue, info, warning
-import adjglobals
 import backend
-import numpy
-import constant
-import adjresidual
-import adjlinalg
-import ufl.algorithms
-import projection
-import functional
-import drivers
-import math
-import compatibility
-import controls
-from enlisting import enlist
-from controls import ListControl, Control
-from compatibility import gather  # NOQA
-from misc import noannotations
+from . import adjglobals
+from . import compatibility
+from . import constant
+from .enlisting import enlist
+from .compatibility import gather  # NOQA
+from .misc import noannotations
 
 
 def scale(obj, factor):
@@ -88,7 +82,7 @@ def test_initial_condition_adjoint(J, ic, final_adjoint, seed=0.01, perturbation
        series remainder, which should be 2 if the adjoint is working
        correctly.'''
 
-    import function
+    from . import function
 
     # We will compute the gradient of the functional with respect to the initial condition,
     # and check its correctness with the Taylor remainder convergence test.
@@ -175,6 +169,8 @@ def test_initial_condition_tlm(J, dJ, ic, seed=0.01, perturbation_direction=None
        This function returns the order of convergence of the Taylor
        series remainder, which should be 2 if the TLM is working
        correctly.'''
+
+    import controls
 
     # We will compute the gradient of the functional with respect to the initial condition,
     # and check its correctness with the Taylor remainder convergence test.
@@ -426,6 +422,7 @@ def test_gradient_array(J, dJdx, x, seed = 0.01, perturbation_direction = None):
 def taylor_remainder_with_gradient(m, Jm, dJdm, functional_value, perturbation, ic=None):
     """ Compute the Taylor remainder with the provided gradient information. Note that this
     computes the remainder for just one functional value. """
+    from . import controls
     if isinstance(m, controls.ConstantControl):
         remainder = abs(functional_value - Jm - float(dJdm)*perturbation)
     elif isinstance(m, controls.ConstantControls):
@@ -454,6 +451,9 @@ def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None
        (i.e., takes in a vector and returns a vector). In that case, an additional
        Taylor remainder is computed, which should converge at order 3 if the Hessian
        is correct.'''
+
+    from . import controls
+    from .controls import ListControl
 
     info_blue("Running Taylor remainder convergence test ... ")
 
@@ -504,7 +504,7 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
     # Perform the Taylor tests for each control
     min_conv = 1e10
     for i in range(len(m.controls)):
-        print "\nRunning Taylor test for control {}".format(i)
+        print("\nRunning Taylor test for control {}".format(i))
         conv = _taylor_test_single_control(J_cmp(J, i), m[i], Jm, dJdm[i],
                 HJm_cmp(i), seed, perturbation_direction[i], value[i])
         min_conv = min(min_conv, conv)
@@ -513,11 +513,11 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
 
 
 def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value):
-    import function
+    from . import function, controls
 
     # Check inputs
     if not isinstance(m, libadjoint.Parameter):
-        raise ValueError, "m must be a valid control instance."
+        raise ValueError("m must be a valid control instance.")
 
     def get_const(val):
         if isinstance(val, str):
@@ -672,6 +672,8 @@ def taylor_test_expression(exp, V, seed=None):
     seed: The initial perturbation coefficient for the taylor test.
 
     Warning: This function resets the adjoint tape! """
+    from . import drivers, functional, projection
+    from .controls import Control
 
     adjglobals.adj_reset()
 
@@ -714,8 +716,8 @@ have a linear or constant constraint dependency (e.g. check that the Taylor \
 remainder are all 0).")
         else:
             if not minconv > 1.9:
-                raise Exception, "The Taylor test failed when checking the \
-derivative with respect to the %i'th dependency." % (i+1)
+                raise Exception("The Taylor test failed when checking the \
+derivative with respect to the %i'th dependency." % (i+1))
 
     adjglobals.adj_reset()
 
@@ -784,6 +786,7 @@ class DolfinAdjointVariable(libadjoint.Variable):
         return ts
 
 def get_identity_block(fn_space):
+    from . import adjlinalg
     block_name = "Identity: %s" % str(fn_space)
     if len(block_name) > int(libadjoint.constants.adj_constants["ADJ_NAME_LEN"]):
         block_name = block_name[0:int(libadjoint.constants.adj_constants["ADJ_NAME_LEN"])-1]
@@ -807,7 +810,7 @@ def get_identity_block(fn_space):
     return identity_block
 
 def function_to_da_function(f):
-    import function
+    from . import function
     if not isinstance(f, function.Function):
         # Wrap copy into a dolfin_adjoint.Function
         return function.Function(f.function_space(), f.vector())

@@ -27,9 +27,9 @@ import scipy
 import ufl
 import vtk
 
-import fenics_versions
+from . import fenics_versions
 
-from fenics_versions import *
+from .fenics_versions import *
 
 __all__ = \
   fenics_versions.__all__ + \

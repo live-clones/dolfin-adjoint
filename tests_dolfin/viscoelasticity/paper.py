@@ -1,3 +1,4 @@
+from __future__ import print_function
 __author__ = "Marie E. Rognes (meg@simula.no)"
 __copyright__ = "Copyright (C) 2012 Marie Rognes"
 __license__  = "Distribute at will"
@@ -333,9 +334,9 @@ if __name__ == "__main__":
     dJdp = dJdparam
 #   --------------------------------------------------------------
 
-    print "dJ/dp: ", dJdp
-    print "norm0s: ", norm0s
-    print "norm1s: ", norm1s
+    print("dJ/dp: ", dJdp)
+    print("norm0s: ", norm0s)
+    print("norm1s: ", norm1s)
 
     def Jfunc(amplitude):
         ic.vector()[:] = ic_copy.vector()
@@ -343,7 +344,7 @@ if __name__ == "__main__":
         (sigma0, sigma1, v, gamma) = split(z)
         sigma = sigma0 + sigma1
         J = assemble(inner(sigma0[2], sigma0[2])*dx)
-        print "J(.): ", J
+        print("J(.): ", J)
         return J
 
     info_blue("Checking adjoint correctness ... ")

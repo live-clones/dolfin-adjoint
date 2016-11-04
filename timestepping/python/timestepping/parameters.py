@@ -18,7 +18,7 @@
 
 import dolfin
 
-from exceptions import *
+from .exceptions import *
 
 __all__ = \
   [

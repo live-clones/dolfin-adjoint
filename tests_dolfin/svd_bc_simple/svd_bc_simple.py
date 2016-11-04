@@ -1,3 +1,4 @@
+from __future__ import print_function
 import random
 
 from dolfin import *
@@ -46,10 +47,10 @@ if __name__ == "__main__":
     assert svd.ncv >= 1
     (sigma, u, v, error) = svd.get_gst(0, return_vectors=True, return_residual=True)
 
-    print "Maximal singular value: ", sigma
+    print("Maximal singular value: ", sigma)
 
     Lv = propagator(v)
     residual = (Lv.vector() - sigma*u.vector()).norm("l2")
-    print "Residual: ", residual
+    print("Residual: ", residual)
 
     assert residual < 1.0e-14

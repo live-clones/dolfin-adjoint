@@ -32,8 +32,8 @@ import dolfin
 import ffc
 import ufl
 
-from exceptions import *
-from versions import *
+from .exceptions import *
+from .versions import *
 
 __all__ = \
   [

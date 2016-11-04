@@ -1,5 +1,5 @@
-import adjlinalg
-import adjglobals
+from . import adjlinalg
+from . import adjglobals
 
 import backend
 import ufl
@@ -10,7 +10,7 @@ import libadjoint
 from backend import info_red, info_blue
 
 def get_residual(i):
-    from adjrhs import adj_get_forward_equation
+    from .adjrhs import adj_get_forward_equation
     (fwd_var, lhs, rhs) = adj_get_forward_equation(i)
 
     if isinstance(lhs, adjlinalg.IdentityMatrix):

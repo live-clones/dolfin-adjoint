@@ -2,6 +2,7 @@
 Implementation of Burger's equation with nonlinear solve in each
 timestep
 """
+from __future__ import print_function
 import pytest
 from firedrake import *
 from firedrake_adjoint import *
@@ -52,9 +53,9 @@ def test_burgers_newton(V):
 
     forward = main(ic, annotate=True)
 
-    print "Running forward replay .... "
+    print("Running forward replay .... ")
     replay_dolfin(forget=False)
-    print "Running adjoint ... "
+    print("Running adjoint ... ")
 
     J = Functional(forward*forward*dx*dt[FINISH_TIME] + forward*forward*dx*dt[START_TIME])
     Jic = assemble(forward*forward*dx + ic*ic*dx)

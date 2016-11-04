@@ -1,11 +1,12 @@
+from __future__ import print_function
 import dolfin
 import ufl
-import solving
+from . import solving
 import libadjoint
-import adjlinalg
-import adjglobals
-import misc
-import utils
+from . import adjlinalg
+from . import adjglobals
+from . import misc
+from . import utils
 
 class LinearSolver(dolfin.LinearSolver):
     '''This object is overloaded so that solves using this class are automatically annotated,
@@ -172,7 +173,7 @@ class LinearSolver(dolfin.LinearSolver):
                     solver.solve(x.vector(), rhs)
                     return adjlinalg.Vector(x)
 
-            nonzero_initial_guess = parameters['nonzero_initial_guess'] if 'nonzero_initial_guess' in parameters.keys() else False
+            nonzero_initial_guess = parameters['nonzero_initial_guess'] if 'nonzero_initial_guess' in parameters else False
             solving.annotate(A == b, u, bcs, matrix_class=LinearSolverMatrix, initial_guess=nonzero_initial_guess, replace_map=True)
 
         out = dolfin.LinearSolver.solve(self, *args, **kwargs)
@@ -208,7 +209,7 @@ def transpose_operators(operators):
             pass
 
         else:
-            print "op.__class__: ", op.__class__
+            print("op.__class__: ", op.__class__)
             raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to transpose anything else!")
 
     return out

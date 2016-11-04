@@ -1,5 +1,5 @@
 from ..reduced_functional import ReducedFunctional
-from constraints import Constraint, canonicalise
+from .constraints import Constraint, canonicalise
 import collections
 from ..compatibility import function_type
 

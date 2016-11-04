@@ -1,33 +1,29 @@
+from __future__ import print_function
+
+from itertools import chain
 import ufl
 import ufl.classes
 import ufl.algorithms
 import ufl.operators
 
 import backend
-import compatibility
+from . import compatibility
 
 import libadjoint
 import libadjoint.exceptions
 
 import hashlib
 import copy
-import os
-import os.path
 import random
 
-import assembly
-import expressions
-import constant
-import coeffstore
-import adjrhs
-import adjglobals
-import adjlinalg
-import misc
-if backend.__name__ == "dolfin":
-    import lusolver
-    import multimesh_assembly
-import utils
-import caching
+from . import expressions
+from . import constant
+from . import adjrhs
+from . import adjglobals
+from . import adjlinalg
+from . import misc
+from . import utils
+from . import caching
 
 def annotate(*args, **kwargs):
     '''This routine handles all of the annotation, recording the solves as they
@@ -110,7 +106,7 @@ def annotate(*args, **kwargs):
             assert not hasattr(args[0], 'bcs') and not hasattr(args[2], 'bcs')
             eq_bcs = []
     else:
-        print "args[0].__class__: ", args[0].__class__
+        print("args[0].__class__: ", args[0].__class__)
         raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to annotate your equation, sorry!")
 
     # Suppose we are solving for a variable w, and that variable shows up in the
@@ -134,7 +130,8 @@ def annotate(*args, **kwargs):
     # Set up the data associated with the matrix on the left-hand side. This goes on the diagonal
     # of the 'large' system that incorporates all of the timelevels, which is why it is prefixed
     # with diag.
-    diag_name = hashlib.md5(str(hash(eq_lhs)) + str(hash(eq_rhs)) + str(u) + str(random.random())).hexdigest() # we don't have a useful human-readable name, so take the md5sum of the string representation of the forms
+    key = '{}{}{}{}'.format(hash(eq_lhs), hash(eq_rhs), u, random.random()).encode('utf8')
+    diag_name = hashlib.md5(key).hexdigest() # we don't have a useful human-readable name, so take the md5sum of the string representation of the forms
     diag_deps = [adjglobals.adj_variables[coeff] for coeff in ufl.algorithms.extract_coefficients(eq_lhs) if hasattr(coeff, "function_space")]
     diag_coeffs = [coeff for coeff in ufl.algorithms.extract_coefficients(eq_lhs) if hasattr(coeff, "function_space")]
 
@@ -158,7 +155,8 @@ def annotate(*args, **kwargs):
     # relevant adjoint equations for the adjoint variables associated with
     # the initial conditions.
     assert len(rhs.coefficients()) == len(rhs.dependencies())
-    register_initial_conditions(zip(rhs.coefficients(),rhs.dependencies()) + zip(diag_coeffs, diag_deps), linear=linear, var=var)
+    register_initial_conditions(chain(
+        zip(rhs.coefficients(),rhs.dependencies()), zip(diag_coeffs, diag_deps)), linear=linear, var=var)
 
     # c.f. the discussion above. In the linear case, we want to bump the
     # timestep number /after/ all of the dependencies' timesteps have been

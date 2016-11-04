@@ -1,5 +1,5 @@
 import dolfin
-import solving
+from . import solving
 
 dolfin_genericmatrix_add = dolfin.GenericMatrix.__add__
 

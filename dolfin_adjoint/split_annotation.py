@@ -2,10 +2,10 @@
 import backend
 import libadjoint
 
-import solving
-import assignment
-import expressions
-import adjrhs
+from . import solving
+from . import assignment
+from . import expressions
+from . import adjrhs
 
 import hashlib
 import random
@@ -16,7 +16,8 @@ def annotate_split(bigfn, idx, smallfn, bcs):
     trial = backend.TrialFunction(fn_space)
     eq_lhs = backend.inner(test, trial)*backend.dx
 
-    diag_name = "Split:%s:" % idx + hashlib.md5(str(eq_lhs) + "split" + str(smallfn) + str(bigfn) + str(idx) + str(random.random())).hexdigest()
+    key = "{}split{}{}{}{}".format(eq_lhs, smallfn, bigfn, idx, random.random()).encode('utf8')
+    diag_name = "Split:%s:" % idx + hashlib.md5(key).hexdigest()
 
     diag_deps = []
     diag_block = libadjoint.Block(diag_name, dependencies=diag_deps, test_hermitian=backend.parameters["adjoint"]["test_hermitian"], test_derivative=backend.parameters["adjoint"]["test_derivative"])

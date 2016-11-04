@@ -1,6 +1,7 @@
+from __future__ import print_function
 from backend import as_backend_type
 from dolfin_adjoint.controls import FunctionControl, ConstantControl
-from optimization_solver import OptimizationSolver
+from .optimization_solver import OptimizationSolver
 import numpy as np
 from dolfin_adjoint import compatibility
 from ..misc import noannotations
@@ -33,11 +34,11 @@ class TAOSolver(OptimizationSolver):
         try:
             from petsc4py import PETSc
         except:
-            raise Exception, "Could not find petsc4py. Please install it."
+            raise Exception("Could not find petsc4py. Please install it.")
         try:
             TAO = PETSc.TAO
         except:
-            raise Exception, "Your petsc4py version does not support TAO. Please upgrade to petsc4py >= 3.5."
+            raise Exception("Your petsc4py version does not support TAO. Please upgrade to petsc4py >= 3.5.")
 
         self.PETSc = PETSc
 
@@ -124,7 +125,7 @@ class TAOSolver(OptimizationSolver):
 
             def hessian(self, tao, x, H, HP):
                 ''' Updates the Hessian. '''
-                print "Updating Hessian: %s" % self.stats(x)
+                print("Updating Hessian: %s" % self.stats(x))
 
                 self.shift_ = 0.0
 
@@ -180,7 +181,7 @@ class TAOSolver(OptimizationSolver):
                         ostarti, oendi = data_vec.owner_range
                         rstarti = ostarti + nvec
                         rendi = rstarti + data_vec.local_size
-                        data_vec.setValues(range(ostarti, oendi), x[rstarti:rendi])
+                        data_vec.setValues(list(range(ostarti, oendi)), x[rstarti:rendi])
                         data_vec.assemble()
                         nvec += data_vec.size
 
@@ -345,7 +346,7 @@ class TAOSolver(OptimizationSolver):
             rstarti = ostarti + nvec
             rendi = rstarti + vec.local_size
 
-            concat_vec.setValues(range(rstarti,rendi), vec[ostarti:oendi])
+            concat_vec.setValues(list(range(rstarti,rendi)), vec[ostarti:oendi])
             concat_vec.assemble()
             nvec += vec.size
 

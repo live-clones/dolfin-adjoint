@@ -28,7 +28,7 @@ import sys
 from dolfin import *
 from dolfin_adjoint import *
 
-import numpy; numpy.set_printoptions(threshold='nan')
+import numpy; numpy.set_printoptions(threshold=float('nan'))
 
 # Test for PETSc or Epetra
 if not has_linear_algebra_backend("PETSc") and not has_linear_algebra_backend("Epetra"):

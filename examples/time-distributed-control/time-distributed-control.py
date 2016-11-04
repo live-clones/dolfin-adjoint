@@ -151,7 +151,7 @@ u, d = solve_heat(ctrls)
 
 alpha = Constant(1e-3)
 regularisation = alpha/2*sum([1/dt*(fb-fa)**2*dx for fb, fa in
-    zip(ctrls.values()[1:], ctrls.values()[:-1])])
+    zip(list(ctrls.values())[1:], list(ctrls.values())[:-1])])
 
 # By default, dolfin-adjoint integrates functionals over the entire time-interval.
 # Since we have manually discretised the regularistation, it is sufficient

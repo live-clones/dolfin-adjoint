@@ -3,6 +3,7 @@ Implementation of Burger's equation with nonlinear solve in each
 timestep
 """
 
+from __future__ import print_function
 import sys
 
 from dolfin import *
@@ -53,10 +54,10 @@ if __name__ == "__main__":
     adj_html("burgers_newton_forward.html", "forward")
     adj_html("burgers_newton_adjoint.html", "adjoint")
 
-    print "Running forward replay .... "
+    print("Running forward replay .... ")
     replay_dolfin(forget=False)
 
-    print "Running adjoint ... "
+    print("Running adjoint ... ")
 
     J = Functional(forward*forward*dx*dt[FINISH_TIME] + forward*forward*dx*dt[START_TIME])
     Jic = assemble(forward*forward*dx + ic*ic*dx)

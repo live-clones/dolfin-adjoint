@@ -3,6 +3,7 @@ Implementation of Burger's equation with nonlinear solve in each
 timestep
 """
 
+from __future__ import print_function
 import sys
 import numpy
 import random
@@ -86,6 +87,6 @@ if __name__ == "__main__":
     tlm_output = numpy.dot(mat, perturbation.vector().array())
     norm = numpy.linalg.norm(final_tlm.vector().array() - tlm_output)
 
-    print "Error norm: ", norm
+    print("Error norm: ", norm)
 
     assert norm < 1.0e-7

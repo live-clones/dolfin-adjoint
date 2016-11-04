@@ -1,20 +1,18 @@
 import numpy
-import types
 import backend
 import ufl
 import libadjoint
 
-import adjlinalg
-import adjglobals
-import adjresidual
-import constant
-import adjrhs
-import utils
+from . import adjlinalg
+from . import adjglobals
+from . import adjresidual
+from . import constant
+from . import adjrhs
+from . import utils
 
-from backend import info, info_blue, info_red
-from adjrhs import adj_get_forward_equation
-from constant import get_constant
-from enlisting import enlist
+from .constant import get_constant
+from .enlisting import enlist
+from functools import reduce
 
 global_eqn_list = {}
 
@@ -86,7 +84,7 @@ class FunctionControl(DolfinAdjointControl):
 
         if not (isinstance(coeff, backend.Function) or isinstance(coeff, str)
             or isinstance(coeff, backend.MultiMeshFunction)):
-            raise TypeError, "The coefficient must be a Function,MultiMeshFunction or a String"
+            raise TypeError("The coefficient must be a Function,MultiMeshFunction or a String")
 
         self.coeff = coeff
         self.value = value
@@ -171,7 +169,7 @@ class ConstantControl(DolfinAdjointControl):
 
         # Check input types
         if not (isinstance(a, backend.Constant) or isinstance(a, str)):
-            raise TypeError, "The coefficient must be a Constant or a String"
+            raise TypeError("The coefficient must be a Constant or a String")
 
         self.a = a
         self.coeff = coeff
@@ -246,9 +244,9 @@ class ConstantControl(DolfinAdjointControl):
             if not hasattr(coeff, "dependencies"):
                 continue
             if not hasattr(coeff, "user_defined_derivatives"):
-                raise ValueError, "An expression with dependencies must also \
+                raise ValueError("An expression with dependencies must also \
 provide the user_defined_derivatives \
-dictionary."
+dictionary.")
 
             # Check that that expression depends on self.a
             elif self.a not in coeff.dependencies:
@@ -502,7 +500,7 @@ class ListControl(DolfinAdjointControl):
 
     def update(self, value):
         if len(value) != len(self.controls):
-            raise ValueError, "The number of controls must equal to len(values)."
+            raise ValueError("The number of controls must equal to len(values).")
 
         [c.update(v) for c, v in zip(self.controls, value)]
 
@@ -511,7 +509,7 @@ class ListControl(DolfinAdjointControl):
         direction m_dot.'''
         m_dot = enlist(m_dot)
         if not len(self.controls) == len(m_dot):
-            raise ValueError, "The perturbation m_dot must be a list of the same shape as the control list"
+            raise ValueError("The perturbation m_dot must be a list of the same shape as the control list")
         return ListControl([p.set_perturbation(m) for (p, m) in zip(self.controls, m_dot)])
 
     def __getitem__(self, i):
@@ -538,7 +536,7 @@ def Control(obj, *args, **kwargs):
         return FunctionControl(obj, *args, **kwargs)
 
     elif isinstance(obj, str):
-        raise ValueError, "Control cannot be used with names. Use ConstantControl or FunctionControl instead."
+        raise ValueError("Control cannot be used with names. Use ConstantControl or FunctionControl instead.")
 
     else:
-        raise ValueError, "Unknown control data type %s." % type(obj)
+        raise ValueError("Unknown control data type %s." % type(obj))

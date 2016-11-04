@@ -17,12 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import dolfin_adjoint
-import dolfin_adjoint_timestepping
+from . import dolfin_adjoint_timestepping
 
 import timestepping
 
 from timestepping import *
-from dolfin_adjoint_timestepping import *
+from .dolfin_adjoint_timestepping import *
 
 __doc__ = \
 """

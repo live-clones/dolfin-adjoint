@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 __all__ = ["MoolaOptimizationProblem"]
 
 def MoolaOptimizationProblem(rf, memoize=1):

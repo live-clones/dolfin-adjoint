@@ -1,13 +1,14 @@
+from __future__ import print_function
 import libadjoint
 import backend
 import ufl
-import adjglobals
+from . import adjglobals
 import os
 import os.path
-import misc
-import caching
-import compatibility
-import utils
+from . import misc
+from . import caching
+from . import compatibility
+from . import utils
 
 class Vector(libadjoint.Vector):
     '''This class implements the libadjoint.Vector abstract base class for dolfin-adjoint.
@@ -99,7 +100,7 @@ class Vector(libadjoint.Vector):
             else:
                 # This occurs when adding a RHS derivative to an adjoint equation
                 # corresponding to the initial conditions.
-                from utils import _has_multimesh
+                from .utils import _has_multimesh
                 if _has_multimesh(x.data):
                     self.data.vector().axpy(alpha,
                                             backend.assemble_multimesh(x.data))
@@ -137,8 +138,8 @@ class Vector(libadjoint.Vector):
             raise NotImplementedError
 
         else:
-            print "self.data.__class__: ", self.data.__class__
-            print "x.data.__class__: ", x.data.__class__
+            print("self.data.__class__: ", self.data.__class__)
+            print("x.data.__class__: ", x.data.__class__)
             assert False
 
         self.zero = False

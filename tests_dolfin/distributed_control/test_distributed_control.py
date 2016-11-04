@@ -37,7 +37,7 @@ def main():
         t += float(dt)
         adj_inc_timestep(time=t, finished=t>T)
 
-    return u_0, ctrls.values()
+    return u_0, list(ctrls.values())
 
 def test_heat():
     u, ctrls = main()

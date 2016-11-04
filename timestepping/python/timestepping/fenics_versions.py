@@ -22,7 +22,7 @@ import instant
 import numpy
 import ufl
 
-from exceptions import *
+from .exceptions import *
 
 __all__ = \
   [
@@ -77,7 +77,7 @@ class Version(object):
 
     def __str__(self):
         s = str(self.__ver[0])
-        for i in xrange(1, len(self.__ver)):
+        for i in range(1, len(self.__ver)):
             s += ".%i" % self.__ver[i]
         return s
 
@@ -85,13 +85,13 @@ class Version(object):
         if not isinstance(other, Version):
             other = Version(other)
         n = min(len(self.__ver), len(other.__ver))
-        for i in xrange(n):
+        for i in range(n):
             if not self.__ver[i] == other.__ver[i]:
                 return False
-        for i in xrange(n, len(self.__ver)):
+        for i in range(n, len(self.__ver)):
             if not self.__ver[i] == 0:
                 return False
-        for i in xrange(n, len(other.__ver)):
+        for i in range(n, len(other.__ver)):
             if not other.__ver[i] == 0:
                 return False
         return True
@@ -100,13 +100,13 @@ class Version(object):
         if not isinstance(other, Version):
             other = Version(other)
         n = min(len(self.__ver), len(other.__ver))
-        for i in xrange(n):
+        for i in range(n):
             if other.__ver[i] > self.__ver[i]:
                 return False
-        for i in xrange(n, len(self.__ver)):
+        for i in range(n, len(self.__ver)):
             if self.__ver[i] > 0:
                 return True
-        for i in xrange(n, len(other.__ver)):
+        for i in range(n, len(other.__ver)):
             if other.__ver[i] > 0:
                 return False
         return False
@@ -115,7 +115,7 @@ class Version(object):
         if not isinstance(other, Version):
             other = Version(other)
         n = min(len(self.__ver), len(other.__ver))
-        for i in xrange(n):
+        for i in range(n):
             if self.__ver[i] < other.__ver[i]:
                 return True
         return False

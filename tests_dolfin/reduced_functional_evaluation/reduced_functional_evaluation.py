@@ -1,5 +1,6 @@
 ''' A simple test that compares the functional value computed manually and with libadjoints functional_evaluation.
     Writting this test was motivated by the bug described on https://bugs.launchpad.net/dolfin-adjoint/+bug/1032291 '''
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 import sys
@@ -22,7 +23,7 @@ F1 = ( inner((u_new - u_old)/dlt, u_test)*dx - inner(Constant(1.), u_test)*dx )
 
 adjointer.time.start(t)
 man_func_value = 0.
-print "+++++++++++++ INITIAL RUN +++++++++"
+print("+++++++++++++ INITIAL RUN +++++++++")
 man_func_value_contr = 0.5*assemble(inner(u_new, u_new)*dx)
 while t < T:
 
@@ -39,8 +40,8 @@ while t < T:
 
 info_green("Manually computed functional value: %f", man_func_value)
 adj_html("forward.html", "forward")
-print
-print "+++++++++++++ REPLAY +++++++++"
+print()
+print("+++++++++++++ REPLAY +++++++++")
 u_new.vector()[:] = 0.
 u_old.vector()[:] = 0.
 J = Functional(inner(u_new, u_new)*dx*dt)

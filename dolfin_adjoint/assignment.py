@@ -1,10 +1,10 @@
 import backend
 import ufl
-from solving import solve, annotate as solving_annotate, do_checkpoint, register_initial_conditions
+from .solving import solve, annotate as solving_annotate, do_checkpoint, register_initial_conditions
 import libadjoint
-import adjlinalg
-import adjglobals
-import utils
+from . import adjlinalg
+from . import adjglobals
+from . import utils
 
 def register_assign(new, old, op=None):
 

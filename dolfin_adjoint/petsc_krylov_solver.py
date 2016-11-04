@@ -1,11 +1,12 @@
+from __future__ import print_function
 import dolfin
 import ufl
-import solving
+from . import solving
 import libadjoint
-import adjlinalg
-import adjglobals
-import misc
-import utils
+from . import adjlinalg
+from . import adjglobals
+from . import misc
+from . import utils
 
 petsc_krylov_solvers = []
 adj_petsc_krylov_solvers = []
@@ -230,7 +231,7 @@ class PETScKrylovSolver(dolfin.PETScKrylovSolver):
                                     solver.set_operator(A)
 
                     if need_to_set_operator:
-                        print "|A|: %.6e" % A.norm("frobenius")
+                        print("|A|: %.6e" % A.norm("frobenius"))
 
                     # Set the nullspace for the linear operator
                     if nsp_ is not None and need_to_set_operator:
@@ -241,7 +242,7 @@ class PETScKrylovSolver(dolfin.PETScKrylovSolver):
                     if tnsp_ is not None:
                         tnsp_.orthogonalize(rhs)
 
-                    print "%s: |b|: %.6e" % (var, rhs.norm("l2"))
+                    print("%s: |b|: %.6e" % (var, rhs.norm("l2")))
                     solver.solve(x.vector(), rhs)
                     return adjlinalg.Vector(x)
 
@@ -280,7 +281,7 @@ def transpose_operators(operators):
             pass
 
         else:
-            print "op.__class__: ", op.__class__
+            print("op.__class__: ", op.__class__)
             raise libadjoint.exceptions.LibadjointErrorNotImplemented("Don't know how to transpose anything else!")
 
     return out

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -22,7 +23,7 @@ def main(ic, annotate=False):
     timestep = 0
 
     while t < T:
-        print "Solving for t == %s" % (t + dt)
+        print("Solving for t == %s" % (t + dt))
         F = inner((u_next - u_prev)/Constant(dt), v)*dx + inner(grad(u_mid), grad(v))*dx
         solve(F == 0, u_next, J=derivative(F, u_next), annotate=annotate)
         u_prev.assign(u_next, annotate=annotate)
@@ -49,11 +50,11 @@ if __name__ == "__main__":
     data = true_states[-1].copy(deepcopy=True, annotate=False)
     combined = zip(times, true_states, computed_states)
     J_orig = assemble(inner(u - data, u - data)*dx)
-    print "Base functional value: ", J_orig
+    print("Base functional value: ", J_orig)
 
     J = Functional(inner(u - data, u - data)*dx*dt[FINISH_TIME])
     m = FunctionControl("Temperature")
     rf = ReducedFunctional(J, m)
 
-    print "rf(guess_ic): ", rf(guess_ic)
+    print("rf(guess_ic): ", rf(guess_ic))
     assert rf(guess_ic) == J_orig

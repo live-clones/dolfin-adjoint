@@ -3,6 +3,7 @@ Implementation of Burger's equation with nonlinear solve in each
 timestep and a functional integrating over time
 """
 
+from __future__ import print_function
 import sys
 
 from dolfin import *
@@ -65,10 +66,10 @@ if __name__ == "__main__":
     ic = forward
     ic.vector()[:] = ic_copy.vector()
 
-    print "Running forward replay .... "
+    print("Running forward replay .... ")
     replay_dolfin(forget=False)
 
-    print "Running adjoint ... "
+    print("Running adjoint ... ")
 
     J = Functional(forward*forward*forward*forward*dx*dt)
     m = Control(ic)

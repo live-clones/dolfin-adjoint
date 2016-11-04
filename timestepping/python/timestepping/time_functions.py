@@ -22,10 +22,10 @@ from fractions import Fraction
 import dolfin
 import ufl
 
-from exceptions import *
-from fenics_overrides import *
-from time_levels import *
-from versions import *
+from .exceptions import *
+from .fenics_overrides import *
+from .time_levels import *
+from .versions import *
 
 __all__ = \
   [
@@ -254,7 +254,7 @@ class TimeFunction(TimeLevels):
         integers, Fraction s, TimeLevel s or FinalTimeLevel s.
         """
 
-        return list(self._TimeLevels__levels) + self.__lfns.keys()
+        return list(self._TimeLevels__levels) + list(self.__lfns.keys())
 
     def has_level(self, level):
         """
@@ -275,7 +275,7 @@ class TimeFunction(TimeLevels):
         Return all Function s associated with the TimeFunction.
         """
 
-        return self.__fns.values()
+        return list(self.__fns.values())
 
     def initial_levels(self):
         """

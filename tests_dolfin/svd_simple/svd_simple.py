@@ -1,3 +1,4 @@
+from __future__ import print_function
 import random
 
 from dolfin import *
@@ -32,7 +33,7 @@ if __name__ == "__main__":
 
     (sigma, error) = svd.get_gst(0, return_residual=True)
 
-    print "Maximal singular value: ", (sigma, error)
+    print("Maximal singular value: ", (sigma, error))
 
     if (abs(sigma - 1.0) > 1.0e-15):
         sys.exit(1)

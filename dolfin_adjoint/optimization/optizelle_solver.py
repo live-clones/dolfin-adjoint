@@ -1,6 +1,7 @@
-from optimization_solver import OptimizationSolver
-from optimization_problem import MaximizationProblem
-import constraints
+from __future__ import print_function
+from .optimization_solver import OptimizationSolver
+from .optimization_problem import MaximizationProblem
+from . import constraints
 import numpy
 import math
 from ..enlisting import enlist, delist
@@ -184,7 +185,7 @@ class DolfinVectorSpace(object):
             elif DolfinVectorSpace.inner_product == "l2":
                 return x.vector().inner(y.vector())
             else:
-                raise ValueError, "No inner product specified for DolfinVectorSpace"
+                raise ValueError("No inner product specified for DolfinVectorSpace")
 
         elif isinstance(x, Constant):
             return float(x)*float(y)
@@ -394,7 +395,7 @@ try:
                     elif inner_product=="H1":
                         M = assemble((inner(u, v) + inner(grad(u), grad(v)))*dx)
                     else:
-                        raise ValueError, "Unknown inner product %s".format(inner_product)
+                        raise ValueError("Unknown inner product %s".format(inner_product))
                     proj = Function(V)
                     solve(M, proj.vector(), func.vector())
                     projs.append(proj)

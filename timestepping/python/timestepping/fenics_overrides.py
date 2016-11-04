@@ -21,8 +21,8 @@ import copy
 import dolfin
 import ufl
 
-from exceptions import *
-from fenics_utils import *
+from .exceptions import *
+from .fenics_utils import *
 
 __all__ = \
   [

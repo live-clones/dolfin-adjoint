@@ -1,14 +1,14 @@
 import dolfin
 import ufl.algorithms
 import libadjoint
-import solving
-import adjlinalg
-import adjglobals
+from . import solving
+from . import adjlinalg
+from . import adjglobals
 import hashlib
-import utils
-import caching
-import expressions
-import constant
+from . import utils
+from . import caching
+from . import expressions
+from . import constant
 
 if dolfin.__version__ > '1.2.0':
     class PointIntegralSolver(dolfin.PointIntegralSolver):
@@ -76,7 +76,7 @@ if dolfin.__version__ > '1.2.0':
             return self.coeffs
 
         def __str__(self):
-            return hashlib.md5(str(self.form)).hexdigest()
+            return hashlib.md5(str(self.form).encode('utf8')).hexdigest()
 
         def __call__(self, dependencies, values):
 
