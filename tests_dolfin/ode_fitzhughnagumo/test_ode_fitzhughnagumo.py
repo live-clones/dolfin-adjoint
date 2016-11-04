@@ -1,6 +1,10 @@
 from os import path
 import subprocess
-
+import dolfin                                                                   
+import pytest                                                                   
+                                                                                
+@pytest.mark.skipif(not hasattr(dolfin, "HDF5File"),                            
+                            reason="requires hdf5 support") 
 def test(request):
     test_file = path.split(path.dirname(str(request.fspath)))[1] + ".py"
     test_dir = path.split(str(request.fspath))[0]
