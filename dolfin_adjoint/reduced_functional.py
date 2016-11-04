@@ -265,7 +265,7 @@ class ReducedFunctional(object):
         # We might have forgotten the control values already,
         # in which case we can only return Nones
         values = []
-        for c in self.controls:
+        for p in self.controls:
             try:
                 values.append(p.data())
             except libadjoint.exceptions.LibadjointErrorNeedValue:
