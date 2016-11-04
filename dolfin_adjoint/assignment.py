@@ -62,7 +62,8 @@ class IdentityRHS(libadjoint.RHS):
             if str(V) not in adjglobals.fsp_lu:
                 u = backend.TrialFunction(V)
                 A = backend.assemble(backend.inner(u, v)*backend.dx)
-                lusolver = backend.LUSolver(A, "mumps")
+                solver_method = "mumps" if "mumps" in backend.lu_solver_methods().keys() else "default"
+                lusolver = backend.LUSolver(A, solver_method)
                 lusolver.parameters["symmetric"] = True
                 lusolver.parameters["reuse_factorization"] = True
                 adjglobals.fsp_lu[str(V)] = lusolver
