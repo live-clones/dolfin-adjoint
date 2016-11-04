@@ -1,5 +1,6 @@
 import re
 import ufl.algorithms
+from ufl import Form
 from backend import Constant
 
 ### A general dictionary that applies a key function before lookup
@@ -27,7 +28,12 @@ class KeyedDict(dict):
             This is crucial for MPI runs where destroying objects in different
             orders might result in MPI deadlocks.
         """
-        for k in sorted(self.keys()):
+        def _comparable(key):
+            # Form may be None when this is called during process cleanup
+            if Form and isinstance(key, Form):
+                return form.signature()
+            return key
+        for k in sorted(self.keys(), key=_comparable):
             dict.__delitem__(self, k)
 
     def __del__(self):
