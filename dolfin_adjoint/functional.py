@@ -351,7 +351,7 @@ class Functional(libadjoint.Functional):
 
         # Point deps always need the current and previous timestep values.
         point_deps *= 2
-        for i in range(len(point_deps)/2):
+        for i in range(len(point_deps)//2):
             point_deps[i]= point_deps[i].copy()
             if timestep !=0:
                 point_deps[i].var.timestep = timestep-1
@@ -359,7 +359,7 @@ class Functional(libadjoint.Functional):
             else:
                 point_deps[i].var.timestep = timestep
                 point_deps[i].var.iteration = 0
-        for i in range(len(point_deps)/2, len(point_deps)):
+        for i in range(len(point_deps)//2, len(point_deps)):
             point_deps[i].var.timestep = timestep
             point_deps[i].var.iteration = point_deps[i].iteration_count(adjointer) - 1
 
@@ -376,7 +376,7 @@ class Functional(libadjoint.Functional):
         # value.
         if  timestep==adjointer.timestep_count-1 and adjointer.time.finished:
             integral_deps*=2
-            for i in range(len(integral_deps)/2, len(integral_deps)):
+            for i in range(len(integral_deps)//2, len(integral_deps)):
                 integral_deps[i]= integral_deps[i].copy()
                 integral_deps[i].var.timestep = timestep
                 integral_deps[i].var.iteration = integral_deps[i].iteration_count(adjointer) - 1
