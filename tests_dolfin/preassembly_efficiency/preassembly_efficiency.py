@@ -32,6 +32,7 @@ from dolfin_adjoint import *
 # Print log messages only from the root process in parallel
 parameters["std_out_all_processes"] = False;
 parameters["adjoint"]["debug_cache"] = True
+set_log_level(PROGRESS)
 
 # Load mesh from file
 mesh = UnitSquareMesh(192, 192)
@@ -175,4 +176,4 @@ if __name__ == "__main__":
     print("Ratio: ", ratio)
 
     if '--ignore' not in sys.argv:
-        assert ratio < 1.5
+        assert ratio < 1.9
