@@ -33,8 +33,14 @@ class KeyedDict(dict):
             if Form and isinstance(key, Form):
                 return form.signature()
             return key
-        for k in sorted(self.keys(), key=_comparable):
-            dict.__delitem__(self, k)
+        try:
+            keys = self.keys()
+            for k in sorted(keys, key=_comparable):
+                dict.__delitem__(self, k)
+        except TypeError:
+            # Something went wrong in the deallocation phase - try to exit
+            # gracefully
+            pass
 
     def __del__(self):
         self.clear()
