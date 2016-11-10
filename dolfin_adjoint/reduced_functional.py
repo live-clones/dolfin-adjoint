@@ -339,15 +339,16 @@ class ReducedFunctional(object):
 
         return scaled_Hm
 
-    def taylor_test(self, value, test_hessian=False, seed=None, perturbation_direction=None):
+    def taylor_test(self, value=None, test_hessian=False, seed=None, perturbation_direction=None):
         """ Run a Taylor test to check that the functional, gradient and
         (optionally) Hessian are consistent by
         running the Taylor test.
 
 	Args:
-            value: The point in control space where to perform the Taylor test.
+            value (Optional): The point in control space where to perform the Taylor test.
                 Must be of the same type as the Control (e.g. Function, Constant or
-                lists of latter).
+                lists of latter). If value is None (default), the Taylor test
+                will be performed at the control value of the latest evaluation.
             test_hessian (Optional[boolean]): If True, the Taylor test also
                 includes the Hessian. Defaults to False.
             seed (Optional[float]): The initial perturbation size for the Taylor
@@ -364,7 +365,8 @@ class ReducedFunctional(object):
 	if the fenics.log_level is set INFO or higher.
         """
 
-        Jm = self(value)
+        if value is not None:
+            Jm = self(value)
         dJdm = self.derivative(forget=False)
         if test_hessian:
             HJm = self.H
