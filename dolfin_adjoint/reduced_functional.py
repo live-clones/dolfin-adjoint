@@ -366,7 +366,8 @@ class ReducedFunctional(object):
         """
 
         if value is not None:
-            Jm = self(value)
+            value = [c.data() for c in self.controls]
+        Jm = self(value)
         dJdm = self.derivative(forget=False)
         if test_hessian:
             HJm = self.H
