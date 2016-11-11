@@ -148,15 +148,23 @@ def compute_gradient(J, param, forget=True, ignore=[], callback=lambda var, outp
             info("Ignoring the adjoint equation for %s" % fwd_var)
             continue
 
+        var_type = {"vur": "PDE", "vs": "ODE", "vs_": "ODE", "g_ef": "IC"}
+        timer = backend.Timer("Adjoint equation solve {}".format(var_type[str(fwd_var).split(":")[0]]))
         (adj_var, output) = adjglobals.adjointer.get_adjoint_solution(i, J)
+        timer.stop()
 
+        timer = backend.Timer("Adjoint equation callback")
         callback(adj_var, output.data)
+        timer.stop()
 
+        timer = backend.Timer("Adjoint storage")
         storage = libadjoint.MemoryStorage(output)
         storage.set_overwrite(True)
         adjglobals.adjointer.record_variable(adj_var, storage)
         fwd_var = libadjoint.Variable(adj_var.name, adj_var.timestep, adj_var.iteration)
+        timer.stop()
 
+        timer = backend.Timer("Adjoint compute gradient")
         out = param.equation_partial_derivative(adjglobals.adjointer, output.data, i, fwd_var)
         dJdparam = _add(dJdparam, out)
 
@@ -166,13 +174,16 @@ def compute_gradient(J, param, forget=True, ignore=[], callback=lambda var, outp
             dJdparam = _add(dJdparam, out)
 
         last_timestep = adj_var.timestep
+        timer.stop()
 
+        timer = backend.Timer("Adjoint cleanup")
         if forget is None:
             pass
         elif forget:
             adjglobals.adjointer.forget_adjoint_equation(i)
         else:
             adjglobals.adjointer.forget_adjoint_values(i)
+        timer.stop()
 
     rename(J, dJdparam, param)
 

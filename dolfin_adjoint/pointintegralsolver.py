@@ -13,6 +13,7 @@ from . import constant
 class PointIntegralSolver(dolfin.PointIntegralSolver):
     def step(self, dt, annotate=None):
 
+        timer = dolfin.Timer("Inner ODE step")
         to_annotate = utils.to_annotate(annotate)
 
         if to_annotate:
@@ -43,9 +44,11 @@ class PointIntegralSolver(dolfin.PointIntegralSolver):
 
             if dolfin.parameters["adjoint"]["record_all"]:
                 adjglobals.adjointer.record_variable(next_var, libadjoint.MemoryStorage(adjlinalg.Vector(var)))
+        timer.stop()
 
 class PointIntegralRHS(libadjoint.RHS):
     def __init__(self, solver, dt, ic_var, frozen_expressions, frozen_constants):
+        timer = dolfin.Timer("ODE adjoint init")
         self.solver = solver
         if hasattr(self.solver, 'reset'): self.solver.reset()
         self.dt = dt
@@ -67,6 +70,7 @@ class PointIntegralRHS(libadjoint.RHS):
 
         self.frozen_expressions = frozen_expressions
         self.frozen_constants = frozen_constants
+        timer.stop()
 
     def dependencies(self):
         return self.deps
@@ -79,6 +83,7 @@ class PointIntegralRHS(libadjoint.RHS):
 
     def __call__(self, dependencies, values):
 
+        timer = "ODE replay"
         expressions.update_expressions(self.frozen_expressions)
         constant.update_constants(self.frozen_constants)
 
@@ -95,6 +100,7 @@ class PointIntegralRHS(libadjoint.RHS):
         out.nonlinear_u = self.scheme.solution()
         out.nonlinear_bcs = []
         out.nonlinear_J = ufl.derivative(out.nonlinear_form, out.nonlinear_u)
+        timer.stop()
 
         return out
 
@@ -103,6 +109,7 @@ class PointIntegralRHS(libadjoint.RHS):
         constant.update_constants(self.frozen_constants)
 
         if not hermitian:
+            timer = dolfin.Timer("ODE tlm step")
             if self.solver not in caching.pis_fwd_to_tlm:
                 dolfin.info_blue("No TLM solver, creating ... ")
                 creation_timer = dolfin.Timer("to_adm")
@@ -132,9 +139,12 @@ class PointIntegralRHS(libadjoint.RHS):
 
             tlm_solver.step(self.dt)
 
+            timer.stop()
             return adjlinalg.Vector(tlm_scheme.solution())
 
         else:
+            timer = dolfin.Timer("ODE adjoint step")
+            timer_inner = dolfin.Timer("ODE adjoint inner preparation")
             if self.solver not in caching.pis_fwd_to_adj:
                 dolfin.info_blue("No ADM solver, creating ... ")
                 creation_timer = dolfin.Timer("to_adm")
@@ -160,9 +170,13 @@ class PointIntegralRHS(libadjoint.RHS):
             for (coeff, value) in zip(coeffs, values):
                 coeff.assign(value.data)
             adm_scheme.t().assign(self.time)
+            timer_inner.stop()
 
+            timer_inner = dolfin.Timer("ODE adjoint inner step")
             adm_solver.step(self.dt)
+            timer_inner.stop()
 
+            timer.stop()
             return adjlinalg.Vector(adm_scheme.solution())
 
 __all__ = ['PointIntegralSolver']
