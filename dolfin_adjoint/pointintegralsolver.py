@@ -143,6 +143,7 @@ class PointIntegralRHS(libadjoint.RHS):
             return adjlinalg.Vector(tlm_scheme.solution())
 
         else:
+            print("ODE adjoint step solving for {}".format(self.ic_var))
             timer = dolfin.Timer("ODE adjoint step")
             timer_inner = dolfin.Timer("ODE adjoint inner preparation")
             if self.solver not in caching.pis_fwd_to_adj:

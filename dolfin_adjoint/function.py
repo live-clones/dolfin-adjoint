@@ -54,6 +54,7 @@ def dolfin_adjoint_assign(self, other, annotate=None, *args, **kwargs):
     functions, weights = zip(*lincom)
 
     self_var = adjglobals.adj_variables[self]
+    print("Annotating assign for {}".format(self_var))
     function_vars = [adjglobals.adj_variables[function] for function in functions]
 
     # ignore any functions we haven't seen before -- we DON'T want to
@@ -375,6 +376,7 @@ class LinComRHS(libadjoint.RHS):
         return adjlinalg.Vector(out)
 
     def derivative_action(self, dependencies, values, variable, contraction_vector, hermitian):
+        timer = backend.Timer("Function.assign adjoint for {}".format(variable))
         idx = dependencies.index(variable)
 
         # If you want to apply boundary conditions symmetrically in the adjoint
@@ -412,6 +414,8 @@ class LinComRHS(libadjoint.RHS):
         else:
             out = backend.Function(self.fn_space)
             out.assign(self.weights[idx] * contraction_vector.data)
+
+        timer.stop()
 
         return adjlinalg.Vector(out)
 

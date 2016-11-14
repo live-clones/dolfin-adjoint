@@ -150,9 +150,13 @@ def compute_gradient(J, param, forget=True, ignore=[], callback=lambda var, outp
 
         #var_type = {"vur": "PDE", "vs": "ODE", "vs_": "ODE", "g_ef": "IC"}
         #timer = backend.Timer("Adjoint equation solve {}".format(var_type[str(fwd_var).split(":")[0]]))
-        timer = backend.Timer("Adjoint equation solve {}".format(str(fwd_var).split(":")[0]))
+        timer_var = str(fwd_var).split(":")[0]
+        timer_iter = str(fwd_var).split(":")[2]
+        timer = backend.Timer("Adjoint equation solve {}-{}".format(timer_var, timer_iter))
+
         (adj_var, output) = adjglobals.adjointer.get_adjoint_solution(i, J)
         timer.stop()
+        print("Solving for {}".format(adj_var))
 
         timer = backend.Timer("Adjoint equation callback")
         callback(adj_var, output.data)
