@@ -244,7 +244,7 @@ class Functional(libadjoint.Functional):
 
                     for term_dep, term_var in zip(term_deps, term_vars):
                         (start, end) = self.get_vars(adjointer, timestep, term_var)
-                        theta = 1.0 - (term.time - point_interval.start)/(point_interval.stop - point_interval.start)
+                        theta = float(1.0 - (term.time - point_interval.start)/(point_interval.stop - point_interval.start))
                         replace[term_dep] = theta*deps[str(start)] + (1-theta)*deps[str(end)]
 
                     functional_value = _add(functional_value, backend.replace(term.form, replace))
