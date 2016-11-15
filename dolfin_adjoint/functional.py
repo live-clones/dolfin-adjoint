@@ -131,7 +131,7 @@ class Functional(libadjoint.Functional):
 
     def derivative(self, adjointer, variable, dependencies, values):
 
-        timer = backend.Timer("Deriving functional")
+        timer = backend.Timer("Deriving adjoint rhs symbolically")
         functional_value = None
         for timestep in self._derivative_timesteps(adjointer, variable):
             functional_value = _add(functional_value,
