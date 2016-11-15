@@ -313,12 +313,10 @@ class Matrix(libadjoint.Matrix):
 
     def basic_solve(self, var, b):
         if isinstance(self.data, IdentityMatrix):
-            timer = backend.Timer("Ident solve for {}".format(var))
             x=b.duplicate()
             x.axpy(1.0, b)
             if isinstance(x.data, ufl.Form):
                 x = Vector(backend.Function(x.fn_space, backend.assemble(x.data)))
-            timer.stop()
         else:
             if var.type in ['ADJ_TLM', 'ADJ_ADJOINT', 'ADJ_SOA']:
                 dirichlet_bcs = [utils.homogenize(bc) for bc in self.bcs if isinstance(bc, backend.DirichletBC)]

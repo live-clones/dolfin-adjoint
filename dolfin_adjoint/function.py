@@ -376,7 +376,6 @@ class LinComRHS(libadjoint.RHS):
         return adjlinalg.Vector(out)
 
     def derivative_action(self, dependencies, values, variable, contraction_vector, hermitian):
-        timer = backend.Timer("Function.assign adjoint for {}".format(variable))
         idx = dependencies.index(variable)
 
         # If you want to apply boundary conditions symmetrically in the adjoint
@@ -415,7 +414,6 @@ class LinComRHS(libadjoint.RHS):
             out = backend.Function(self.fn_space)
             out.assign(self.weights[idx] * contraction_vector.data)
 
-        timer.stop()
 
         return adjlinalg.Vector(out)
 

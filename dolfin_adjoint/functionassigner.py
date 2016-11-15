@@ -84,6 +84,11 @@ if hasattr(backend, 'FunctionAssigner'):
             return adjlinalg.Vector(receiving_super)
 
         def derivative_action(self, dependencies, values, variable, contraction_vector, hermitian):
+            print("Assembling functionassigner derivative action for {}".format(variable))
+            timer_var = str(variable).split(":")[0]
+            timer_iter = str(variable).split(":")[2]
+            timer = backend.Timer("FunctionAssigner rhs assembly for {}:{}:Adjoint".format(timer_var, timer_iter))
+
             if not hermitian:
                 # FunctionAssigner.assign is linear, which makes the tangent linearisation equivalent to
                 # just calling it with the right args.
@@ -97,6 +102,7 @@ if hasattr(backend, 'FunctionAssigner'):
                     else:
                         new_values.append(value.duplicate())
 
+                print("This took {}s".format(timer.stop()))
                 return self.__call__(dependencies, new_values)
             else:
                 # The adjoint of a pack is a split. The hard part is deciding what to split, exactly!
@@ -124,6 +130,7 @@ if hasattr(backend, 'FunctionAssigner'):
                             # We need to figure out the index of this component in order to decide what to split.
                             idx = giving_deps.index(giving_dep)
                             out = backend.Function(contraction_vector.data.sub(idx))
+                            print("Took {}s".format(timer.stop()))
                             return adjlinalg.Vector(out)
 
                         # OR, we were assigning to a subfunction, in which case the index
@@ -139,6 +146,7 @@ if hasattr(backend, 'FunctionAssigner'):
 
                         self.adj_function_assigner.assign(out_sub, in_)
 
+                        print("Took {}s".format(timer.stop()))
                         return adjlinalg.Vector(out)
 
                 # If we got to here, we're differentiating with respect to the
@@ -150,6 +158,7 @@ if hasattr(backend, 'FunctionAssigner'):
                     # where it's zero.
                     # If we've changed all components, the derivative is zero:
                     if self.giving_list:
+                        print("Took {}s".format(timer.stop()))
                         return adjlinalg.Vector(None)
 
                     # So we can call ourself with the right values, and we should get the right effect.
@@ -160,6 +169,7 @@ if hasattr(backend, 'FunctionAssigner'):
                         zero_giver = backend.Function(giving.function_space())
                         new_values.append(adjlinalg.Vector(zero_giver))
 
+                    print("Took {}s".format(timer.stop()))
                     return self.__call__(dependencies, new_values)
 
         def dependencies(self):

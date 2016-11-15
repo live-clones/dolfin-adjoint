@@ -137,6 +137,13 @@ class PETScKrylovSolver(dolfin.PETScKrylovSolver):
                     raise libadjoint.exceptions.LibadjointErrorNotImplemented("Shouldn't ever get here")
 
                 def solve(selfmat, var, b):
+
+                    timer_var = str(var).split(":")[0]
+                    timer_iter = str(var).split(":")[2]
+                    timer = dolfin.Timer("PETSc solve for {}:{}:Adjoint".format(timer_var, timer_iter))
+
+                    from IPython import embed; embed()
+
                     if selfmat.adjoint:
                         operators = transpose_operators(selfmat.operators)
                     else:
@@ -244,6 +251,7 @@ class PETScKrylovSolver(dolfin.PETScKrylovSolver):
 
                     print("%s: |b|: %.6e" % (var, rhs.norm("l2")))
                     solver.solve(x.vector(), rhs)
+                    print("This took {}s".format(timer.stop()))
                     return adjlinalg.Vector(x)
 
             solving.annotate(A == b, u, bcs, matrix_class=PETScKrylovSolverMatrix, initial_guess=parameters['nonzero_initial_guess'], replace_map=True)
