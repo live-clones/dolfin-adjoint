@@ -142,8 +142,6 @@ class PETScKrylovSolver(dolfin.PETScKrylovSolver):
                     timer_iter = str(var).split(":")[2]
                     timer = dolfin.Timer("PETSc solve for {}:{}:Adjoint".format(timer_var, timer_iter))
 
-                    from IPython import embed; embed()
-
                     if selfmat.adjoint:
                         operators = transpose_operators(selfmat.operators)
                     else:

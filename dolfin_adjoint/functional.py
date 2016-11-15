@@ -131,6 +131,7 @@ class Functional(libadjoint.Functional):
 
     def derivative(self, adjointer, variable, dependencies, values):
 
+        timer = backend.Timer("Deriving functional")
         functional_value = None
         for timestep in self._derivative_timesteps(adjointer, variable):
             functional_value = _add(functional_value,
@@ -145,6 +146,8 @@ class Functional(libadjoint.Functional):
 
         if len(d.integrals()) == 0:
             raise SystemExit("This isn't supposed to happen -- your functional is supposed to depend on %s" % variable)
+
+        print("This took {}s.".format(timer.stop()))
         return adjlinalg.Vector(d)
 
     def second_derivative(self, adjointer, variable, dependencies, values, contraction):
