@@ -83,7 +83,7 @@ class PointIntegralRHS(libadjoint.RHS):
 
     def __call__(self, dependencies, values):
 
-        timer = "ODE replay"
+        timer = dolfin.Timer("ODE replay")
         expressions.update_expressions(self.frozen_expressions)
         constant.update_constants(self.frozen_constants)
 
