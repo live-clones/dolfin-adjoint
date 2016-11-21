@@ -210,6 +210,9 @@ class TimeMeasure(object):
         if interval is None:
             interval = slice(START_TIME,FINISH_TIME,None)
 
+        if interval not in (START_TIME,FINISH_TIME) and not isinstance(interval, (slice, int, float)):
+            raise ValueError, "TimeMeasure can only be indexed with floats, START_TIME and FINISH_TIME."
+
         self.interval = timeslice(interval)
 
     def __getitem__(object, key):
