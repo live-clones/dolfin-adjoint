@@ -229,7 +229,7 @@ class Vector(libadjoint.Vector):
 
         #if not os.path.isfile(filename+".%s" % suffix):
         #  backend.info_red("Warning: Overwriting checkpoint file "+filename+"."+suffix)
-        file = backend.HDF5File(backend.mpi_comm_world(), filename+".%s" % suffix, "w")
+        file = backend.HDF5File(backend.comm_world, filename+".%s" % suffix, "w")
         file.write(self.data, filename)
         file.close()
 
@@ -244,7 +244,7 @@ class Vector(libadjoint.Vector):
 
         V = adjglobals.checkpoint_fs[filename]
         v = backend.Function(V)
-        file = backend.HDF5File(backend.mpi_comm_world(), filename+".%s" % suffix, "r")
+        file = backend.HDF5File(backend.comm_world, filename+".%s" % suffix, "r")
         file.read(v, filename)
         file.close()
 
