@@ -381,7 +381,11 @@ class ReducedFunctional(object):
         """ Return the MPI communicator associated with this reduced functional."""
 
         # Nice!
-        return compatibility.form_comm(self.functional.timeform.terms[0].form)
+        try:
+            return compatibility.form_comm(self.functional.timeform.terms[0].form)
+        except AttributeError:
+            return compatibility.form_comm(self.controls[0].coeff)
+
 
 
 def value_hash(value):
