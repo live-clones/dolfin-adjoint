@@ -237,13 +237,13 @@ def _check_and_extract_functions(e, linear_comb=None, scalar_weight=1.0,
 
     # Third check a*u*b, u/a/b, a*u/b where a and b are scalars and u is a Tensor
     elif isinstance(e, ComponentTensor):
-        e, multi_index = e.operands()
+        e, multi_index = e.ufl_operands
         linear_comb = _check_mul_and_division(e, linear_comb, scalar_weight, multi_index)
         return linear_comb
 
     # If not Product or Division we expect Sum
     elif isinstance(e, Sum):
-        for op in e.operands():
+        for op in e.ufl_operands:
             linear_comb = _check_and_extract_functions(op, linear_comb, \
                                                        scalar_weight, multi_index)
 
@@ -300,18 +300,18 @@ def _check_mul_and_division(e, linear_comb, scalar_weight=1.0, multi_index=None)
 
     # Split passed expression into scalar and expr
     if isinstance(e, Product):
-        for i, op in enumerate(e.operands()):
+        for i, op in enumerate(e.ufl_operands):
             if isinstance(op, ScalarValue) or \
                    (isinstance(op, backend.Constant) and op.value_size()==1):
                 scalar = op
-                expr = e.operands()[1-i]
+                expr = e.ufl_operands[1-i]
                 break
         else:
             _assign_error()
 
         scalar_weight *= float(scalar)
     elif isinstance(e, Division):
-        expr, scalar = e.operands()
+        expr, scalar = e.ufl_operands
         if not (isinstance(scalar, ScalarValue) or \
                 isinstance(scalar, backend.Constant) and scalar.value_rank()==1):
             _assign_error()
@@ -327,7 +327,7 @@ def _check_mul_and_division(e, linear_comb, scalar_weight=1.0, multi_index=None)
         assert(isinstance(expr, Indexed))
 
         # Unpack Indexed and check equality with passed multi_index
-        expr, multi_index2 = expr.operands()
+        expr, multi_index2 = expr.ufl_operands
         assert(isinstance(multi_index2, MultiIndex))
         if not same_multi_index(multi_index, multi_index2):
             _assign_error()
@@ -338,7 +338,7 @@ def _check_mul_and_division(e, linear_comb, scalar_weight=1.0, multi_index=None)
     elif isinstance(expr, (ComponentTensor, Product, Division, Sum)):
         # If componentTensor we need to unpack the MultiIndices
         if isinstance(expr, ComponentTensor):
-            expr, multi_index = expr.operands()
+            expr, multi_index = expr.ufl_operands
             if not same_multi_index(multi_index, multi_index2):
                 _error()
 
