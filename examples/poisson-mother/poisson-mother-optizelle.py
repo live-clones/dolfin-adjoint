@@ -100,7 +100,7 @@ parameters = {
                  "algorithm_class" : Optizelle.AlgorithmClass.TrustRegion,
                  "H_type" : Optizelle.Operators.UserDefined,
                  "dir" : Optizelle.LineSearchDirection.NewtonCG,
-                 "ipm": Optizelle.InteriorPointMethod.LogBarrier,
+                 #"ipm": Optizelle.InteriorPointMethod.LogBarrier,
                  "eps_grad": 1e-5,
                  "krylov_iter_max" : 40,
                  "eps_krylov" : 1e-2

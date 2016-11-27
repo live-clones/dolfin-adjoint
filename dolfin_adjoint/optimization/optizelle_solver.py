@@ -573,7 +573,7 @@ class OptizelleSolver(OptimizationSolver):
 
         # Unconstrained case
         if num_equality_constraints == 0 and num_inequality_constraints == 0:
-            self.state = Optizelle.Unconstrained.State.t(DolfinVectorSpace, Optizelle.Messaging(), x)
+            self.state = Optizelle.Unconstrained.State.t(DolfinVectorSpace, x)
             self.fns = Optizelle.Unconstrained.Functions.t()
             self.fns.f = OptizelleObjective(self.problem.reduced_functional,
                     scale=scale)
@@ -587,7 +587,7 @@ class OptizelleSolver(OptimizationSolver):
             equality_constraints = self.problem.constraints.equality_constraints()
             y = equality_constraints.output_workspace()
 
-            self.state = Optizelle.EqualityConstrained.State.t(DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), x, y)
+            self.state = Optizelle.EqualityConstrained.State.t(DolfinVectorSpace, DolfinVectorSpace, x, y)
             self.fns = Optizelle.Constrained.Functions.t()
 
             self.fns.f = OptizelleObjective(self.problem.reduced_functional,
@@ -607,7 +607,7 @@ class OptizelleSolver(OptimizationSolver):
                 all_inequality_constraints = constraints.MergedConstraints(bound_inequality_constraints)
             z = all_inequality_constraints.output_workspace()
 
-            self.state = Optizelle.InequalityConstrained.State.t(DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), x, z)
+            self.state = Optizelle.InequalityConstrained.State.t(DolfinVectorSpace, DolfinVectorSpace, x, z)
             self.fns = Optizelle.InequalityConstrained.Functions.t()
 
             self.fns.f = OptizelleObjective(self.problem.reduced_functional,
@@ -630,7 +630,7 @@ class OptizelleSolver(OptimizationSolver):
                 all_inequality_constraints = constraints.MergedConstraints(bound_inequality_constraints)
             z = all_inequality_constraints.output_workspace()
 
-            self.state = Optizelle.Constrained.State.t(DolfinVectorSpace, DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), x, y, z)
+            self.state = Optizelle.Constrained.State.t(DolfinVectorSpace, DolfinVectorSpace, DolfinVectorSpace, x, y, z)
             self.fns = Optizelle.Constrained.Functions.t()
 
             self.fns.f = OptizelleObjective(self.problem.reduced_functional,
@@ -678,23 +678,23 @@ class OptizelleSolver(OptimizationSolver):
 
         # No constraints
         if num_equality_constraints == 0 and num_inequality_constraints == 0:
-            Optizelle.Unconstrained.Algorithms.getMin(DolfinVectorSpace, Optizelle.Messaging(), self.fns, self.state)
+            Optizelle.Unconstrained.Algorithms.getMin(DolfinVectorSpace, Optizelle.Messaging.stdout, self.fns, self.state)
 
         # Equality constraints only
         elif num_equality_constraints > 0 and num_inequality_constraints == 0:
-            Optizelle.EqualityConstrained.Algorithms.getMin(DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), self.fns, self.state)
+            Optizelle.EqualityConstrained.Algorithms.getMin(DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging.stdout, self.fns, self.state)
 
         # Inequality constraints only
         elif num_equality_constraints == 0 and num_inequality_constraints > 0:
-            Optizelle.InequalityConstrained.Algorithms.getMin(DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), self.fns, self.state)
+            Optizelle.InequalityConstrained.Algorithms.getMin(DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging.stdout, self.fns, self.state)
 
         # Inequality and equality constraints
         else:
-            Optizelle.Constrained.Algorithms.getMin(DolfinVectorSpace, DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging(), self.fns, self.state)
+            Optizelle.Constrained.Algorithms.getMin(DolfinVectorSpace, DolfinVectorSpace, DolfinVectorSpace, Optizelle.Messaging.stdout, self.fns, self.state)
 
         # Print out the reason for convergence
         # FIXME: Use logging
-        print("The algorithm stopped due to: %s" % (Optizelle.StoppingCondition.to_string(self.state.opt_stop)))
+        print("The algorithm stopped due to: %s" % (Optizelle.OptimizationStop.to_string(self.state.opt_stop)))
 
         # Return the optimal control
         list_type = self.problem.reduced_functional.controls
