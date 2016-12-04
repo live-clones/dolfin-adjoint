@@ -99,7 +99,6 @@ parameters = {
                  "dir" : Optizelle.LineSearchDirection.BFGS,
                  "eps_dx": 1.0e-32,
                  "linesearch_iter_max" : 5,
-                 "ipm": Optizelle.InteriorPointMethod.PrimalDual,
                  "mu": 1e+0,
                  "eps_mu": 1e-6,
                  "krylov_iter_max" : 30,

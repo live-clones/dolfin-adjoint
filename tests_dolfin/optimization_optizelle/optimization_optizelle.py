@@ -97,7 +97,7 @@ Vconst = VolumeConstraint(Vol)
 ub = Function(W)
 ub.vector()[:] = 0.4
 lb = 0.1
-problem = MinimizationProblem(rf, bounds=[(lb, ub)], constraints=Vconst)
+problem = MinimizationProblem(rf, bounds=[(lb, ub)])#, constraints=Vconst)
 
 parameters = {
              "maximum_iterations": 10,
@@ -106,7 +106,7 @@ parameters = {
                  "msg_level" : 10,
                  "algorithm_class" : Optizelle.AlgorithmClass.TrustRegion,
                  "H_type" : Optizelle.Operators.UserDefined,
-                 "dir" : Optizelle.LineSearchDirection.NewtonCG,
+                 "dir" : Optizelle.LineSearchDirection.BFGS,
                  #"ipm": Optizelle.InteriorPointMethod.PrimalDualLinked,
                  "linesearch_iter_max" : 50,
                  "krylov_iter_max" : 10,
@@ -122,12 +122,16 @@ f_opt = solver.solve()
 cmax = f_opt.vector().max()
 cmin = f_opt.vector().min()
 
-#plot(f_opt, interactive=True)
+print("f min: {} (should be more than {})".format(cmin, lb))
+print("f max: {} (should be less than {})".format(cmax, ub.vector().max()))
+
+plot(f_opt, interactive=True)
 
 # Check that the bounds are satisfied
 assert cmin >= lb
 assert cmax <= ub.vector().max()
 assert abs(assemble(f_opt*dx) - Vol) < 1e-3
+
 
 # Check that the functional value is below the threshold
 assert rf(f_opt) < 2e-4
