@@ -3,7 +3,7 @@
 
 from backend import TrialFunction, TestFunction, grad, inner, dx, assemble, Constant
 
-__all__ = ["L2", "H10", "H1"]
+__all__ = ["BaseRieszMap", "L2", "H10", "H1"]
 
 class BaseRieszMap(object):
     def __init__(self, V):
