@@ -101,9 +101,9 @@ def annotate(*args, **kwargs):
             pass
 
         try:
-            eq_bcs = misc.uniq(args[0].bcs + args[2].bcs)
+            eq_bcs = misc.uniq(args[0]._da_bcs + args[2]._da_bcs)
         except AttributeError:
-            assert not hasattr(args[0], 'bcs') and not hasattr(args[2], 'bcs')
+            assert not hasattr(args[0], '_da_bcs') and not hasattr(args[2], '_da_bcs')
             eq_bcs = []
     else:
         print("args[0].__class__: ", args[0].__class__)

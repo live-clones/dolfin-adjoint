@@ -30,9 +30,9 @@ if hasattr(backend, 'PeriodicBC'):
     periodic_bc_apply = backend.PeriodicBC.apply
     def adjoint_periodic_bc_apply(self, *args, **kwargs):
         for arg in args:
-            if not hasattr(arg, 'bcs'):
-                arg.bcs = []
-            arg.bcs.append(self)
+            if not hasattr(arg, '_da_bcs'):
+                arg._da_bcs = []
+            arg._da_bcs.append(self)
         return periodic_bc_apply(self, *args, **kwargs)
     backend.PeriodicBC.apply = adjoint_periodic_bc_apply
 
@@ -40,9 +40,9 @@ if hasattr(backend, 'DirichletBC'):
     dirichlet_bc_apply = backend.DirichletBC.apply
     def adjoint_dirichlet_bc_apply(self, *args, **kwargs):
         for arg in args:
-            if not hasattr(arg, 'bcs'):
-                arg.bcs = []
-            arg.bcs.append(self)
+            if not hasattr(arg, '_da_bcs'):
+                arg._da_bcs = []
+            arg._da_bcs.append(self)
         return dirichlet_bc_apply(self, *args, **kwargs)
     backend.DirichletBC.apply = adjoint_dirichlet_bc_apply
 
@@ -81,10 +81,10 @@ def assemble_system(*args, **kwargs):
     to_annotate = utils.to_annotate(kwargs.pop("annotate", None))
     if to_annotate:
         lhs_out.form = lhs
-        lhs_out.bcs = bcs
+        lhs_out._da_bcs = bcs
         lhs_out.assemble_system = True
         rhs_out.form = rhs
-        rhs_out.bcs = bcs
+        rhs_out._da_bcs = bcs
         rhs_out.assemble_system = True
 
     if cache:

@@ -10,11 +10,7 @@ def main(data):
     mass = inner(u, v)*dx
     M = assemble(mass)
 
-    #rhs = M*data.vector()
-    rhs = Function(V)
-    with data.dat.vec_ro as x, rhs.dat.vec as y:
-        M.petscmat.mult(x, y)
-    
+    rhs = assemble(data*v*dx)
     soln = Function(V)
 
     solve(M, soln.vector(), rhs)

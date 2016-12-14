@@ -45,17 +45,12 @@ def main(ic, annotate=False):
 
     bc = DirichletBC(V, 0.0, "on_boundary")
     burgers = BurgersProblem((Dt(u, u_, timestep)*v + u*u.dx(0)*v + nu*u.dx(0)*v.dx(0))*dx, u, bc)
-    
-    #solver = NewtonSolver()
-    #solver.parameters["convergence_criterion"] = "incremental"
-    #solver.parameters["relative_tolerance"] = 1e-6
-    #tentative
     solver = NonlinearVariationalSolver(burgers, solver_parameters={'ksp_rtol': 1e-6})
 
     t = 0.0
     end = 0.2
     while (t <= end):
-        solver.solve(burgers, u.vector(), annotate=annotate)
+        solver.solve(annotate=annotate)
         u_.assign(u, annotate=annotate)
 
         t += float(timestep)
