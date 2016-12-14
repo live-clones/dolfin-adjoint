@@ -132,8 +132,8 @@ def annotate(*args, **kwargs):
     # with diag.
     key = '{}{}{}{}'.format(hash(eq_lhs), hash(eq_rhs), u, random.random()).encode('utf8')
     diag_name = hashlib.md5(key).hexdigest() # we don't have a useful human-readable name, so take the md5sum of the string representation of the forms
-    diag_deps = [adjglobals.adj_variables[coeff] for coeff in ufl.algorithms.extract_coefficients(eq_lhs) if hasattr(coeff, "function_space")]
-    diag_coeffs = [coeff for coeff in ufl.algorithms.extract_coefficients(eq_lhs) if hasattr(coeff, "function_space")]
+    diag_deps = [adjglobals.adj_variables[coeff] for coeff in ufl.algorithms.extract_coefficients(eq_lhs) if isinstance(coeff, compatibility.function_type)]
+    diag_coeffs = [coeff for coeff in ufl.algorithms.extract_coefficients(eq_lhs) if isinstance(coeff, compatibility.function_type)]
 
     if initial_guess and linear: # if the initial guess matters, we're going to have to add this in as a dependency of the system
         initial_guess_var = adjglobals.adj_variables[u]

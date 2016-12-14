@@ -786,6 +786,8 @@ class DolfinAdjointVariable(libadjoint.Variable):
         return ts
 
 def get_identity_block(fn_space):
+    assert fn_space is not None
+
     from . import adjlinalg
     block_name = "Identity: %s" % str(fn_space)
     if len(block_name) > int(libadjoint.constants.adj_constants["ADJ_NAME_LEN"]):
