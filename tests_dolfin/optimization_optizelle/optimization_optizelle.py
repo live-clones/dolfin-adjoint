@@ -97,7 +97,7 @@ Vconst = VolumeConstraint(Vol)
 ub = Function(W)
 ub.vector()[:] = 0.4
 lb = 0.1
-problem = MinimizationProblem(rf, bounds=[(lb, ub)])#, constraints=Vconst)
+problem = MinimizationProblem(rf, bounds=[(lb, ub)], constraints=Vconst)
 
 parameters = {
              "maximum_iterations": 10,
@@ -124,8 +124,6 @@ cmin = f_opt.vector().min()
 
 print("f min: {} (should be more than {})".format(cmin, lb))
 print("f max: {} (should be less than {})".format(cmax, ub.vector().max()))
-
-plot(f_opt, interactive=True)
 
 # Check that the bounds are satisfied
 assert cmin >= lb
