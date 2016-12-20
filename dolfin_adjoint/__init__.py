@@ -38,7 +38,7 @@ from . import constant
 
 if backend.__name__ == "dolfin":
     from . import lusolver
-    backend.comm_world = dolfin.mpi_comm_world()
+    backend.comm_world = backend.mpi_comm_world()
 else:
     from mpi4py import MPI
     backend.comm_world = MPI.COMM_WORLD
