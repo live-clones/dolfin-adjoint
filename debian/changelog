@@ -1,3 +1,9 @@
+dolfin-adjoint (2016.2.0~trusty) trusty; urgency=low
+
+  * Release dolfin-adjoint version 2016.2.0.
+
+ -- Simon Funke <simon@simula.no>  Tue, 20 Dec 2016 16:37:05 +0100
+
 dolfin-adjoint (2016.1.0~trusty) trusty; urgency=low
 
   * Release dolfin-adjoint version 2016.1.0.

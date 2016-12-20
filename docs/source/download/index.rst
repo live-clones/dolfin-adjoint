@@ -111,19 +111,19 @@ Once that's done, why not try out the :doc:`tutorial <../documentation/tutorial>
 From source
 ===========
 
-The latest stable release of dolfin-adjoint and libadjoint is **version 2016.1** which is compatible with FEniCS 2016.1. Download links:
+The latest stable release of dolfin-adjoint and libadjoint is **version 2016.2** which is compatible with FEniCS 2016.2. Download links:
 
 * libadjoint:
 
 .. code-block:: bash
 
-   git clone -b libadjoint-2016.1.0 https://bitbucket.org/dolfin-adjoint/libadjoint
+   git clone -b libadjoint-2016.2.0 https://bitbucket.org/dolfin-adjoint/libadjoint
 
 * dolfin-adjoint:
 
 .. code-block:: bash
 
-   git clone -b dolfin-adjoint-2016.1.0 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
+   git clone -b dolfin-adjoint-2016.2.0 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
 
 The **development version** is available with the following
 command:
