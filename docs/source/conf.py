@@ -58,7 +58,7 @@ class Mock(object):
 MOCK_MODULES = ['libadjoint', 'libadjoint.exceptions', 'libadjoint.GSTHandle',
                 'dolfin', 'ffc', 'backend.fem', 'backend.fem.projection', 'backend.PeriodicBC',
                 'backend', 'ufl', 'numpy', 'scipy', 'scipy.optimize', 'ufl.classes',
-                'ufl.algorithms', 'ufl.operators']
+                'ufl.algorithms', 'ufl.operators', 'Optizelle']
 for mod_name in MOCK_MODULES:
     try:
         importlib.import_module(mod_name)
