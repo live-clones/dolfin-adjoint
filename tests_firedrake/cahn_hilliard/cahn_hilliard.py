@@ -3,7 +3,7 @@ import sys
 import random
 from firedrake import *
 from firedrake_adjoint import *
-from firedrake_adjoint.compatibility import rank
+from mpi4py import MPI
 from math import sqrt
 
 firedrake.parameters["adjoint"]["record_all"] = True
@@ -11,7 +11,7 @@ firedrake.parameters["adjoint"]["record_all"] = True
 # Class representing the intial conditions
 class InitialConditions(Expression):
     def __init__(self, **kwargs):
-        random.seed(2 + rank(mpi_comm_world()))
+        random.seed(2 + MPI.COMM_WORLD.rank)
     def eval(self, values, x):
         values[0] = 0.63 + 0.02*(0.5 - random.random())
         values[1] = 0.0
