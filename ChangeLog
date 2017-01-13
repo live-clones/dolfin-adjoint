@@ -1,4 +1,6 @@
-dolfin-adjoint 2016.2.0 [not yet released]
+dolfin-adjoint 2017.1.0 [Not yet released]
+
+dolfin-adjoint 2016.2.0 [20-12-2016]
 - New example for time-dependent controls
 - Docker images
 - Add Bitbucket pipelines

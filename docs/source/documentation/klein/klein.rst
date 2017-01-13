@@ -78,6 +78,7 @@ We start the implementation by importing the :py:mod:`dolfin` and
 
 ::
 
+  from __future__ import print_function
   from dolfin import *
   from dolfin_adjoint import *
   
@@ -216,9 +217,9 @@ the runtime of the forward and adjoint solves.
   plot(dJdm, title="Sensitivity of ||u(t=%f)||_L2 with respect to u(t=0)." % t)
   interactive()
   
-  print "Forward time: ", fwd_time
-  print "Adjoint time: ", adj_time
-  print "Adjoint to forward runtime ratio: ", adj_time / fwd_time
+  print("Forward time: ", fwd_time)
+  print("Adjoint time: ", adj_time)
+  print("Adjoint to forward runtime ratio: ", adj_time / fwd_time)
   
 The example code can be found in ``examples/klein`` in the ``dolfin-adjoint``
 source tree, and executed as follows:

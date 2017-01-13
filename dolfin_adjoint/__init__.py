@@ -13,7 +13,7 @@ importing the :py:mod:`dolfin` module. dolfin-adjoint relies on *overloading* ma
 the key functions of dolfin to achieve its degree of automation.
 """
 
-__version__ = '2016.1.0'
+__version__ = '2016.2.0'
 __author__  = 'Patrick Farrell and Simon Funke'
 __credits__ = ['Patrick Farrell', 'Simon Funke', 'David Ham', 'Marie Rognes']
 __license__ = 'LGPL-3'
@@ -38,7 +38,7 @@ from . import constant
 
 if backend.__name__ == "dolfin":
     from . import lusolver
-    backend.comm_world = dolfin.mpi_comm_world()
+    backend.comm_world = backend.mpi_comm_world()
 else:
     from mpi4py import MPI
     backend.comm_world = MPI.COMM_WORLD

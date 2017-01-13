@@ -66,6 +66,7 @@ We start our implementation by importing the :py:mod:`dolfin` and
 
 ::
 
+  from __future__ import print_function
   from dolfin import *
   from dolfin_adjoint import *
   
@@ -362,7 +363,7 @@ Now fetch the results of the SVD:
       for i in range(gst.ncv):
           (sigma, u, v) = gst.get_gst(i, return_vectors=True)
   
-          print "Singular value: ", sigma
+          print("Singular value: ", sigma)
   
           store_gst(v, "input", i)
           store_gst(u, "output", i)
