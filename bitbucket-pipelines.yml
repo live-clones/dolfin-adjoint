@@ -19,29 +19,30 @@ pipelines:
 
 branches:
     dokken/multimesh-optimization:
-    - step:
-        script:
-          - pip2 install --no-cache-dir --upgrade pytest
-          - pip2 install git+https://bitbucket.org/fenics-project/fiat.git@next
-          - pip2 install git+https://bitbucket.org/fenics-project/ufl.git@next
-          - pip2 install git+https://bitbucket.org/fenics-project/dijitso.git@next
-          - pip2 install git+https://bitbucket.org/fenics-project/instant.git@next
-          - pip2 install git+https://bitbucket.org/fenics-project/ffc.git@next
-          - mkdir -p build
-          - cd build
-          - cmake .. -DCMAKE_BUILD_TYPE=Debug -DDOLFIN_ENABLE_TESTING=ON
-          - make
-          - make install
-          - source /usr/local/share/dolfin/dolfin.conf
-          - export HOME=/home/fenics
-          - export FENICS_PREFIX=$HOME/local
-          - export FENICS_PYTHON_MAJOR_VERSION=2
-          - export FENICS_PYTHON_MINOR_VERSION=7
-          - export PATH=$HOME/bin:$HOME/.local/bin:$PATH
-          - source $HOME/fenics.env.conf
-          - source $HOME/dolfin-adjoint.conf
-          - update_libadjoint
-          - cd $BITBUCKET_CLONE_DIR
-          - pip2 install --no-cache-dir --upgrade --prefix=$FENICS_PREFIX .
-          - python2 -m pytest -v tests_dolfin/
-
+        - step:
+            script:
+              - pip2 install --no-cache-dir --upgrade pytest
+              - pip2 install git+https://bitbucket.org/fenics-project/fiat.git@next
+              - pip2 install git+https://bitbucket.org/fenics-project/ufl.git@next
+              - pip2 install git+https://bitbucket.org/fenics-project/dijitso.git@next
+              - pip2 install git+https://bitbucket.org/fenics-project/instant.git@next
+              - pip2 install git+https://bitbucket.org/fenics-project/ffc.git@next
+              - git clone git@bitbucket.org:logg/dolfin.git
+              - cd dolfin
+              - git checkout dokken/multimesh-optimization
+              - mkdir -p build
+              - cd build
+              - cmake .. -DCMAKE_BUILD_TYPE=Debug -DDOLFIN_ENABLE_TESTING=ON
+              - make
+              - make install
+              - source /usr/local/share/dolfin/dolfin.conf
+              - cd ../../
+              - git clone git@bitbucket.org:dolfin-adjoint/libadjoint.git
+              - cd libadjoint
+              - mkdir -p build
+              - cd build
+              - cmake ..
+              - make install
+              - cd $BITBUCKET_CLONE_DIR
+              - pip2 install --no-cache-dir --upgrade --prefix=$FENICS_PREFIX .
+              - python2 -m pytest -v tests_dolfin/
