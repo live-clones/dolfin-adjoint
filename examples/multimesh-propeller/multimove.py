@@ -100,7 +100,7 @@ def solve_move():
     m = [Control(u0), Control(f)]
 
     rf = ReducedFunctional(J, m)
-    dJdu0, dJdf = rf.derivative(project=True)
+    dJdu0, dJdf = rf.derivative(project=True, forget=False)
     out3 = File("background_grad.pvd")
     out4 = File("propeller_grad.pvd")
     out3 << dJdu0.part(0)
