@@ -96,6 +96,7 @@ def solve_move():
 
 
     J = Functional(u0**2*dX)
+
     m = [Control(u0), Control(f)]
 
     rf = ReducedFunctional(J, m)
@@ -112,3 +113,4 @@ def solve_move():
 
 if __name__ == '__main__':
     solve_move()
+

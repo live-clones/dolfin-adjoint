@@ -102,6 +102,7 @@ class Vector(libadjoint.Vector):
                 # corresponding to the initial conditions.
                 from .utils import _has_multimesh
                 if _has_multimesh(x.data):
+
                     self.data.vector().axpy(alpha,
                                             backend.assemble_multimesh(x.data))
                 else:

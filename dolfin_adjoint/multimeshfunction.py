@@ -9,6 +9,7 @@ from . import utils
 from . import misc
 from . import compatibility
 
+
 dolfin_assign = misc.noannotations(backend.MultiMeshFunction.assign)
 dolfin_str    = backend.MultiMeshFunction.__str__
 
