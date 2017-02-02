@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<style type="text/css">
+table.equations
+{ font-family: monospace;
+  font-weight: normal;
+  font-size: 11px;
+  color: #404040;
+  table-layout:fixed;
+  background-color: #fafafa;
+  border: 0px;
+  empty-cells: hide;
+  border-spacing: 0px;
+  margin-top: 0px;}
+table.equations td
+{ font-weight: normal;
+  font-size: 11px;
+  color: #404040;
+  background-color: lightgray;
+  text-align: left;
+  padding-left: 3px;
+  border:1px solid black;
+  height:40px;}
+table.equations th
+{
+  width:40px;
+  height:40px;
+}
+table.equations td.new_timestep
+{ border-top: 5px solid black;}
+table.equations td.new_iteration
+{ border-top: 2px solid black}
+table.equations td.diagonal
+{ background-color: lightgreen;}
+.box_rotate {
+         -moz-transform: rotate(310deg);  /* FF3.5+ */
+           -o-transform: rotate(310deg);  /* Opera 10.5 */
+      -webkit-transform: rotate(310deg);  /* Saf3.1+, Chrome */
+                 filter:  progid:DXImageTransform.Microsoft.BasicImage(rotation=-0.0698131701);  /* IE6,IE7 */
+              -ms-filter: 'progid:DXImageTransform.Microsoft.BasicImage(rotation=-0.0698131701)'; /* IE8 */
+}
+.redfont {
+     color:red;
+}
+.greenfont {
+     color:green;
+}
+</style>
+<title>Libadjoint HTML output</title>
+</head>
+<body>
+<h1>General information</h1><p>Number of timesteps: 1</p><p>Number of registered equations: 2</p><h1>Forward system</h1>
+<table width="1" class="equations" >
+<div style="height:150px"></div>
+<tr>
+<th class="box_rotate greenfont">w_{8016}:0:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_{8031}:0:0:Forward (mem)</th>
+</tr>
+<tr>
+<td class="diagonal new_timestep"><div title="Equation number: 0
+Targets: w_{8016}
+Timestep:0
+Iteration:0
+
+===== Block description =====
+
+Identity: WithGeometry(FunctionSpace(<firedrake.mesh.MeshTopology object at 0x116e71350>, <CG3 on a triangle>, name=None), <Mesh #3196>)
+------------------
+Coefficient: 1.000000
+Hermitian: false">Ident</div></td>
+<td class="new_timestep"></td>
+</tr>
+<tr>
+<td class=""></td>
+<td class="diagonal "><div title="Equation number: 1
+Targets: w_{8031}
+Timestep:0
+Iteration:0
+
+===== Block description =====
+
+7c29294ac07f89c44df3ddcd4fcb781b
+------------------
+Coefficient: 1.000000
+Hermitian: false">7c292</div></td>
+<td class="rhs"><div title="Dependencies: w_{8016}:0:0">Rhs</div></td>
+</tr>
+</table>
+<h1>Auxiliary variables</h1><h1>Callback information</h1><h2>Data callbacks</h2><div class="greenfont">vec_duplicate</div><div class="greenfont">vec_axpy</div><div class="greenfont">vec_destroy</div><div class="greenfont">vec_set_values</div><div class="greenfont">vec_get_size</div><div class="redfont"' title='Not registered'>vec_divide</div><div class="greenfont">vec_get_norm</div><div class="greenfont">vec_dot_product</div><div class="greenfont">vec_set_random</div><div class="greenfont">mat_duplicate</div><div class="greenfont">mat_duplicate</div><div class="greenfont">mat_axpy</div><div class="greenfont">mat_destroy</div><h2>Block action callbacks</h2><div>Identity: WithGeometry(FunctionSpace(&lt;firedrake.mesh.MeshTopology object at 0x116e71350&gt;, &lt;CG3 on a triangle&gt;, name=None), &lt;Mesh #3196&gt;)<br/>
+7c29294ac07f89c44df3ddcd4fcb781b<br/>
+</div><h2>Block assembly callbacks</h2><div>Identity: WithGeometry(FunctionSpace(&lt;firedrake.mesh.MeshTopology object at 0x116e71350&gt;, &lt;CG3 on a triangle&gt;, name=None), &lt;Mesh #3196&gt;)<br/>
+7c29294ac07f89c44df3ddcd4fcb781b<br/>
+</div><h2>Nonlinear block action callbacks</h2><div></div><h2>Nonlinear block derivative action callbacks</h2><div></div><h2>Nonlinear block second derivative action callbacks</h2><div></div><h2>Nonlinear derivative block assembly callbacks</h2><div></div><h2>Functional callbacks</h2><div></div><h2>Functional derivative callbacks</h2><div></div></body>
+</html>

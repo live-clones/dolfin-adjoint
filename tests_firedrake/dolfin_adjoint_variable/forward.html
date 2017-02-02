@@ -1,0 +1,382 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<style type="text/css">
+table.equations
+{ font-family: monospace;
+  font-weight: normal;
+  font-size: 11px;
+  color: #404040;
+  table-layout:fixed;
+  background-color: #fafafa;
+  border: 0px;
+  empty-cells: hide;
+  border-spacing: 0px;
+  margin-top: 0px;}
+table.equations td
+{ font-weight: normal;
+  font-size: 11px;
+  color: #404040;
+  background-color: lightgray;
+  text-align: left;
+  padding-left: 3px;
+  border:1px solid black;
+  height:40px;}
+table.equations th
+{
+  width:40px;
+  height:40px;
+}
+table.equations td.new_timestep
+{ border-top: 5px solid black;}
+table.equations td.new_iteration
+{ border-top: 2px solid black}
+table.equations td.diagonal
+{ background-color: lightgreen;}
+.box_rotate {
+         -moz-transform: rotate(310deg);  /* FF3.5+ */
+           -o-transform: rotate(310deg);  /* Opera 10.5 */
+      -webkit-transform: rotate(310deg);  /* Saf3.1+, Chrome */
+                 filter:  progid:DXImageTransform.Microsoft.BasicImage(rotation=-0.0698131701);  /* IE6,IE7 */
+              -ms-filter: 'progid:DXImageTransform.Microsoft.BasicImage(rotation=-0.0698131701)'; /* IE8 */
+}
+.redfont {
+     color:red;
+}
+.greenfont {
+     color:green;
+}
+</style>
+<title>Libadjoint HTML output</title>
+</head>
+<body>
+<h1>General information</h1><p>Number of timesteps: 6</p><p>Number of registered equations: 12</p><h1>Forward system</h1>
+<table width="1" class="equations" >
+<div style="height:150px"></div>
+<tr>
+<th class="box_rotate greenfont">w_2:0:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_4:0:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_2:0:1:Forward (mem)</th>
+<th class="box_rotate greenfont">w_4:1:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_2:1:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_4:2:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_2:2:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_4:3:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_2:3:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_4:4:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_2:4:0:Forward (mem)</th>
+<th class="box_rotate greenfont">w_4:5:0:Forward (mem)</th>
+</tr>
+<tr>
+<td class="diagonal new_timestep"><div title="Equation number: 0
+Targets: w_2
+Timestep:0
+Iteration:0
+
+===== Block description =====
+
+Identity: WithGeometry(FunctionSpace(<firedrake.mesh.MeshTopology object at 0x103f3f190>, <CG1 on a triangle>, name=None), <Mesh #1>)
+------------------
+Coefficient: 1.000000
+Hermitian: false">Ident</div></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+</tr>
+<tr>
+<td class=""></td>
+<td class="diagonal "><div title="Equation number: 1
+Targets: w_4
+Timestep:0
+Iteration:0
+
+===== Block description =====
+
+Identity: WithGeometry(FunctionSpace(<firedrake.mesh.MeshTopology object at 0x103f3f190>, <CG1 on a triangle>, name=None), <Mesh #1>)
+------------------
+Coefficient: 1.000000
+Hermitian: false">Ident</div></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+</tr>
+<tr>
+<td class=""></td>
+<td class=""></td>
+<td class="diagonal "><div title="Equation number: 2
+Targets: w_2
+Timestep:0
+Iteration:1
+
+===== Block description =====
+
+55c36f9071609292eccf5a952f6eae7f
+------------------
+Coefficient: 1.000000
+Hermitian: false">55c36</div></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class="rhs"><div title="Dependencies: w_2:0:1, w_4:0:0, w_2:0:0">Rhs</div></td>
+</tr>
+<tr>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="diagonal new_timestep"><div title="Equation number: 3
+Targets: w_4
+Timestep:1
+Iteration:0
+
+===== Block description =====
+
+Identity: WithGeometry(FunctionSpace(<firedrake.mesh.MeshTopology object at 0x103f3f190>, <CG1 on a triangle>, name=None), <Mesh #1>)
+------------------
+Coefficient: 1.000000
+Hermitian: false">Ident</div></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="rhs"><div title="Dependencies: w_2:0:1">Rhs</div></td>
+</tr>
+<tr>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class="diagonal "><div title="Equation number: 4
+Targets: w_2
+Timestep:1
+Iteration:0
+
+===== Block description =====
+
+f934cca7f602319be049fed29c8afc83
+------------------
+Coefficient: 1.000000
+Hermitian: false">f934c</div></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class="rhs"><div title="Dependencies: w_2:1:0, w_4:1:0, w_2:0:1">Rhs</div></td>
+</tr>
+<tr>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="diagonal new_timestep"><div title="Equation number: 5
+Targets: w_4
+Timestep:2
+Iteration:0
+
+===== Block description =====
+
+Identity: WithGeometry(FunctionSpace(<firedrake.mesh.MeshTopology object at 0x103f3f190>, <CG1 on a triangle>, name=None), <Mesh #1>)
+------------------
+Coefficient: 1.000000
+Hermitian: false">Ident</div></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="rhs"><div title="Dependencies: w_2:1:0">Rhs</div></td>
+</tr>
+<tr>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class="diagonal "><div title="Equation number: 6
+Targets: w_2
+Timestep:2
+Iteration:0
+
+===== Block description =====
+
+090775a7bfaabd9ff2bc794921d16708
+------------------
+Coefficient: 1.000000
+Hermitian: false">09077</div></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class="rhs"><div title="Dependencies: w_2:2:0, w_4:2:0, w_2:1:0">Rhs</div></td>
+</tr>
+<tr>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="diagonal new_timestep"><div title="Equation number: 7
+Targets: w_4
+Timestep:3
+Iteration:0
+
+===== Block description =====
+
+Identity: WithGeometry(FunctionSpace(<firedrake.mesh.MeshTopology object at 0x103f3f190>, <CG1 on a triangle>, name=None), <Mesh #1>)
+------------------
+Coefficient: 1.000000
+Hermitian: false">Ident</div></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="rhs"><div title="Dependencies: w_2:2:0">Rhs</div></td>
+</tr>
+<tr>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class="diagonal "><div title="Equation number: 8
+Targets: w_2
+Timestep:3
+Iteration:0
+
+===== Block description =====
+
+fb3db9847653e064e639f9a04f5c1208
+------------------
+Coefficient: 1.000000
+Hermitian: false">fb3db</div></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class="rhs"><div title="Dependencies: w_2:3:0, w_4:3:0, w_2:2:0">Rhs</div></td>
+</tr>
+<tr>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="diagonal new_timestep"><div title="Equation number: 9
+Targets: w_4
+Timestep:4
+Iteration:0
+
+===== Block description =====
+
+Identity: WithGeometry(FunctionSpace(<firedrake.mesh.MeshTopology object at 0x103f3f190>, <CG1 on a triangle>, name=None), <Mesh #1>)
+------------------
+Coefficient: 1.000000
+Hermitian: false">Ident</div></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="rhs"><div title="Dependencies: w_2:3:0">Rhs</div></td>
+</tr>
+<tr>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class=""></td>
+<td class="diagonal "><div title="Equation number: 10
+Targets: w_2
+Timestep:4
+Iteration:0
+
+===== Block description =====
+
+ac5a5c7dc5c09a70206b2f2acc4264ba
+------------------
+Coefficient: 1.000000
+Hermitian: false">ac5a5</div></td>
+<td class=""></td>
+<td class="rhs"><div title="Dependencies: w_2:4:0, w_4:4:0, w_2:3:0">Rhs</div></td>
+</tr>
+<tr>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="new_timestep"></td>
+<td class="diagonal new_timestep"><div title="Equation number: 11
+Targets: w_4
+Timestep:5
+Iteration:0
+
+===== Block description =====
+
+Identity: WithGeometry(FunctionSpace(<firedrake.mesh.MeshTopology object at 0x103f3f190>, <CG1 on a triangle>, name=None), <Mesh #1>)
+------------------
+Coefficient: 1.000000
+Hermitian: false">Ident</div></td>
+<td class="rhs"><div title="Dependencies: w_2:4:0">Rhs</div></td>
+</tr>
+</table>
+<h1>Auxiliary variables</h1><h1>Callback information</h1><h2>Data callbacks</h2><div class="greenfont">vec_duplicate</div><div class="greenfont">vec_axpy</div><div class="greenfont">vec_destroy</div><div class="greenfont">vec_set_values</div><div class="greenfont">vec_get_size</div><div class="redfont"' title='Not registered'>vec_divide</div><div class="greenfont">vec_get_norm</div><div class="greenfont">vec_dot_product</div><div class="greenfont">vec_set_random</div><div class="greenfont">mat_duplicate</div><div class="greenfont">mat_duplicate</div><div class="greenfont">mat_axpy</div><div class="greenfont">mat_destroy</div><h2>Block action callbacks</h2><div>Identity: WithGeometry(FunctionSpace(&lt;firedrake.mesh.MeshTopology object at 0x103f3f190&gt;, &lt;CG1 on a triangle&gt;, name=None), &lt;Mesh #1&gt;)<br/>
+55c36f9071609292eccf5a952f6eae7f<br/>
+f934cca7f602319be049fed29c8afc83<br/>
+090775a7bfaabd9ff2bc794921d16708<br/>
+fb3db9847653e064e639f9a04f5c1208<br/>
+ac5a5c7dc5c09a70206b2f2acc4264ba<br/>
+</div><h2>Block assembly callbacks</h2><div>Identity: WithGeometry(FunctionSpace(&lt;firedrake.mesh.MeshTopology object at 0x103f3f190&gt;, &lt;CG1 on a triangle&gt;, name=None), &lt;Mesh #1&gt;)<br/>
+55c36f9071609292eccf5a952f6eae7f<br/>
+f934cca7f602319be049fed29c8afc83<br/>
+090775a7bfaabd9ff2bc794921d16708<br/>
+fb3db9847653e064e639f9a04f5c1208<br/>
+ac5a5c7dc5c09a70206b2f2acc4264ba<br/>
+</div><h2>Nonlinear block action callbacks</h2><div></div><h2>Nonlinear block derivative action callbacks</h2><div></div><h2>Nonlinear block second derivative action callbacks</h2><div></div><h2>Nonlinear derivative block assembly callbacks</h2><div></div><h2>Functional callbacks</h2><div></div><h2>Functional derivative callbacks</h2><div></div></body>
+</html>
