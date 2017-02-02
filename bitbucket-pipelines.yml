@@ -10,7 +10,7 @@ pipelines:
           - pip2 install git+https://bitbucket.org/fenics-project/dijitso.git@next
           - pip2 install git+https://bitbucket.org/fenics-project/instant.git@next
           - pip2 install git+https://bitbucket.org/fenics-project/ffc.git@next
-          - git clone git@bitbucket.org:logg/dolfin.git
+          - git clone https://bitbucket.org/logg/dolfin.git
           - cd dolfin
           - git checkout dokken/multimesh-optimization
           - mkdir -p build
@@ -20,7 +20,7 @@ pipelines:
           - make install
           - source /usr/local/share/dolfin/dolfin.conf
           - cd ../../
-          - git clone git@bitbucket.org:dolfin-adjoint/libadjoint.git
+          - git clone https://bitbucket.org/dolfin-adjoint/libadjoint.git
           - cd libadjoint
           - mkdir -p build
           - cd build
