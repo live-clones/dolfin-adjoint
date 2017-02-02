@@ -7,7 +7,7 @@
 # Simon W. Funke <simon@simula.no>
 # Jack S. Hale <jack.hale@uni.lu>
 
-FROM quay.io/fenicsproject/dev:latest
+FROM quay.io/funsim/fenics-dokken-multimesh:latest
 MAINTAINER Simon W. Funke <simon@simula.no>
 
 USER root
