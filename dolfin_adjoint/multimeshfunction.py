@@ -2,12 +2,12 @@ import backend
 import ufl
 from solving import solve, annotate as solving_annotate, do_checkpoint, register_initial_conditions
 import libadjoint
-import assignment
-import adjlinalg
-import adjglobals
-import utils
-import misc
-import compatibility
+from . import assignment
+from . import adjlinalg
+from . import adjglobals
+from . import utils
+from . import misc
+from . import compatibility
 
 dolfin_assign = misc.noannotations(backend.MultiMeshFunction.assign)
 dolfin_str    = backend.MultiMeshFunction.__str__

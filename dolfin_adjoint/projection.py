@@ -4,11 +4,10 @@ if backend.__name__ == "dolfin":
     import backend.fem.projection
 from . import misc
 import libadjoint
-
 from . import adjglobals
 from . import adjlinalg
 from . import utils
-import multimesh_assembly
+from . import multimesh_assembly
 
 def project_dolfin(v, V=None, bcs=None, mesh=None, solver_type="lu", preconditioner_type="default", form_compiler_parameters=None, annotate=None, name=None):
     '''The project call performs an equation solve, and so it too must be annotated so that the

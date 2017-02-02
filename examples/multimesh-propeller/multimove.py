@@ -95,7 +95,7 @@ def solve_move():
         adj_inc_timestep(time=t, finished=t>T)
 
 
-    J = Functional(u1**2*dX)
+    J = Functional(u0**2*dX)
     m = [Control(u0), Control(f)]
 
     rf = ReducedFunctional(J, m)
@@ -112,4 +112,3 @@ def solve_move():
 
 if __name__ == '__main__':
     solve_move()
-

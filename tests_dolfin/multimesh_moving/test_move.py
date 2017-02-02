@@ -1,3 +1,4 @@
+import os
 from dolfin import *
 from dolfin_adjoint import *
 
@@ -10,8 +11,9 @@ class Propeller(SubDomain):
         return (on_boundary and ((x[0]-5)**2+(x[1]-5)**2)<2)
 
 def test_move():
-    mesh_0 = Mesh("propeller_background.xml.gz")
-    mesh_1 = Mesh("propeller_front.xml.gz")
+    path = os.path.dirname(__file__)
+    mesh_0 = Mesh(os.path.join(path, "propeller_background.xml.gz"))
+    mesh_1 = Mesh(os.path.join(path, "propeller_front.xml.gz"))
     multimesh = MultiMesh()
     multimesh.add(mesh_0)
     multimesh.add(mesh_1)

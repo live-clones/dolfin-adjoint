@@ -52,6 +52,5 @@ if backend.__name__ == "dolfin":
     from .optimization.optimization import minimize, maximize, print_optimization_methods, minimise, maximise
     from .optimization.multistage_optimization import minimize_multistage
     from .pointintegralsolver import *
-
     if hasattr(backend, 'FunctionAssigner'):
         from .functionassigner import FunctionAssigner
