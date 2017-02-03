@@ -9,5 +9,5 @@ setup (name = 'dolfin_adjoint',
                    'firedrake_adjoint'],
        package_dir = {'dolfin_adjoint': 'dolfin_adjoint',
                       'fenics_adjoint': 'fenics_adjoint',
-                      'firedrake_adjoint': 'firedrake_adjoint'}
+                      'firedrake_adjoint': 'firedrake_adjoint'},
        install_requires=["libadjoint==%s" % VERSION])
