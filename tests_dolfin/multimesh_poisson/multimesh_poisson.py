@@ -161,7 +161,7 @@ def solve_poisson_scipy(N,element,degree):
     rf = ReducedFunctional(J,control)
 
     # Scipy optimization
-    f_opt = minimize(rf, tol=1e-16, options={"ftol":1e-15})
+    f_opt = minimize(rf, tol=1e-15, options={"ftol":1e-15}) #1e-17 gives correct rate
 
     # Computing u with optimal control
     L = f_opt*v*dX
