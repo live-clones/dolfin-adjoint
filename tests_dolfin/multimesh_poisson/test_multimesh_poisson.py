@@ -28,7 +28,7 @@ def test_multimesh_poisson_dg_moola():
     assert(rate>exp_rate-0.05)
 
 def test_multimesh_poisson_cg_scipy():
-    moola = pytest.importorskip("scipy")
+    scipy = pytest.importorskip("scipy", minversion="0.18")
     Ns = [33,65]
     h, control = np.zeros(2), np.zeros(2)
     for i in range(2):
@@ -39,7 +39,7 @@ def test_multimesh_poisson_cg_scipy():
     assert(rate>exp_rate-0.05)
 
 def test_multimesh_poisson_dg_scipy():
-    moola = pytest.importorskip("scipy")
+    scipy = pytest.importorskip("scipy", minversion="0.18")
     Ns = [33,65]
     h, control = np.zeros(2), np.zeros(2)
     for i in range(2):
