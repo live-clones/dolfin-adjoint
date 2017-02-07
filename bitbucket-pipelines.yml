@@ -4,12 +4,14 @@ pipelines:
   default:
     - step:
         script:
+          - pip2 install scipy
+          - pip2 install --no-cache-dir git+https://github.com/funsim/moola.git@master
           - pip2 install --no-cache-dir --upgrade pytest
-          - pip2 install git+https://bitbucket.org/fenics-project/fiat.git@next
-          - pip2 install git+https://bitbucket.org/fenics-project/ufl.git@next
-          - pip2 install git+https://bitbucket.org/fenics-project/dijitso.git@next
-          - pip2 install git+https://bitbucket.org/fenics-project/instant.git@next
-          - pip2 install git+https://bitbucket.org/fenics-project/ffc.git@next
+          - pip2 install git+https://bitbucket.org/fenics-project/fiat.git@master
+          - pip2 install git+https://bitbucket.org/fenics-project/ufl.git@master
+          - pip2 install git+https://bitbucket.org/fenics-project/dijitso.git@master
+          - pip2 install git+https://bitbucket.org/fenics-project/instant.git@master
+          - pip2 install git+https://bitbucket.org/fenics-project/ffc.git@master
           - git clone https://bitbucket.org/logg/dolfin.git
           - cd dolfin
           - git checkout dokken/multimesh-optimization
