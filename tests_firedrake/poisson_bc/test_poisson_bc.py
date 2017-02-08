@@ -53,7 +53,7 @@ def test_poisson_bc(V):
 
     adj_html("forward.html", "forward")
     print("Replaying forward model")
-    assert replay_dolfin(tol=0.0, stop=True)
+    assert replay_dolfin(tol=1.e-14, stop=True)
 
     J = Functional(inner(u - f, u - f) * dx * dt[FINISH_TIME])
     m = FunctionControl(s)
