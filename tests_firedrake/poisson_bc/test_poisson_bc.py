@@ -65,4 +65,4 @@ def test_poisson_bc(V):
 
     Jhat = lambda s: model(s, V)[0]
     conv_rate = taylor_test(Jhat, m, j, dJdm, seed=1e-3)
-    assert conv_rate > 1.9
+    assert conv_rate > 1.85
