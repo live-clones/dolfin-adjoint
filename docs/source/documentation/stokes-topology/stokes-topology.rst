@@ -13,7 +13,7 @@ Problem definition
 This problem is to minimise the dissipated power in the fluid
 
 .. math::
-      \frac{1}{2} \int_{\Omega} \alpha(\rho) u \cdot u + \mu \int_{\Omega} \nabla u : \nabla u - \int_{\Omega} f u
+      \frac{1}{2} \int_{\Omega} \alpha(\rho) u \cdot u + \frac{\mu}{2} \int_{\Omega} \nabla u : \nabla u - \int_{\Omega} f u
 
 subject to the Stokes equations with velocity Dirichlet conditions
 

@@ -31,6 +31,8 @@ where the model is implemented in the Python interface to DOLFIN.
 
 News
 ====
+**21.02.2017**: dolfin-adjoint 2016.2 is now available as Conda package.
+
 **20.12.2016**: dolfin-adjoint 2016.2 released (compatible with FEniCS 2016.2) `Changelog`_.
 
 **08.9.2016**: We now offer Docker images to simplify the installation procedure.

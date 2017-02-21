@@ -4,8 +4,9 @@
 Downloading dolfin-adjoint
 **************************
 
-Docker images (all platforms and versions)
-==========================================
+
+Docker images (all platforms)
+=============================
 
 `Docker <https://www.docker.com>`_ allows us to build and ship
 consistent high-performance dolfin-adjoint installations with FEniCS for almost any
@@ -60,34 +61,15 @@ For more details and tips on how to work with FEniCS and Docker, see
 our `FEniCS Docker page
 <http://fenics-containers.readthedocs.org/en/latest/>`_.
 
-Dependencies
-============
+Conda package (Mac/Linux)
+=============================
 
-Mandatory dependencies:
------------------------
+For people who have an `Anaconda distribution <https://www.continuum.io/downloads>`_ installed,
+you can install dolfin-adjoint and all its dependencies with:
 
-- `FEniCS`_. For installation instructions for FEniCS, see `their installation instructions`_.
+.. code-block:: bash
 
-- `libadjoint`_. This is a library written in C that manipulates the tape of the forward model to derive the associated adjoint equations.
-
-Optional dependencies:
-----------------------
-
-- `SLEPc`_. This is necessary if you want to conduct :doc:`generalised stability analyses <../documentation/gst>`.
-
-- `IPOPT`_ and `pyipopt`_: This is the best available open-source optimisation algorithm. Strongly recommended if you wish to solve :doc:`PDE-constrained optimisation problems <../documentation/optimisation>`. Make sure to compile IPOPT against the `Harwell Subroutine Library`_.
-
-- `Moola`_: A set of optimisation algorithms specifically designed for :doc:`PDE-constrained optimisation problems <../documentation/optimisation>`. Install with `pip install moola`. Note: still experimental.
-
-.. _FEniCS: http://fenicsproject.org
-.. _libadjoint: http://bitbucket.org/dolfin-adjoint/libadjoint
-.. _SLEPc: http://www.grycap.upv.es/slepc/
-.. _IPOPT: https://projects.coin-or.org/Ipopt
-.. _pyipopt: https://github.com/xuy/pyipopt
-.. _moola: https://github.com/funsim/moola
-.. _Harwell Subroutine Library: http://www.hsl.rl.ac.uk/ipopt/
-.. _their installation instructions: http://fenicsproject.org/download
-
+    conda install -c conda-forge dolfin-adjoint=2016.2.0
 
 
 Binary packages (Ubuntu)
@@ -154,8 +136,36 @@ libadjoint needs to be compiled with:
 Contributions (such as handling new features of FEniCS, or new test
 cases or examples) are very welcome.
 
-Virtual machine
-===============
+Dependencies
+============
+
+Mandatory dependencies:
+-----------------------
+
+- `FEniCS`_. For installation instructions for FEniCS, see `their installation instructions`_.
+
+- `libadjoint`_. This is a library written in C that manipulates the tape of the forward model to derive the associated adjoint equations.
+
+Optional dependencies:
+----------------------
+
+- `SLEPc`_. This is necessary if you want to conduct :doc:`generalised stability analyses <../documentation/gst>`.
+
+- `IPOPT`_ and `pyipopt`_: This is the best available open-source optimisation algorithm. Strongly recommended if you wish to solve :doc:`PDE-constrained optimisation problems <../documentation/optimisation>`. Make sure to compile IPOPT against the `Harwell Subroutine Library`_.
+
+- `Moola`_: A set of optimisation algorithms specifically designed for :doc:`PDE-constrained optimisation problems <../documentation/optimisation>`. Install with `pip install moola`. Note: still experimental.
+
+.. _FEniCS: http://fenicsproject.org
+.. _libadjoint: http://bitbucket.org/dolfin-adjoint/libadjoint
+.. _SLEPc: http://www.grycap.upv.es/slepc/
+.. _IPOPT: https://projects.coin-or.org/Ipopt
+.. _pyipopt: https://github.com/xuy/pyipopt
+.. _moola: https://github.com/funsim/moola
+.. _Harwell Subroutine Library: http://www.hsl.rl.ac.uk/ipopt/
+.. _their installation instructions: http://fenicsproject.org/download
+
+Virtual machine (outdated)
+==========================
 
 If you'd like to try dolfin-adjoint out without any installation headaches,
 try out `the FENICS VirtualBox virtual machine with FEniCS and dolfin-adjoint pre-installed
