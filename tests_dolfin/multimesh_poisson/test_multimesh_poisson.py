@@ -7,7 +7,7 @@ from multimesh_poisson import *
 
 def test_multimesh_poisson_cg_moola():
     moola = pytest.importorskip("moola", minversion="0.1")
-    Ns = [33,65]
+    Ns = [17,33]
     h, control = np.zeros(2), np.zeros(2)
     for i in range(2):
         adj_reset()
@@ -18,7 +18,7 @@ def test_multimesh_poisson_cg_moola():
 
 def test_multimesh_poisson_dg_moola():
     moola = pytest.importorskip("moola", minversion="0.1")
-    Ns = [33,65]
+    Ns = [17,33]
     h, control = np.zeros(2), np.zeros(2)
     for i in range(2):
         adj_reset()
@@ -28,8 +28,8 @@ def test_multimesh_poisson_dg_moola():
     assert(rate>exp_rate-0.05)
 
 def test_multimesh_poisson_cg_scipy():
-    scipy = pytest.importorskip("scipy", minversion="0.18")
-    Ns = [33,65]
+    scipy = pytest.importorskip("scipy", minversion="0.17")
+    Ns = [17,33]
     h, control = np.zeros(2), np.zeros(2)
     for i in range(2):
         adj_reset()
@@ -39,8 +39,8 @@ def test_multimesh_poisson_cg_scipy():
     assert(rate>exp_rate-0.05)
 
 def test_multimesh_poisson_dg_scipy():
-    scipy = pytest.importorskip("scipy", minversion="0.18")
-    Ns = [33,65]
+    scipy = pytest.importorskip("scipy", minversion="0.17")
+    Ns = [17,33]
     h, control = np.zeros(2), np.zeros(2)
     for i in range(2):
         adj_reset()
