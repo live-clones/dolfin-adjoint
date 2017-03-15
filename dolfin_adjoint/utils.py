@@ -432,7 +432,7 @@ def taylor_remainder_with_gradient(m, Jm, dJdm, functional_value, perturbation, 
     return remainder
 
 @noannotations
-def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None, value=None):
+def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None, value=None, size=None):
     '''J must be a function that takes in a parameter value m and returns the value
        of the functional:
 
@@ -463,12 +463,12 @@ def taylor_test(J, m, Jm, dJdm, HJm=None, seed=None, perturbation_direction=None
     # Handle the multi-control case
     # We do this by performing a separate Taylor test for each control.
     if isinstance(m, controls.ListControl):
-        return _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value)
+        return _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value, size=size)
     else:
-        return _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value)
+        return _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value, size=size)
 
 
-def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value):
+def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value, size=None):
     if perturbation_direction is None:
         perturbation_direction = [None] * len(m.controls)
     perturbation_direction = enlist(perturbation_direction)
@@ -506,15 +506,19 @@ def _taylor_test_multi_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction
     for i in range(len(m.controls)):
         print("\nRunning Taylor test for control {}".format(i))
         conv = _taylor_test_single_control(J_cmp(J, i), m[i], Jm, dJdm[i],
-                HJm_cmp(i), seed, perturbation_direction[i], value[i])
+                                           HJm_cmp(i), seed, perturbation_direction[i], value[i], size)
         min_conv = min(min_conv, conv)
 
     return min_conv
 
 
-def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value):
+def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_direction, value, size=None):
     from . import function, controls
 
+    # Default to five runs/perturbations is none given
+    if size is None:
+        size = 5
+    
     # Check inputs
     if not isinstance(m, libadjoint.Parameter):
         raise ValueError("m must be a valid control instance.")
@@ -551,7 +555,7 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
         else:
             seed = seed_default
 
-    perturbation_sizes = [seed/(2.0**i) for i in range(5)]
+    perturbation_sizes = [seed/(2.0**i) for i in range(size)]
 
     # Next, compute the perturbation direction.
     if perturbation_direction is None:

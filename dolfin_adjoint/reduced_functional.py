@@ -339,7 +339,7 @@ class ReducedFunctional(object):
 
         return scaled_Hm
 
-    def taylor_test(self, value=None, test_hessian=False, seed=None, perturbation_direction=None):
+    def taylor_test(self, value=None, test_hessian=False, seed=None, perturbation_direction=None, size=None):
         """ Run a Taylor test to check that the functional, gradient and
         (optionally) Hessian are consistent by
         running the Taylor test.
@@ -357,6 +357,7 @@ class ReducedFunctional(object):
                 the Taylor test. Must be of the same type as the Control (e.g.
                 Function, Constant or lists of latter). Defaults to a random
                 direction.
+            size (Optional[int]): Number of perturbations for the test
 
 	Returns:
 	    float: The minimum (higher-order) convergence rate of all performed tests.
@@ -375,7 +376,7 @@ class ReducedFunctional(object):
             HJm = None
 
         return utils.taylor_test(self.__call__, self.controls, Jm, dJdm, HJm, seed=seed,
-                perturbation_direction=perturbation_direction)
+                                 perturbation_direction=perturbation_direction, size=size)
 
     def mpi_comm(self):
         """ Return the MPI communicator associated with this reduced functional."""
