@@ -45,6 +45,7 @@ else:
 
 from . import gst
 from . import function
+from . import bcs
 
 from . import optimization
 from . import reduced_functional

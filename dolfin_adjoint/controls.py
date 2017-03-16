@@ -292,7 +292,10 @@ dictionary.")
             # Let's see if the form actually depends on the parameter m
             if len(diff_form.integrals()) != 0:
                 dFdm = backend.assemble(diff_form) # actually - dF/dm
-                assert isinstance(dFdm, backend.GenericVector)
+                try:
+                    dFdm = dFdm.vector() # for firedrake
+                except:
+                    pass
 
                 out = dFdm.inner(adjoint.vector())
                 return out

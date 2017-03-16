@@ -408,7 +408,10 @@ class Matrix(libadjoint.Matrix):
                     assembled_lhs = self.assemble_data()
                     [bc.apply(assembled_lhs) for bc in bcs]
 
-                solver_method = "mumps" if "mumps" in backend.lu_solver_methods().keys() else "default"
+                if backend.__name__ == "dolfin":
+                    solver_method = "mumps" if "mumps" in backend.lu_solver_methods().keys() else "default"
+                else:
+                    solver_method = "mumps"
                 caching.lu_solvers[var] = compatibility.LUSolver(assembled_lhs,
                         solver_method)
                 caching.lu_solvers[var].parameters["reuse_factorization"] = True

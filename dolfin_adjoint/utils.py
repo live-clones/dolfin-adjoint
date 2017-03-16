@@ -1,6 +1,7 @@
 from __future__ import print_function
 import math
 import numpy
+import sys
 
 import libadjoint
 from backend import info_red, info_blue, info, warning
@@ -12,6 +13,9 @@ from .enlisting import enlist
 from .compatibility import gather  # NOQA
 from .misc import noannotations
 
+
+if backend.__name__ == "firedrake":
+    info = print
 
 def scale(obj, factor):
     """ A generic function to scale Functions,
@@ -645,15 +649,15 @@ def _taylor_test_single_control(J, m, Jm, dJdm, HJm, seed, perturbation_directio
         with_hessian = []
         if isinstance(m, controls.ConstantControl):
             for i in range(len(perturbations)):
-                remainder = abs(functional_values[i] - Jm - float(dJdm)*perturbations[i] - 0.5*perturbations[i]*HJm_values[i])
+                remainder = float(abs(functional_values[i] - Jm - float(dJdm)*perturbations[i] - 0.5*perturbations[i]*HJm_values[i]))
                 with_hessian.append(remainder)
         elif isinstance(m, controls.ConstantControls):
             for i in range(len(perturbations)):
-                remainder = abs(functional_values[i] - Jm - numpy.dot(dJdm, perturbations[i]) - 0.5*numpy.dot(perturbations[i], HJm_values[i]))
+                remainder = float(abs(functional_values[i] - Jm - numpy.dot(dJdm, perturbations[i]) - 0.5*numpy.dot(perturbations[i], HJm_values[i])))
                 with_hessian.append(remainder)
         elif isinstance(m, controls.FunctionControl):
             for i in range(len(perturbations)):
-                remainder = abs(functional_values[i] - Jm - dJdm.vector().inner(perturbations[i].vector()) - 0.5*perturbations[i].vector().inner(HJm_values[i].vector()))
+                remainder = float(abs(functional_values[i] - Jm - dJdm.vector().inner(perturbations[i].vector()) - 0.5*perturbations[i].vector().inner(HJm_values[i].vector())))
                 with_hessian.append(remainder)
 
         info("Taylor remainder with Hessian information: " + str(with_hessian))

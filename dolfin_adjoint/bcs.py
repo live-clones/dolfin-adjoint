@@ -13,7 +13,7 @@ if backend.__name__ == "firedrake":
 
     #monkey-patch
 
-    DirichletBC.function_arg = property(fget=orig_function_arg.fget, 
-                                    	fset=new_function_arg_setter,
-                                    	fdel=orig_function_arg.fdel)
+    DirichletBC.function_arg = property(fget=orig_function_arg.fget,
+                                        fset=new_function_arg_setter,
+                                        fdel=orig_function_arg.fdel)
 

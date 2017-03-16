@@ -2,7 +2,7 @@ from firedrake import *
 from firedrake_adjoint import *
 from distutils.version import LooseVersion
 
-parameters["adjoint"]["cache_factorizations"] = True
+parameters["adjoint"]["cache_factorizations"] = False
 mesh = UnitCubeMesh(2, 2, 2)
 if LooseVersion(firedrake.__version__) > LooseVersion('1.3.0'):
     dx = dx(mesh)
@@ -45,15 +45,15 @@ def main(dbdt, annotate=False):
 if __name__ == "__main__":
     dbdt = Constant(1.0, name="dbdt")
     J = main(dbdt, annotate=True)
-    Jc = assemble(inner(J, J)**2*dx + inner(dbdt, dbdt)*dx)
+    Jc = assemble(inner(J, J)**2*dx + inner(dbdt, dbdt)*dx(mesh))
     Jf = Functional(inner(J, J)**2*dx*dt[FINISH_TIME] + inner(dbdt,
-                    dbdt)*dx*dt[START_TIME]); m = ConstantControl("dbdt")
+                    dbdt)*dx(mesh)*dt[START_TIME]); m = ConstantControl("dbdt")
     dJdc = compute_gradient(Jf, m, forget=False)
     HJc = hessian(Jf, m, warn=False)
 
     def J(c):
         j = main(c, annotate=False)
-        return assemble(inner(j, j)**2*dx + inner(c, c)*dx)
+        return assemble(inner(j, j)**2*dx + inner(c, c)*dx(mesh))
 
     minconv = taylor_test(J, ConstantControl("dbdt"), Jc, dJdc, HJm=HJc)
 
