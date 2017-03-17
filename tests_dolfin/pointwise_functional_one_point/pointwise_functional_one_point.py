@@ -29,6 +29,5 @@ Jr = ReducedFunctional(J, Control(c))
 Jr3 = Jr(Constant(3))
 
 assert Jr.taylor_test(Constant(5)) > 1.9
-print abs(Jr3 - 270.0)
-assert abs(Jr3 - 270.0) < 1e-12
+assert abs(Jr3 - 270.0) < 5e-12
 info_green("Test passed")

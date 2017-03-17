@@ -33,7 +33,7 @@ Jr1 = ReducedFunctional(J1, Control(c))
 Jr3 = Jr0(Constant(3.))
 Jr4 = Jr1(Constant(2.))
 
-assert abs(Jr3 - 270.0) < 1e-12
+assert abs(Jr3 - 270.0) < 5e-12
 assert abs(Jr4 - 240.0) < 1e-11
 assert Jr0.taylor_test(Constant(5.)) > 1.9
 
