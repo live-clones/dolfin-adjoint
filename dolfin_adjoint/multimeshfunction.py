@@ -34,6 +34,9 @@ def dolfin_adjoint_assign(self, other, annotate=None, *args, **kwargs):
 
     # ignore anything not a backend.MultiMeshFunction, unless the user insists
     if not isinstance(other, backend.MultiMeshFunction) and (annotate is not True):
+        if 'parts' in kwargs.keys():
+            parts = kwargs['parts']
+            return dolfin_assign(self, other, parts)
         return dolfin_assign(self, other, *args, **kwargs)
 
     # ignore anything that is an interpolation, rather than a straight assignment
