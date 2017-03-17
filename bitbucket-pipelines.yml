@@ -30,4 +30,4 @@ pipelines:
           - make install
           - cd $BITBUCKET_CLONE_DIR
           - pip2 install --no-cache-dir --upgrade --prefix=$FENICS_PREFIX .
-          - python2 -m pytest -v tests_dolfin/
+          - python2 -m pytest -s -v tests_dolfin/
