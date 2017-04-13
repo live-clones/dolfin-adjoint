@@ -27,6 +27,15 @@ class IPOPTSolver(OptimizationSolver):
         self.__build_pyipopt_problem()
         self.__set_parameters()
 
+    # These functions are refactored so that users can override them
+    # if they want to postprocess the gradients and functionals dolfin-adjoint
+    # computes.
+    def functional_callback(self, rfn):
+        return rfn.__call__
+
+    def functional_derivative(self, rfn):
+        return partial(rfn.derivative, forget=False)
+
     def __build_pyipopt_problem(self):
         """Build the pyipopt problem from the OptimizationProblem instance."""
 
@@ -41,8 +50,8 @@ class IPOPTSolver(OptimizationSolver):
         constraints_nnz = nconstraints * ncontrols
 
         # A callback that evaluates the functional and derivative.
-        J = self.rfn.__call__
-        dJ = partial(self.rfn.derivative, forget=False)
+        J = self.functional_callback(self.rfn)
+        dJ = self.functional_derivative(self.rfn)
 
         nlp = pyipopt.create(len(ub),           # length of control vector
                              lb,                # lower bounds on control vector
