@@ -1,6 +1,8 @@
+import pytest
 from os import path
 import subprocess
 
+@pytest.mark.skipif_module_is_missing("petsc4py")
 def test(request):
     test_file = path.split(path.dirname(str(request.fspath)))[1] + ".py"
     test_dir = path.split(str(request.fspath))[0]
