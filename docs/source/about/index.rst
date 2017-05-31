@@ -31,6 +31,8 @@ where the model is implemented in the Python interface to DOLFIN.
 
 News
 ====
+**31.05.2017**: dolfin-adjoint 2017.1 released (compatible with FEniCS 2017.1) `ChangeLog`_.
+
 **21.02.2017**: dolfin-adjoint 2016.2 is now available as Conda package.
 
 **20.12.2016**: dolfin-adjoint 2016.2 released (compatible with FEniCS 2016.2) `Changelog`_.
