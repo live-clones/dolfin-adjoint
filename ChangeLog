@@ -1,6 +1,8 @@
-dolfin-adjoint 2017.1.0 [Not yet released]
+dolfin-adjoint 2017.1.0 [31-05-2017]
+- Support for FEniCS 2017.1.0
 
 dolfin-adjoint 2016.2.0 [20-12-2016]
+- Support for FEniCS 2016.2.0
 - New example for time-dependent controls
 - Docker images
 - Add Bitbucket pipelines
@@ -14,6 +16,13 @@ dolfin-adjoint 1.7
 - Bug fixes
 
 dolfin-adjoint 1.6
+- Support for FEniCS 1.6
+
 dolfin-adjoint 1.5
+- Support for FEniCS 1.5
+
 dolfin-adjoint 1.4
+- Support for FEniCS 1.4
+
 dolfin-adjoint 0.6 [25-04-2012]:
+- Initial release
