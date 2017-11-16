@@ -76,7 +76,6 @@ def options(method, lb):
 
 @pytest.mark.skipif("scipy" not in sys.modules,
                     reason="Scipy optimization requires scipy library to be installed")
-@pytest.mark.xfail(strict=True)
 def test_optimization_scipy(V, method, options):
     ic = project(Expression("sin(2*pi*x[0])"), V, annotate=False)
     u = Function(ic, name='Velocity')
