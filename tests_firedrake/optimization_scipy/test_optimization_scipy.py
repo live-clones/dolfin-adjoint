@@ -67,7 +67,7 @@ def options(method, lb):
     return {"L-BFGS-B": {"bounds": (lb, 1)},
             "SLSQP": {"bounds": (lb, 1)},
             "BFGS": {"bounds": None},
-            "COBYLA": {"bounds": None, "rhobeg": 0.1},
+            "COBYLA": pytest.mark.xfail(reason="Scipy bug #8118", strict=True)({"bounds": None, "rhobeg": 0.1}),
             "TNC": {"bounds": None},
             "Newton-CG": {"bounds": None},
             "Nelder-Mead": {"bounds": None},
