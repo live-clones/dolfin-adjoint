@@ -27,12 +27,7 @@ import scipy
 import ufl
 import vtk
 
-from . import fenics_versions
-
-from .fenics_versions import *
-
 __all__ = \
-  fenics_versions.__all__ + \
   [
     "system_info"
   ]

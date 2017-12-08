@@ -25,7 +25,7 @@ test = TestFunction(space)
 T_ic = StaticFunction(space, name = "T_ic")
 T_ic.assign(Constant(1.0))
 x = StaticFunction(space, name = "x")
-x.interpolate(Expression("x[0]"))
+x.interpolate(Expression("x[0]", element = x.function_space().ufl_element()))
 def F(test, T):
   return inner(test, x) * dx
 dt = StaticConstant(0.5)
@@ -244,7 +244,7 @@ check("RK2", system, T[N], tol = 5.0e-16)
 
 # P1_DG
 
-spaces = space * space
+spaces = FunctionSpace(mesh, space.ufl_element() * space.ufl_element())
 tests = TestFunction(spaces)
 test1, test2 = split(tests)
 

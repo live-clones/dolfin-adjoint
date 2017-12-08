@@ -28,7 +28,7 @@ space = FunctionSpace(mesh, "CG", 1)
 # Create a function which is declared as static
 F = StaticFunction(space, name = "F")
 # Initialise the static function
-F.interpolate(Expression("x[0]"))
+F.interpolate(Expression("x[0]", element = F.function_space().ufl_element()))
 
 # Create a Dirichlet boundary condition which is declared as static
 bc = StaticDirichletBC(space, 0.0, "on_boundary")
