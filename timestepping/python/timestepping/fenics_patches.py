@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (C) 2007 Anders Logg
 # Copyright (C) 2007-2011 Anders Logg and Garth N. Wells
@@ -6,7 +6,7 @@
 # Copyright (C) 2010-2012 Anders Logg
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2016 University of Edinburgh
+# Copyright (C) 2014-2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
