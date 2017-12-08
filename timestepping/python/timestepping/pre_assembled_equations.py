@@ -362,6 +362,8 @@ class PAEquationSolver(EquationSolver):
             rtol = default_parameters["relative_tolerance"]
             max_its = default_parameters["maximum_iterations"]
             omega = default_parameters["relaxation_parameter"]
+            if omega is None:
+                omega = 1.0
             err = default_parameters["error_on_nonconvergence"]
             r_def = default_parameters["convergence_criterion"]
             for key in parameters.keys():
@@ -392,7 +394,7 @@ class PAEquationSolver(EquationSolver):
             enforce_bcs(x, bcs)
 
             dx = self.__dx
-            if not isinstance(linear_solver, dolfin.GenericLUSolver):
+            if not isinstance(linear_solver, dolfin.LUSolver):
                 dx.zero()
 
             if r_def == "residual":

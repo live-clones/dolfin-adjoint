@@ -40,6 +40,13 @@ class Checkpointer:
     def __init__(self):
         return
 
+    def __contains__(key):
+        """
+        Return whether any data is associated with the given key.
+        """
+
+        raise AbstractMethodException("__contains__ method not overridden")
+
     def __pack(self, c):
         if isinstance(c, dolfin.Constant):
             return float(c)
@@ -103,13 +110,6 @@ class Checkpointer:
 
         raise AbstractMethodException("restore method not overridden")
 
-    def has_key(key):
-        """
-        Return whether any data is associated with the given key.
-        """
-
-        raise AbstractMethodException("has_key method not overridden")
-
     def verify(self, key, tolerance = 0.0):
         """
         Verify data associated with the given key, with the specified tolerance.
@@ -142,6 +142,13 @@ class MemoryCheckpointer(Checkpointer):
         self.__cache = {}
 
         return
+
+    def __contains__(self, key):
+        """
+        Return whether any data is associated with the given key.
+        """
+
+        return key in self.__cache
 
     def checkpoint(self, key, cs):
         """
@@ -179,13 +186,6 @@ class MemoryCheckpointer(Checkpointer):
             self._Checkpointer__unpack(c, c_cs[c])
 
         return
-
-    def has_key(self, key):
-        """
-        Return whether any data is associated with the given key.
-        """
-
-        return key in self.__cache
 
     def verify(self, key, tolerance = 0.0):
         """
@@ -263,6 +263,15 @@ class DiskCheckpointer(Checkpointer):
 
         return
 
+    def __contains__(self, key):
+        """
+        Return whether any data is associated with the given key. The key is
+        internally cast to a string.
+        """
+
+        key = str(key)
+        return key in self.__filenames
+
     def __filename(self, key):
         return os.path.join(self.__dirname, "checkpoint_%s_%i" % (str(key), dolfin.MPI.rank(dolfin.mpi_comm_world())))
 
@@ -320,15 +329,6 @@ class DiskCheckpointer(Checkpointer):
             self._Checkpointer__unpack(c, c_cs[c_id])
 
         return
-
-    def has_key(self, key):
-        """
-        Return whether any data is associated with the given key. The key is
-        internally cast to a string.
-        """
-
-        key = str(key)
-        return key in self.__filenames
 
     def verify(self, key, tolerance = 0.0):
         """

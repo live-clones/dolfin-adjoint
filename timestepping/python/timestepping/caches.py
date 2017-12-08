@@ -136,17 +136,17 @@ class AssemblyCache:
         if len(bcs) == 0:
             key = (form_key(form), parameters_key(form_compiler_parameters), bc_key(bcs, symmetric_bcs))
             if not key in self.__cache:
-                cache_info("Assembling form with rank %i" % rank, dolfin.info_red)
+                cache_info("Assembling form with rank %i" % rank, dolfin.info)
                 self.__cache[key] = assemble(form, form_compiler_parameters = form_compiler_parameters)
             else:
-                cache_info("Using cached assembled form with rank %i" % rank, dolfin.info_green)
+                cache_info("Using cached assembled form with rank %i" % rank, dolfin.info)
         else:
             if not rank == 2:
                 raise InvalidArgumentException("form must be rank 2 when applying boundary conditions")
 
             key = (form_key(form), parameters_key(form_compiler_parameters), bc_key(bcs, symmetric_bcs))
             if not key in self.__cache:
-                cache_info("Assembling form with rank 2, with boundary conditions", dolfin.info_red)
+                cache_info("Assembling form with rank 2, with boundary conditions", dolfin.info)
                 mat = assemble(form, form_compiler_parameters = form_compiler_parameters)
                 apply_bcs(mat, bcs, symmetric_bcs = symmetric_bcs)
                 self.__cache[key] = mat
@@ -265,14 +265,14 @@ class SolverCache:
         def expanded_linear_solver_parameters(form, linear_solver_parameters, static, bcs, symmetric_bcs):
             if static:
                 default = {"lu_solver":{"reuse_factorization":True, "same_nonzero_pattern":True},
-                           "krylov_solver":{"preconditioner":{"structure":"same"}}}
+                           "krylov_solver":{}}
                 if (len(bcs) == 0 or symmetric_bcs) and is_self_adjoint_form(form):
                     default["lu_solver"]["symmetric"] = True
                 linear_solver_parameters = expand_linear_solver_parameters(linear_solver_parameters,
                   default_linear_solver_parameters = default)
             else:
                 default = {"lu_solver":{"reuse_factorization":False, "same_nonzero_pattern":False},
-                           "krylov_solver":{"preconditioner":{"structure":"different_nonzero_pattern"}}}
+                           "krylov_solver":{}}
                 if (len(bcs) == 0 or symmetric_bcs) and is_self_adjoint_form(form):
                     default["lu_solver"]["symmetric"] = True
                 linear_solver_parameters = expand_linear_solver_parameters(linear_solver_parameters,
@@ -283,7 +283,7 @@ class SolverCache:
                     static_parameters = linear_solver_parameters["lu_solver"]["reuse_factorization"] or \
                                         linear_solver_parameters["lu_solver"]["same_nonzero_pattern"]
                 else:
-                    static_parameters = not linear_solver_parameters["krylov_solver"]["preconditioner"]["structure"] == "different_nonzero_pattern"
+                    static_parameters = False
                 if static_parameters:
                     raise ParameterException("Non-static solve supplied with static linear solver parameters")
 
@@ -340,15 +340,15 @@ class SolverCache:
 
         if not key in self.__cache:
             if static:
-                cache_info("Creating new static linear solver", dolfin.info_red)
+                cache_info("Creating new static linear solver", dolfin.info)
             else:
-                cache_info("Creating new non-static linear solver", dolfin.info_red)
+                cache_info("Creating new non-static linear solver", dolfin.info)
             self.__cache[key] = LinearSolver(linear_solver_parameters)
         else:
             if static:
-                cache_info("Using cached static linear solver", dolfin.info_green)
+                cache_info("Using cached static linear solver", dolfin.info)
             else:
-                cache_info("Using cached non-static linear solver", dolfin.info_green)
+                cache_info("Using cached non-static linear solver", dolfin.info)
         return self.__cache[key]
 
     def clear(self, *args):

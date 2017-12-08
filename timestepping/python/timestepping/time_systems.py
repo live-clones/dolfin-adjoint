@@ -1690,7 +1690,8 @@ class ManagedModel:
                 perturb = fact
         else:
             assert(isinstance(parameter, dolfin.Function))
-            parameter_orig = dolfin.Function(parameter, name = "%s_original" % parameter.name())
+            parameter_orig = dolfin.Function(parameter.function_space(), name = "%s_original" % parameter.name())
+            parameter_orig.assign(parameter)
             parameter_orig_arr = parameter_orig.vector().array()
             perturb = parameter_orig.vector().copy()
             shape = parameter_orig_arr.shape
@@ -1751,11 +1752,11 @@ class ManagedModel:
         if any(orders_1 < 0.9):
             dolfin.info_red("Taylor remainder test, no adjoint orders  : %s" % str(orders_1))
         else:
-            dolfin.info_green("Taylor remainder test, no adjoint orders  : %s" % str(orders_1))
+            dolfin.info("Taylor remainder test, no adjoint orders  : %s" % str(orders_1))
         if any(orders_2 < 1.9):
             dolfin.info_red("Taylor remainder test, with adjoint orders: %s" % str(orders_2))
         else:
-            dolfin.info_green("Taylor remainder test, with adjoint orders: %s" % str(orders_2))
+            dolfin.info("Taylor remainder test, with adjoint orders: %s" % str(orders_2))
 
         return orders_2
 
