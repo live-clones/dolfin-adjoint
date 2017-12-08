@@ -80,6 +80,9 @@ class TimeSystem:
                 proc_deps.add(dep)
         proc_deps = list(proc_deps)
         class DependencyComparison:
+            def __init__(self, x):
+                self.__x = x
+        
             def __eq__(self, other):
                 return self.cmp(other) == 0
 
@@ -99,7 +102,7 @@ class TimeSystem:
                 return not self > other
         
             def cmp(self, y):
-                x = self
+                x = self.__x
                 if hasattr(x, "_time_level_data"):
                     if hasattr(y, "_time_level_data"):
                         x_tfn, x_level = x._time_level_data
