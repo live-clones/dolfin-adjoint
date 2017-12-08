@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014, 2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -72,7 +72,7 @@ def find_tests(rel_path, exclude = []):
   ntests = []
   for test in tests:
     handle = open(test, "r")
-    lines = [handle.readline() for i in xrange(3)]
+    lines = [handle.readline() for i in range(3)]
     handle.close()
     np = 1
     for line in lines:
@@ -143,11 +143,11 @@ if N == 0:
   N = multiprocessing.cpu_count()
 
 test_success = multiprocessing.Array("i", len(tests))
-for i in xrange(len(test_success)):
+for i in range(len(test_success)):
   test_success[i] = 0
   
 if N == 1:
-  for i in xrange(len(tests)):
+  for i in range(len(tests)):
     np, nt, test = tests[i]
     proc = multiprocessing.Process(target = run_test, args = (i, np, test, test_success))
     proc.start()
@@ -160,7 +160,7 @@ else:
   
   n = 0
   procs = []
-  for i in xrange(len(tests)):
+  for i in range(len(tests)):
     np, nt, test = tests[i]
     if n + (np * nt) > N and len(procs) > 0:
       while True:
