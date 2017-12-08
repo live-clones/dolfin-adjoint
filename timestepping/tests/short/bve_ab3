@@ -48,11 +48,10 @@ psi  = TimeFunction(levels,    space, name = "psi")
 dq   = TimeFunction(levels_dq, space, name = "dq")
 
 betay = StaticFunction(space, name = "betay")
-betay.interpolate(Expression("beta * x[1]", beta = float(beta)))
+betay.interpolate(Expression("beta * x[1]", beta = float(beta), element = betay.function_space().ufl_element()))
 
 class Wind(Expression):
   def __init__(self, y_0, element):
-    Expression.__init__(self, element = element)
     self.__y_0 = y_0
     return
   def eval(self, value, x):

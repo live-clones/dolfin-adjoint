@@ -25,8 +25,7 @@ from timestepping import *
 from fractions import Fraction
 import numpy
 
-if "reorder_dofs_serial" in parameters:
-  parameters["reorder_dofs_serial"] = False
+parameters["reorder_dofs_serial"] = False
 
 ngrid = 30
 nu = StaticConstant(0.0001)
@@ -38,7 +37,7 @@ space = FunctionSpace(mesh, "CG", 2)
 test, trial = TestFunction(space), TrialFunction(space)
 
 ic = StaticFunction(space, name = "initial_condition")
-ic.assign(project(Expression("sin(2.0 * pi * x[0])"), space))
+ic.assign(project(Expression("sin(2.0 * pi * x[0])", element = space.ufl_element()), space))
 
 system = TimeSystem()
 levels   = TimeLevels(levels = [n, n + Fraction(1, 2), n + 1], cycle_map = {n:n + 1})
@@ -53,9 +52,7 @@ def add_F_solve(n):
     StaticDirichletBC(space, 0.0, "on_boundary"), solver_parameters = {"linear_solver":"lu"})
   return
   
-system.add_solve(inner(test, trial) * dx == inner(test, ic) * dx,
-  u[0],
-  StaticDirichletBC(space, 0.0, "on_boundary"), solver_parameters = {"linear_solver":"lu"})
+system.add_solve(inner(test, trial) * dx == inner(test, ic) * dx, u[0], StaticDirichletBC(space, 0.0, "on_boundary"))
 add_F_solve(n)
 system.add_solve(LinearCombination((0.5, F[n]), (1.0, u[n])), u[n + Fraction(1, 2)])
 add_F_solve(n + Fraction(1, 2))
@@ -68,22 +65,22 @@ while t <= t_end:
   t += float(dt)
 system.finalise()
 
-dolfin_adjoint_solution = numpy.array(map(float, """0.00000000e+00   9.18886120e-02   1.83778146e-01   2.73898141e-01
-   3.61192212e-01   4.42655694e-01   5.13954334e-01   5.69254477e-01
-   6.02779639e-01   6.10705436e-01   5.92492968e-01   5.50320957e-01
-   4.86499258e-01   3.98932648e-01   2.70968728e-01  -5.40220907e-10
-  -2.70968728e-01  -3.98932646e-01  -4.86499248e-01  -5.50320930e-01
-  -5.92492909e-01  -6.10705343e-01  -6.02779468e-01  -5.69254352e-01
-  -5.13954560e-01  -4.42656404e-01  -3.61192148e-01  -2.73898235e-01
-  -1.83778844e-01  -9.18881945e-02   0.00000000e+00   4.67099881e-02
-   1.39477530e-01   2.31995695e-01   3.24148346e-01   4.16264886e-01
-   5.09447041e-01   6.05403277e-01   7.06093378e-01   8.12586366e-01
-   9.23957877e-01   1.03674473e+00   1.14517836e+00   1.24143556e+00
-   1.31429471e+00   1.34141570e+00  -1.34141570e+00  -1.31429471e+00
-  -1.24143556e+00  -1.14517835e+00  -1.03674468e+00  -9.23957803e-01
-  -8.12586219e-01  -7.06093194e-01  -6.05403255e-01  -5.09447566e-01
-  -4.16265318e-01  -3.24148094e-01  -2.31996327e-01  -1.39477533e-01
-  -4.67096566e-02""".split()))
+dolfin_adjoint_solution = numpy.array(list(map(float, """0.00000000e+00   9.18884049e-02   1.83778528e-01   2.73898378e-01
+   3.61192276e-01   4.42656244e-01   5.13954340e-01   5.69254723e-01
+   6.02779759e-01   6.10705544e-01   5.92493125e-01   5.50321112e-01
+   4.86499429e-01   3.98932805e-01   2.70968849e-01   1.48795364e-14
+  -2.70968849e-01  -3.98932805e-01  -4.86499429e-01  -5.50321112e-01
+  -5.92493125e-01  -6.10705544e-01  -6.02779759e-01  -5.69254723e-01
+  -5.13954340e-01  -4.42656244e-01  -3.61192276e-01  -2.73898378e-01
+  -1.83778528e-01  -9.18884049e-02   0.00000000e+00   4.67098613e-02
+   1.39477345e-01   2.31996318e-01   3.24148220e-01   4.16265357e-01
+   5.09447246e-01   6.05403325e-01   7.06093497e-01   8.12586277e-01
+   9.23957800e-01   1.03674459e+00   1.14517822e+00   1.24143540e+00
+   1.31429454e+00   1.34141552e+00  -1.34141552e+00  -1.31429454e+00
+  -1.24143540e+00  -1.14517822e+00  -1.03674459e+00  -9.23957800e-01
+  -8.12586277e-01  -7.06093497e-01  -6.05403325e-01  -5.09447246e-01
+  -4.16265357e-01  -3.24148220e-01  -2.31996318e-01  -1.39477345e-01
+  -4.67098613e-02""".split())))
 err = abs(u[N].vector().array() - dolfin_adjoint_solution).max()
 print(u[N].vector().array(), err)
 assert(err < 5.0e-9)
@@ -93,7 +90,24 @@ system.verify_checkpoints()
 system.set_functional(u[N] * u[N] * dx)
 J = system.compute_functional()
 grad = system.compute_gradient([ic, nu])
-print(grad[0].array(), float(grad[1]))
+dolfin_adjoint_grad = numpy.array(list(map(float, """2.45185565e-06   4.62834966e-03   9.05407801e-03   1.30834054e-02
+   1.65394671e-02   1.92698435e-02   2.11509924e-02   2.21029548e-02
+   2.20765656e-02   2.09999951e-02   1.72788486e-02   1.26862525e-02
+   8.83351473e-03   5.60790460e-03   2.73504776e-03  -1.45283091e-16
+  -2.73504776e-03  -5.60790460e-03  -8.83351473e-03  -1.26862525e-02
+  -1.72788486e-02  -2.09999951e-02  -2.20765656e-02  -2.21029548e-02
+  -2.11509924e-02  -1.92698435e-02  -1.65394671e-02  -1.30834054e-02
+  -9.05407801e-03  -4.62834966e-03  -2.45185565e-06   4.63829372e-03
+   1.37116134e-02   2.21846959e-02   2.96860750e-02   3.58854011e-02
+   4.05075356e-02   4.33531009e-02   4.42318144e-02   4.32638160e-02
+   3.85441388e-02   2.98943560e-02   2.14498255e-02   1.44132342e-02
+   8.33303804e-03   2.76736871e-03  -2.76736871e-03  -8.33303804e-03
+  -1.44132342e-02  -2.14498255e-02  -2.98943560e-02  -3.85441388e-02
+  -4.32638160e-02  -4.42318144e-02  -4.33531009e-02  -4.05075356e-02
+  -3.58854011e-02  -2.96860750e-02  -2.21846959e-02  -1.37116134e-02
+  -4.63829372e-03""".split())))
+err = abs(grad[0].array() - dolfin_adjoint_grad).max()
+assert(err < 5.0e-11)
 
 orders = system.taylor_test(ic, J = J, grad = grad[0])
 assert((orders > 1.99).all())

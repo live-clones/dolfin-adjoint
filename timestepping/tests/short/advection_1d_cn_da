@@ -64,8 +64,8 @@ DirichletBCBoundary().mark(bcs, 1)
 # DG advection upwinding based on dolfin-adjoint upwind test
 system.add_solve(inner(test, (T[n + 1] - T[n]) / dt) * dx - inner(grad(test), U * Th) * dx
   + jump(test) * jump(Un * Th) * dS
-  + test * (Un * Th + Un2 * T_bc) * ds[bcs](1)
-  + test * Un * Th * ds[bcs](0) == 0, T[n + 1], solver_parameters = {"linear_solver":"lu"})
+  + test * (Un * Th + Un2 * T_bc) * ds(subdomain_data = bcs)(1)
+  + test * Un * Th * ds(subdomain_data = bcs)(0) == 0, T[n + 1], solver_parameters = {"linear_solver":"lu"})
 
 system = system.assemble(adjoint = True, functional = T[N] * T[N] * dx)
 

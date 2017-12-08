@@ -42,8 +42,7 @@ from timestepping import *
 
 import numpy
 
-if "reorder_dofs_serial" in parameters:
-  parameters["reorder_dofs_serial"] = False
+parameters["reorder_dofs_serial"] = False
 
 def stokes(W, nu, f):
     (u, p) = TrialFunctions(W)
@@ -80,14 +79,14 @@ mesh = UnitSquareMesh(ngrid, ngrid)
 X = FunctionSpace(mesh, "CG", 1)
 
 T0_expr = "0.5*(1.0 - x[1]*x[1]) + 0.01*cos(pi*x[0]/l)*sin(pi*x[1]/h)"
-T0 = Expression(T0_expr, l=1.0, h=1.0)
+T0 = Expression(T0_expr, l=1.0, h=1.0, element = X.ufl_element())
 ic = StaticFunction(X, name = "ic")
 ic.interpolate(T0)
 
 # Define meshes and function spaces
 V = VectorFunctionSpace(mesh, "CG", 2)
 Q = FunctionSpace(mesh, "CG", 1)
-W = V * Q
+W = FunctionSpace(mesh, V.ufl_element() * Q.ufl_element())
 
 # Define boundary conditions
 flow_bcs = flow_boundary_conditions(W)
@@ -127,7 +126,7 @@ while (t <= end):
     t += timestep
 system.finalise()
 
-dolfin_adjoint_solution = numpy.array(map(float, """0.22997968  0.23028553  0.23196176  0.23485117  0.23888917  0.24404033
+dolfin_adjoint_solution = numpy.array(list(map(float, """0.22997968  0.23028553  0.23196176  0.23485117  0.23888917  0.24404033
   0.25027879  0.25757309  0.26586403  0.27503164  0.28485241  0.29495487
   0.30479096  0.31364708  0.32071436  0.32521112  0.32649087  0.22708234
   0.22767692  0.22948368  0.23247294  0.23660139  0.24183554  0.24815118
@@ -174,14 +173,14 @@ dolfin_adjoint_solution = numpy.array(map(float, """0.22997968  0.23028553  0.23
   0.06544337  0.07057121  0.07571771  0.08085215  0.08586287  0.09049698
   0.09426804  0.09635563  0.          0.          0.          0.          0.
   0.          0.          0.          0.          0.          0.          0.
-  0.          0.          0.          0.          0.        """.split()))
+  0.          0.          0.          0.          0.        """.split())))
 err = abs(T[N].vector().array() - dolfin_adjoint_solution).max()
 print(err)
 assert(err < 5.0e-9)
 
 system.set_functional(T[N] * T[N] * dx)
 dJdm = system.compute_gradient(ic)
-dolfin_adjoint_grad = numpy.array(map(float, """2.86666005e-06   4.17839553e-06   3.99866829e-06   3.84795823e-06
+dolfin_adjoint_grad = numpy.array(list(map(float, """2.86666005e-06   4.17839553e-06   3.99866829e-06   3.84795823e-06
    3.75550725e-06   3.71831284e-06   3.71936543e-06   3.74206042e-06
    3.77550973e-06   3.81420542e-06   3.85612038e-06   3.90124771e-06
    3.95072794e-06   4.00557413e-06   4.06355276e-06   4.11411873e-06
@@ -253,7 +252,7 @@ dolfin_adjoint_grad = numpy.array(map(float, """2.86666005e-06   4.17839553e-06 
    1.29886385e-06   1.34414700e-06   1.39436755e-06   1.47207045e-06
    1.58512477e-06   1.73071261e-06   1.89645629e-06   2.05627943e-06
    2.16133179e-06   2.13225319e-06   1.87020244e-06   1.30294009e-06
-   4.73464636e-07""".split()))
+   4.73464636e-07""".split())))
 err = abs(dJdm.array() - dolfin_adjoint_grad).max()
 print(err)
 assert(err < 5.0e-14)

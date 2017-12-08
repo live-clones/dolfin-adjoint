@@ -149,7 +149,7 @@ q_wind = StaticFunction(space, name = "q_wind")
 bc_zero = DirichletBC(space, 0.0, "on_boundary")
 bc_one  = DirichletBC(space, 1.0, "on_boundary")
 
-beta_y.interpolate(Expression("beta * x[1]", beta = float(beta)))
+beta_y.interpolate(Expression("beta * x[1]", beta = float(beta), element = beta_y.function_space().ufl_element()))
 q_wind.interpolate(Wind(element = space.ufl_element()))
 q_wind.vector()[:] /= float(H[0])
 for i in range(layers):

@@ -29,8 +29,7 @@ f1 = Fraction(1, 4);  f2 = Fraction(1, 2);  f3 = Fraction(3, 4)
 
 Constant = StaticConstant
 
-if "reorder_dofs_serial" in parameters:
-  parameters["reorder_dofs_serial"] = False
+parameters["reorder_dofs_serial"] = False
 
 u_mag = Constant(1.0)
 T_bc = Constant(1.0)
@@ -70,8 +69,8 @@ def add_dT_solve(n, u):
   Un2 = 0.5 * (dot(U, nm) - abs(dot(U, nm)))
   system.add_solve(inner(test, trial) * dx == - (- dt * inner(grad(test), U * T[n]) * dx
     + jump(test) * jump(dt * Un * T[n]) * dS
-    + dt * test * (Un * T[n] + Un2 * T_bc) * ds[bcs](1)
-    + dt * test * Un * T[n] * ds[bcs](0)), dT[n], solver_parameters = lu_solver)
+    + dt * test * (Un * T[n] + Un2 * T_bc) * ds(subdomain_data = bcs)(1)
+    + dt * test * Un * T[n] * ds(subdomain_data = bcs)(0)), dT[n], solver_parameters = lu_solver)
   return
 
 add_dT_solve(n, u_n)

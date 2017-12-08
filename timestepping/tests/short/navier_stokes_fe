@@ -48,7 +48,7 @@ nu = 0.01
 ic = StaticFunction(V)
 
 # Define time-dependent pressure boundary condition
-p_in = Expression("sin(3.0*t)", t=0.0)
+p_in = Expression("sin(3.0*t)", t=0.0, element = Q.ufl_element())
 
 # Define boundary conditions
 noslip  = StaticDirichletBC(V, (0, 0),
@@ -153,39 +153,23 @@ system.finalise()
 print("Forward time: %.6f" % timer.stop())
 
 comp = U[N].vector().norm("l2")
-if dolfin_version() < (1, 6, 0):
-  ref = 2.4175738757720437e+00
-  err = abs(comp - ref)
-  print("%.16e" % comp)
-  print("%.16e" % ref)
-  print("%.16e" % err)
-  assert(err < 2.0e-14)
-else:
-  ref = 2.4175708574347046e+00
-  err = abs(comp - ref)
-  print("%.16e" % comp)
-  print("%.16e" % ref)
-  print("%.16e" % err)
-  assert(err < 2.0e-14)
+ref = 2.4176053036702734e+00
+err = abs(comp - ref)
+print("%.16e" % comp)
+print("%.16e" % ref)
+print("%.16e" % err)
+assert(err < 9.0e-16)
 
 timer = Timer("adjoint")
 dJdm = system.compute_gradient(ic)
 print("Adjoint time: %.6f" % timer.stop())
 comp = dJdm.norm("l2")
-if dolfin_version() < (1, 6, 0):
-  ref = 2.6753588007501447e-05
-  err = abs(comp - ref)
-  print("%.16e" % comp)
-  print("%.16e" % ref)
-  print("%.16e" % err)
-  assert(err < 8.0e-20)
-else:
-  ref = 2.6753551238791110e-05
-  err = abs(comp - ref)
-  print("%.16e" % comp)
-  print("%.16e" % ref)
-  print("%.16e" % err)
-  assert(err < 1.0e-20)
+ref = 2.6753639826166817e-05
+err = abs(comp - ref)
+print("%.16e" % comp)
+print("%.16e" % ref)
+print("%.16e" % err)
+assert(err < 4.0e-19)
 
 orders = system.taylor_test(ic, grad = dJdm, fact = 1.0e-7)
 assert((orders > 1.98).all())

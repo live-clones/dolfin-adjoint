@@ -44,7 +44,7 @@ lu_solver = {"linear_solver":"lu"}
 
 mesh = UnitIntervalMesh(1)
 space = FunctionSpace(mesh, "R", 0)
-spaces = space * space
+spaces = FunctionSpace(mesh, space.ufl_element() * space.ufl_element())
 test, trial = TestFunction(spaces), TrialFunction(spaces)
 test_s, test_v = TestFunctions(spaces)
 trial_s, trial_v = TrialFunctions(spaces)

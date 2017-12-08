@@ -24,8 +24,7 @@ from timestepping import *
 
 import numpy
 
-if "reorder_dofs_serial" in parameters:
-  parameters["reorder_dofs_serial"] = False
+parameters["reorder_dofs_serial"] = False
 
 ngrid = 30
 nu = StaticConstant(0.0001)
@@ -37,27 +36,23 @@ space = FunctionSpace(mesh, "CG", 2)
 test, trial = TestFunction(space), TrialFunction(space)
 
 ic = StaticFunction(space, name = "initial_condition")
-ic.assign(project(Expression("sin(2.0 * pi * x[0])"), space))
+ic.assign(project(Expression("sin(2.0 * pi * x[0])", element = space.ufl_element()), space))
 
 system = TimeSystem()
 levels   = TimeLevels(levels = [n - 1, n, n + 1], cycle_map = {n - 1:n, n:n + 1})
 levels_F = TimeLevels(levels = [n - 1, n], cycle_map = {n - 1:n}, last_past_level = n - 1)
 u = TimeFunction(levels,   space, name = "u")
 F = TimeFunction(levels_F, space, name = "F")
-def rhs(u):
-  return - dt * (inner(test, dot(as_vector([u]), grad(u))) + nu * inner(grad(test), grad(u))) * dx
-def add_F_solve(n, u_n = None):
-  if u_n is None:
-    u_n = u[n]
-  system.add_solve(inner(test, trial) * dx == rhs(u_n),
+def rhs(n):
+  return - dt * (inner(test, dot(as_vector([u[n]]), grad(u[n]))) + nu * inner(grad(test), grad(u[n]))) * dx
+def add_F_solve(n):
+  system.add_solve(inner(test, trial) * dx == rhs(n),
     F[n],
     StaticDirichletBC(space, 0.0, "on_boundary"), solver_parameters = {"linear_solver":"lu"})
   return
   
-system.add_solve(inner(test, trial) * dx == inner(test, ic) * dx,
-  u[-1],
-  StaticDirichletBC(space, 0.0, "on_boundary"), solver_parameters = {"linear_solver":"lu"})
-add_F_solve(-1, ic)
+system.add_solve(inner(test, trial) * dx == inner(test, ic) * dx, u[-1], StaticDirichletBC(space, 0.0, "on_boundary"))
+add_F_solve(-1)
 system.add_solve(LinearCombination((1.0, F[-1]), (1.0, u[-1])), u[0])
 add_F_solve(n)
 system.add_solve(LinearCombination((2.0, F[n]), (1.0, u[n - 1])), u[n + 1])
@@ -69,22 +64,22 @@ while t <= t_end:
   t += float(dt)
 system.finalise()
 
-dolfin_adjoint_solution = numpy.array(map(float, """0.00000000e+00   9.17928930e-02   1.83579895e-01   2.73568409e-01
-   3.60660813e-01   4.41798311e-01   5.12606151e-01   5.67266556e-01
-   6.00091748e-01   6.07382214e-01   5.88692441e-01   5.46242214e-01
-   4.82373850e-01   3.95080086e-01   2.67937032e-01  -6.86218300e-10
-  -2.67937033e-01  -3.95080084e-01  -4.82373840e-01  -5.46242187e-01
-  -5.88692382e-01  -6.07382121e-01  -6.00091577e-01  -5.67266433e-01
-  -5.12606378e-01  -4.41799021e-01  -3.60660747e-01  -2.73568505e-01
-  -1.83580590e-01  -9.17924756e-02   0.00000000e+00   4.66662897e-02
-   1.39350796e-01   2.31800545e-01   3.23911427e-01   4.16040541e-01
-   5.09322027e-01   6.05478512e-01   7.06445726e-01   8.13236605e-01
-   9.24875061e-01   1.03788114e+00   1.14649994e+00   1.24293056e+00
-   1.31599061e+00   1.34355011e+00  -1.34355011e+00  -1.31599061e+00
-  -1.24293055e+00  -1.14649993e+00  -1.03788110e+00  -9.24874987e-01
-  -8.13236458e-01  -7.06445543e-01  -6.05478491e-01  -5.09322553e-01
-  -4.16040972e-01  -3.23911175e-01  -2.31801178e-01  -1.39350797e-01
-  -4.66659586e-02""".split()))
+dolfin_adjoint_solution = numpy.array(list(map(float, """0.00000000e+00   9.17926864e-02   1.83580274e-01   2.73568647e-01
+   3.60660876e-01   4.41798862e-01   5.12606157e-01   5.67266804e-01
+   6.00091867e-01   6.07382325e-01   5.88692597e-01   5.46242370e-01
+   4.82374020e-01   3.95080243e-01   2.67937153e-01   7.60143901e-15
+  -2.67937153e-01  -3.95080243e-01  -4.82374020e-01  -5.46242370e-01
+  -5.88692597e-01  -6.07382325e-01  -6.00091867e-01  -5.67266804e-01
+  -5.12606157e-01  -4.41798862e-01  -3.60660876e-01  -2.73568647e-01
+  -1.83580274e-01  -9.17926864e-02   0.00000000e+00   4.66661633e-02
+   1.39350610e-01   2.31801169e-01   3.23911300e-01   4.16041012e-01
+   5.09322232e-01   6.05478561e-01   7.06445844e-01   8.13236518e-01
+   9.24874985e-01   1.03788101e+00   1.14649980e+00   1.24293040e+00
+   1.31599044e+00   1.34354993e+00  -1.34354993e+00  -1.31599044e+00
+  -1.24293040e+00  -1.14649980e+00  -1.03788101e+00  -9.24874985e-01
+  -8.13236518e-01  -7.06445844e-01  -6.05478561e-01  -5.09322232e-01
+  -4.16041012e-01  -3.23911300e-01  -2.31801169e-01  -1.39350610e-01
+  -4.66661633e-02""".split())))
 err = abs(u[N].vector().array() - dolfin_adjoint_solution).max()
 print(u[N].vector().array(), err)
 assert(err < 5.0e-9)
@@ -94,7 +89,25 @@ system.verify_checkpoints()
 system.set_functional(u[N] * u[N] * dx)
 J = system.compute_functional()
 grad = system.compute_gradient([ic, nu])
-print(grad[0].array(), float(grad[1]))
+dolfin_adjoint_grad = numpy.array(list(map(float, """2.55154826e-06   4.62740106e-03   9.05327481e-03   1.30869194e-02
+   1.65352794e-02   1.92724637e-02   2.11509981e-02   2.21010232e-02
+   2.20758877e-02   2.09733419e-02   1.72437481e-02   1.26425671e-02
+   8.79800946e-03   5.58295942e-03   2.72103742e-03  -1.05167611e-16
+  -2.72103742e-03  -5.58295942e-03  -8.79800946e-03  -1.26425671e-02
+  -1.72437481e-02  -2.09733419e-02  -2.20758877e-02  -2.21010232e-02
+  -2.11509981e-02  -1.92724637e-02  -1.65352794e-02  -1.30869194e-02
+  -9.05327481e-03  -4.62740106e-03  -2.55154826e-06   4.63747825e-03
+   1.37140874e-02   2.21810629e-02   2.96867639e-02   3.58876085e-02
+   4.05040484e-02   4.33545620e-02   4.42325725e-02   4.32323987e-02
+   3.84846721e-02   2.98135413e-02   2.13698758e-02   1.43532097e-02
+   8.29386528e-03   2.75332208e-03  -2.75332208e-03  -8.29386528e-03
+  -1.43532097e-02  -2.13698758e-02  -2.98135413e-02  -3.84846721e-02
+  -4.32323987e-02  -4.42325725e-02  -4.33545620e-02  -4.05040484e-02
+  -3.58876085e-02  -2.96867639e-02  -2.21810629e-02  -1.37140874e-02
+  -4.63747825e-03""".split())))
+err = abs(grad[0].array() - dolfin_adjoint_grad).max()
+print(grad[0].array(), err)
+assert(err < 5.0e-11)
 
 orders = system.taylor_test(ic, J = J, grad = grad[0])
 assert((orders > 1.99).all())

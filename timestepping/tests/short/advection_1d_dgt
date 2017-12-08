@@ -35,7 +35,7 @@ dt = Constant(0.25 * float(u_mag) / ngrid)
 
 mesh = UnitIntervalMesh(ngrid)
 space = FunctionSpace(mesh, "DG", 1)
-spaces = space * space
+spaces = FunctionSpace(mesh, space.ufl_element() * space.ufl_element())
 test = TestFunction(space)
 tests = TestFunction(spaces)
 test1, test2 = split(tests)
@@ -60,8 +60,8 @@ DirichletBCBoundary().mark(bcs, 1)
 def F(test, T):
   return inner(grad(test), U * T) * dx \
     - jump(test) * jump(Un * T) * dS \
-    - test * (Un * T + Un2 * T_bc) * ds[bcs](1) \
-    - test * Un * T * ds[bcs](0)
+    - test * (Un * T + Un2 * T_bc) * ds(subdomain_data = bcs)(1) \
+    - test * Un * T * ds(subdomain_data = bcs)(0)
 
 levels = TimeLevels(levels = [n, n + 1], cycle_map = {n:n + 1})
 T = TimeFunction(levels, spaces, name = "T")
@@ -69,7 +69,7 @@ T = TimeFunction(levels, spaces, name = "T")
 system = TimeSystem()
 
 T_ic = StaticFunction(space, name = "T_ic")
-system.add_solve(inner(tests, T[0]) * dx == inner(test1, numpy.NAN) * dx + inner(test2, T_ic) * dx,
+system.add_solve(inner(tests, T[0]) * dx == inner(test2, T_ic) * dx,
   T[0], solver_parameters = {"linear_solver":"lu"})
 
 m_11 = m_22 = 1.0 / 3.0

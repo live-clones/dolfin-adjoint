@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#NT 4
 
 # Copyright (C) 2013 University of Oxford
 # Copyright (C) 2014, 2017 University of Edinburgh
@@ -19,14 +18,12 @@
 from dolfin import *
 from timestepping import *
 
-parameters["num_threads"] = 4
-
 def Plot(T, index):
   import matplotlib
   matplotlib.use("Agg")
   from matplotlib.pylab import plot, ylim, savefig, clf
   import numpy
-  x = interpolate(Expression("x[0]"), space).vector().array()
+  x = interpolate(Expression("x[0]", element = space.ufl_element()), space).vector().array()
   T = T.vector().array()
   pack = [(x[i], T[i]) for i in range(T.shape[0])]
   pack.sort(key = lambda e : e[0])
