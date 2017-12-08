@@ -58,12 +58,12 @@ class WrappedFunction(dolfin.Function):
         self.__fn = None
         if isinstance(arg, dolfin.cpp.function.FunctionSpace):
             self.__space = arg
-                                                                                   # Work around DOLFIN id issues
-            ufl.coefficient.Coefficient.__init__(self, self.__space.ufl_element(), count = dolfin.Constant(0).id())
+                                                                     # Work around DOLFIN id issues
+            ufl.coefficient.Coefficient.__init__(self, self.__space, count = dolfin.Constant(0).id())
         elif isinstance(arg, dolfin.Function):
             self.__space = arg.function_space()
-                                                                                   # Work around DOLFIN id issues
-            ufl.coefficient.Coefficient.__init__(self, self.__space.ufl_element(), count = dolfin.Constant(0).id())
+                                                                     # Work around DOLFIN id issues
+            ufl.coefficient.Coefficient.__init__(self, self.__space, count = dolfin.Constant(0).id())
             self.wrap(arg)
         else:
             raise InvalidArgumentException("Require FunctionSpace or Function as first argument")
@@ -170,12 +170,6 @@ class WrappedFunction(dolfin.Function):
         self.__label = label
 
         return
-    
-    def ufl_domain(self):
-        return self.function_space().ufl_domain()
-    
-    def ufl_domains(self):
-        return self.function_space().ufl_domains()
 
 class TimeFunction(TimeLevels):
     """

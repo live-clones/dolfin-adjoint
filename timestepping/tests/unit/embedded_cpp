@@ -41,7 +41,7 @@ m = numpy.empty((1,), numpy.float64)
 mesh = UnitIntervalMesh(10)
 space = FunctionSpace(mesh, "CG", 1)
 F = Function(space, name = "F")
-F.interpolate(Expression("x[0]"))
+F.interpolate(Expression("x[0]", element = F.function_space().ufl_element()))
 code.run(F = F, m = m)
 comp = m[0]
 ref = 0.5

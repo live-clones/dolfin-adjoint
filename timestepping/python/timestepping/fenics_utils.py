@@ -201,7 +201,7 @@ def evaluate_expr(expr, copy = False):
         raise InvalidArgumentException("expr must be an Expr")
 
     if isinstance(expr, ufl.algebra.Product):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         assert(len(ops) > 0)
         val = evaluate_expr(ops[0], copy = copy or len(ops) > 1)
         for op in ops[1:]:
@@ -209,7 +209,7 @@ def evaluate_expr(expr, copy = False):
             if not isinstance(nval, float) or not nval == 1.0:
                 val *= nval
     elif isinstance(expr, ufl.algebra.Sum):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         assert(len(ops) > 0)
         val = evaluate_expr(ops[0], copy = copy or len(ops) > 1)
         for op in ops[1:]:
@@ -217,7 +217,7 @@ def evaluate_expr(expr, copy = False):
             if not isinstance(nval, float) or not nval == 0.0:
                 val += nval
     elif isinstance(expr, ufl.algebra.Division):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         assert(len(ops) == 2)
         val = evaluate_expr(ops[0]) / evaluate_expr(ops[1])
     elif isinstance(expr, ufl.constantvalue.Zero):
@@ -247,7 +247,7 @@ def differentiate_expr(expr, u, expand = True):
     if not isinstance(expr, ufl.core.expr.Expr):
         raise InvalidArgumentException("expr must be an Expr")
     if isinstance(u, ufl.indexed.Indexed):
-        op = u.operands()
+        op = u.ufl_operands
         assert(len(op) == 2)
         if not isinstance(op[0], (dolfin.Constant, dolfin.Function)):
             raise InvalidArgumentException("Invalid Indexed")
@@ -278,11 +278,11 @@ def expand_expr(expr):
 
     if isinstance(expr, ufl.algebra.Sum):
         terms = []
-        for term in expr.operands():
+        for term in expr.ufl_operands:
             terms += expand_expr(term)
         return terms
     elif isinstance(expr, ufl.algebra.Product):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         fact1 = ops[0]
         fact2 = ops[1]
         for op in ops[2:]:
@@ -295,27 +295,27 @@ def expand_expr(expr):
                 terms.append(term1 * term2)
         return terms
     elif isinstance(expr, ufl.indexed.Indexed):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         assert(len(ops) == 2)
         return [ufl.indexed.Indexed(term, ops[1]) for term in expand_expr(ops[0])]
     elif isinstance(expr, ufl.tensors.ComponentTensor):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         assert(len(ops) == 2)
         return [ufl.tensors.ComponentTensor(term, ops[1]) for term in expand_expr(ops[0])]
     elif isinstance(expr, ufl.algebra.Division):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         assert(len(ops) == 2)
         return [ufl.algebra.Division(term, ops[1]) for term in expand_expr(ops[0])]
     elif isinstance(expr, ufl.restriction.PositiveRestricted):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         assert(len(ops) == 1)
         return [ufl.restriction.PositiveRestricted(term) for term in expand_expr(ops[0])]
     elif isinstance(expr, ufl.restriction.NegativeRestricted):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         assert(len(ops) == 1)
         return [ufl.restriction.NegativeRestricted(term) for term in expand_expr(ops[0])]
     elif isinstance(expr, ufl.differentiation.Grad):
-        ops = expr.operands()
+        ops = expr.ufl_operands
         assert(len(ops) == 1)
         return [ufl.differentiation.Grad(term) for term in expand_expr(ops[0])]
     elif isinstance(expr, (ufl.tensoralgebra.Dot,
@@ -336,7 +336,7 @@ def expand_expr(expr):
                            ufl.classes.Variable,
                            ufl.mathfunctions.Exp,
                            ufl.algebra.Power,
-                           ufl.indexing.MultiIndex,
+                           ufl.indexed.MultiIndex,
                            ufl.classes.Label)):
         return [expr]
     # Expr types grey-list. It might be possible to expand these, but just ignore
@@ -400,9 +400,9 @@ def is_self_adjoint_form(form):
     test, trial = extract_test_and_trial(form)
     a_test, a_trial = extract_test_and_trial(a_form)
 
-    if not test.element() == a_trial.element():
+    if not test.ufl_element() == a_trial.ufl_element():
         return False
-    elif not trial.element() == a_test.element():
+    elif not trial.ufl_element() == a_test.ufl_element():
         return False
 
     a_form = dolfin.replace(a_form, {a_test:trial, a_trial:test})

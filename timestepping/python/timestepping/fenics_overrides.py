@@ -162,7 +162,7 @@ def adjoint(form, reordered_arguments = None, adjoint_arguments = None):
         a_form = dolfin.adjoint(form)
         test, trial = extract_test_and_trial(a_form)
 
-        if not test.element() == a_test.element() or not trial.element() == a_trial.element():
+        if not test.ufl_element() == a_test.ufl_element() or not trial.ufl_element() == a_trial.ufl_element():
             raise InvalidArgumentException("Invalid adjoint_arguments")
         a_form = dolfin.replace(a_form, {test:a_test, trial:a_trial})
 

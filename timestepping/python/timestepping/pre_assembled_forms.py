@@ -49,7 +49,7 @@ def preprocess_integral(integral):
 
     integrand = integral.integrand()
     integral_type, domain, subdomain_id, metadata, subdomain_data = \
-      integral.integral_type(), integral.domain(), integral.subdomain_id(), integral.metadata(), integral.subdomain_data()
+      integral.integral_type(), integral.ufl_domain(), integral.subdomain_id(), integral.metadata(), integral.subdomain_data()
     return integrand, [integral_type, domain, subdomain_id, metadata, subdomain_data]
 
 def matrix_optimisation(form):
@@ -582,7 +582,7 @@ class PAForm:
             else:
                 def expand_expr(e):
                     if isinstance(e, ufl.algebra.Sum):
-                        return e.operands()
+                        return e.ufl_operands
                     else:
                         return e
 

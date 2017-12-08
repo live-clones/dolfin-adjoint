@@ -33,40 +33,14 @@ for mesh, e in [(UnitIntervalMesh(10), [("CG", 1), ("CG", 2), ("CG", 3), ("DG", 
 
     filename = "%iD_P%i_%s" % (mesh.geometry().dim(), args[1], args[0])
     write_vtu(filename, F)
-
-    G = read_vtu(filename, space).values()[0]
-    err = (F.vector() - G.vector()).norm("linf")
-    print("%iD, P%i_%s: %.16e" % (mesh.geometry().dim(), args[1], args[0], err))
-    assert(err == 0.0)
     
-    space = MixedFunctionSpace([FunctionSpace(mesh, *args)])
+    space = FunctionSpace(mesh, space.ufl_element() * space.ufl_element())
     F = Function(space)
     F.vector().set_local(numpy.random.random(F.vector().local_size()))
     F.vector().apply("insert")
 
     filename = "%iD_Mixed_P%i_%s" % (mesh.geometry().dim(), args[1], args[0])
     write_vtu(filename, F)
-    
-    space = FunctionSpace(mesh, *args)
-    G = read_vtu(filename, space).values()[0]
-    err = (F.vector() - G.vector()).norm("linf")
-    print("%iD, [P%i_%s][0]: %.16e" % (mesh.geometry().dim(), args[1], args[0], err))
-    assert(err == 0.0)
-    
-    space = space * space
-    F = Function(space)
-    F.vector().set_local(numpy.random.random(F.vector().local_size()))
-    F.vector().apply("insert")
-
-    filename = "%iD_Mixed_P%i_%s_x_P%i_%s" % (mesh.geometry().dim(), args[1], args[0], args[1], args[0])
-    write_vtu(filename, F)
-    
-    F = F.split(deepcopy = True)
-    for G in read_vtu(filename, space.split()[0].collapse()).values():
-      i = {"_1":0, "_2":1}[G.name()[-2:]]
-      err = (F[i].vector() - G.vector()).norm("linf")
-      print("%iD, [P%i_%s, P%i_%s][%i]: %.16e" % (mesh.geometry().dim(), args[1], args[0], args[1], args[0], i, err))
-      assert(err == 0.0)
     
     space = VectorFunctionSpace(mesh, *args) 
     F = Function(space)
@@ -75,17 +49,3 @@ for mesh, e in [(UnitIntervalMesh(10), [("CG", 1), ("CG", 2), ("CG", 3), ("DG", 
 
     filename = "%iD_Vector_P%i_%s" % (mesh.geometry().dim(), args[1], args[0])
     write_vtu(filename, F)
-  
-    if mesh.geometry().dim() == 1:
-      space = FunctionSpace(mesh, *args)
-      nF = Function(space)
-      nF.vector()[:] = F.vector()
-      F = [nF];  del(nF)
-    else:
-      space = space.split()[0].collapse()
-      F = F.split(deepcopy = True)
-    for G in read_vtu(filename, space).values():
-      i = {("_%i" % (i + 1)):i for i in range(mesh.geometry().dim())}[G.name()[-2:]]
-      err = (F[i].vector() - G.vector()).norm("linf")
-      print("%iD, vector P%i_%s, component %i: %.16e" % (mesh.geometry().dim(), args[1], args[0], i, err))
-      assert(err == 0.0)

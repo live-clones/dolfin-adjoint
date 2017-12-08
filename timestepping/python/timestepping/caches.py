@@ -184,7 +184,7 @@ class AssemblyCache:
                     raise InvalidArgumentException("Arguments must be Constant s or Function s")
 
             for dep in args:
-                for key in copy.copy(list(self.__cache.keys())):
+                for key in list(self.__cache.keys()):
                     form = key[0]
                     if dep in ufl.algorithms.extract_coefficients(form):
                         del(self.__cache[key])
@@ -204,7 +204,7 @@ class SolverCache:
         return
 
     def __del__(self):
-        for key in self.__cache:
+        for key in list(self.__cache.keys()):
             del(self.__cache[key])
 
         return
@@ -359,14 +359,14 @@ class SolverCache:
         """
 
         if len(args) == 0:
-            for key in self.__cache.keys():
+            for key in list(self.__cache.keys()):
                 del(self.__cache[key])
         else:
             for dep in args:
                 if not isinstance(dep, (dolfin.Constant, dolfin.Function)):
                     raise InvalidArgumentException("Arguments must be Constant s or Function s")
 
-            for key in self.__cache:
+            for key in list(self.__cache.keys()):
                 form = key[0]
                 if isinstance(form, ufl.form.Form) and dep in ufl.algorithms.extract_coefficients(form):
                     del(self.__cache[key])

@@ -231,7 +231,7 @@ class MemoryCheckpointer(Checkpointer):
         if len(keep) == 0:
             self.__cache = {}
         else:
-            for key in copy.copy(list(self.__cache.keys())):
+            for key in list(self.__cache.keys()):
                 if not key in keep:
                     del(self.__cache[key])
 
@@ -389,7 +389,7 @@ class DiskCheckpointer(Checkpointer):
             self.__id_map = {}
         else:
             keep = [str(key) for key in keep]
-            for key in copy.copy(list(self.__filenames.keys())):
+            for key in list(self.__filenames.keys()):
                 if not key in keep:
          #         os.remove(self.__filenames[key])
                     del(self.__filenames[key])
