@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2016 University of Edinburgh
+# Copyright (C) 2014-2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,7 @@ ns = int((T * (1.0 + 1.0e-6)) / float(dt))
 
 mesh = UnitIntervalMesh(N_e)
 base_space = FunctionSpace(mesh, "DG", 0)
-space = MixedFunctionSpace([base_space for i in xrange(3)])
+space = MixedFunctionSpace([base_space for i in range(3)])
 test, trial = TestFunction(space), TrialFunction(space)
 test_1, test_2, test_3 = TestFunctions(space)
 
@@ -133,7 +133,7 @@ while t * (1.0 + 1.0e-6) < T:
 
 #  X_n = X[n].vector().array()
 #  X_n.shape = (3, N_e)
-#  for i in xrange(min(1000, N_e)):
+#  for i in range(min(1000, N_e)):
 #    soln[(s - 1) * min(1000, N_e) + i, :] = [t, X_n[0, i], X_n[1, i], X_n[2, i]]
   if s == ns:
     av += 0.5 * assemble(split(X[n])[2] * dx)

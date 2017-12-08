@@ -1,10 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (C) 2007 Kristian B. Oelgaard
 # Copyright (C) 2008 Johan Hake
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2016 University of Edinburgh
+# Copyright (C) 2014-2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -126,24 +126,24 @@ class LimiterSolver(AssignmentSolver):
     AssignmentSolver.__init__(self, T_i, T)
 
     cells = mesh.cells()
-    ne_list = [[] for i in xrange(mesh.num_vertices())]
+    ne_list = [[] for i in range(mesh.num_vertices())]
     for i, cell in enumerate(cells):
       for node in cell:
         ne_list[node].append(i)
-    ele_list = [set() for i in xrange(len(cells))]
+    ele_list = [set() for i in range(len(cells))]
     for i, cell in enumerate(cells):
       for node in cell:
         for cell2 in ne_list[node]:
           ele_list[i].add(cell2)
-    ele_list = [list(ele_list[i]) for i in xrange(len(ele_list))]
+    ele_list = [list(ele_list[i]) for i in range(len(ele_list))]
 
     ele_list_n = 0
-    for i in xrange(len(cells)):
+    for i in range(len(cells)):
       ele_list_n = max(ele_list_n, len(ele_list[i]))
     ele_list_arr = numpy.empty([len(cells), ele_list_n], dtype = numpy.int64)
     ele_list_arr[:] = -1
-    for i in xrange(len(cells)):
-      for j in xrange(len(ele_list[i])):
+    for i in range(len(cells)):
+      for j in range(len(ele_list[i])):
         ele_list_arr[i, j] = ele_list[i][j]
     
     space_p0 = FunctionSpace(mesh, "DG", 0)

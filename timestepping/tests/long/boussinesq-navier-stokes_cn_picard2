@@ -1,10 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (C) 2007 Kristian B. Oelgaard
 # Copyright (C) 2008 Johan Hake
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2016 University of Edinburgh
+# Copyright (C) 2014-2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -305,7 +305,7 @@ p_ref = Function(space_p, name = "p_ref");  p_ref.assign(p[N])
 T_ref = Function(space_u, name = "T_ref");  T_ref.assign(T[N])
 
 errs = [], [], [], []
-for i in xrange(4, -1, -1):
+for i in range(4, -1, -1):
   ndt = 2 ** i
   dt.assign(dt_orig / ndt)
   system.reassemble(dt)
@@ -316,9 +316,9 @@ for i in xrange(4, -1, -1):
   errs[1].append(sqrt(assemble(((v[N] - v_ref) ** 2) * dx)))
   errs[2].append(sqrt(assemble(((p[N] - p_ref) ** 2) * dx)))
   errs[3].append(sqrt(assemble(((T[N] - T_ref) ** 2) * dx)))
-orders = [numpy.empty(len(errs[0]) - 1) for i in xrange(len(errs))]
-for i in xrange(len(errs)):
-  for j in xrange(1, len(errs[0])):
+orders = [numpy.empty(len(errs[0]) - 1) for i in range(len(errs))]
+for i in range(len(errs)):
+  for j in range(1, len(errs[0])):
     orders[i][j - 1] = numpy.log(errs[i][j] / errs[i][j - 1]) / numpy.log(2.0)
 print(errs)
 print(orders)
