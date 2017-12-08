@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014, 2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@ from timestepping import *
 
 code = EmbeddedCpp(code = "b[0] = a;", a = int, b = long_arr)
 b = numpy.empty((1,), numpy.int64)
-for i in xrange(-10, 11):
+for i in range(-10, 11):
   code.run(a = i, b = b)
   assert(b == i)
 

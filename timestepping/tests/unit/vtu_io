@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2016 University of Edinburgh
+# Copyright (C) 2014-2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -85,7 +85,7 @@ for mesh, e in [(UnitIntervalMesh(10), [("CG", 1), ("CG", 2), ("CG", 3), ("DG", 
       space = space.split()[0].collapse()
       F = F.split(deepcopy = True)
     for G in read_vtu(filename, space).values():
-      i = {("_%i" % (i + 1)):i for i in xrange(mesh.geometry().dim())}[G.name()[-2:]]
+      i = {("_%i" % (i + 1)):i for i in range(mesh.geometry().dim())}[G.name()[-2:]]
       err = (F[i].vector() - G.vector()).norm("linf")
       print("%iD, vector P%i_%s, component %i: %.16e" % (mesh.geometry().dim(), args[1], args[0], i, err))
       assert(err == 0.0)
