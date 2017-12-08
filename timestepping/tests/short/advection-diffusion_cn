@@ -1,8 +1,8 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #NT 4
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014 University of Edinburgh
+# Copyright (C) 2014, 2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +35,10 @@ def Plot(T, index):
     else:
       return 1
   T = T.vector().array()
-  pack = [(x[i], T[i]) for i in xrange(T.shape[0])]
+  pack = [(x[i], T[i]) for i in range(T.shape[0])]
   pack.sort(cmp = cmp)
-  x = numpy.array([pack[i][0] for i in xrange(T.shape[0])])
-  T = numpy.array([pack[i][1] for i in xrange(T.shape[0])])
+  x = numpy.array([pack[i][0] for i in range(T.shape[0])])
+  T = numpy.array([pack[i][1] for i in range(T.shape[0])])
 
   plot(x, T, color = "k")
   ylim(-0.2, 1.1)

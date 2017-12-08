@@ -1,9 +1,9 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #NP 2
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2016 University of Edinburgh
+# Copyright (C) 2014-2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -65,7 +65,7 @@ scale = L
 def Scale(p, s):
   return p.assign(float(p) / s)
 L = 1.0
-for i in xrange(layers):
+for i in range(layers):
   Scale(H[i], scale)
 Scale(beta,   1.0 / (scale ** 2))
 Scale(tau0,   (scale ** 2) / (scale ** 2))
@@ -75,7 +75,7 @@ Scale(alpha,  scale)
 if layers > 1:
   Scale(s[0][1],  1.0 / (scale ** 2))
   Scale(s[-1][0], 1.0 / (scale ** 2))
-  for i in xrange(1, layers - 1):
+  for i in range(1, layers - 1):
     Scale(s[i][0], 1.0 / (scale ** 2))
     Scale(s[i][1], 1.0 / (scale ** 2))
 Scale(dt, scale)
@@ -100,19 +100,19 @@ if layers > 1:
   smat[0, 1]   = +float(s[0][1])
   smat[-1, -2] = +float(s[-1][0])
   smat[-1, -1] = -float(s[-1][0])
-  for i in xrange(1, layers - 1):
+  for i in range(1, layers - 1):
     smat[i, i - 1] = +float(s[i][0])
     smat[i, i]     = -(float(s[i][0]) + float(s[i][1]))
     smat[i, i + 1] = +float(s[i][1])
 ss, modes_to_z = numpy.linalg.eig(smat)
 z_to_modes = numpy.linalg.inv(modes_to_z)
 blayer = 0;  mss = abs(ss[0])
-for i in xrange(1, len(ss)):
+for i in range(1, len(ss)):
   if abs(ss[i]) < mss:
       blayer = i
       mss = abs(ss[i])
 assert(mss < 6.0e-13)
-ss = [Constant(ss[i]) for i in xrange(layers)]
+ss = [Constant(ss[i]) for i in range(layers)]
 
 mesh   = RectangleMesh(Point(0.0, 0.0), Point(L, L), ngrid, ngrid)
 nm     = FacetNormal(mesh)
@@ -126,22 +126,22 @@ levels_nc   = TimeLevels(levels = [n - 2, n - 1, n, n + 1], cycle_map = {})
 levels_dqdt = TimeLevels(levels = [n - 2, n - 1, n], cycle_map = {n - 2:n - 1, n - 1:n}, last_past_level = n - 1)
 
 # Fields
-q      = [TimeFunction(levels,      space, name = "q_%i" % (i + 1)) for i in xrange(layers)]
-q_i    = [TimeFunction(levels_nc,   space, name = "q_i_%i" % (i + 1)) for i in xrange(layers)]
-dqdt   = [TimeFunction(levels_dqdt, space, name = "dqdt_%i" % (i + 1)) for i in xrange(layers)]
-rel    = [TimeFunction(levels,      space, name = "rel_%i" % (i + 1)) for i in xrange(layers)]
-psi    = [TimeFunction(levels,      space, name = "psi_%i" % (i + 1)) for i in xrange(layers)]
-zeta_i = [TimeFunction(levels_nc,   space, name = "zeta_i_%i" % (i + 1)) for i in xrange(layers)]
-zeta_m = [TimeFunction(levels_nc,   space, name = "zeta_m_%i" % (i + 1)) for i in xrange(layers)]
-psi_m  = [TimeFunction(levels_nc,   space, name = "psi_m_%i" % (i + 1)) for i in xrange(layers)]
-psi0   = [TimeFunction(levels_nc,   space, name = "psi0_%i" % (i + 1)) for i in xrange(layers)]
+q      = [TimeFunction(levels,      space, name = "q_%i" % (i + 1)) for i in range(layers)]
+q_i    = [TimeFunction(levels_nc,   space, name = "q_i_%i" % (i + 1)) for i in range(layers)]
+dqdt   = [TimeFunction(levels_dqdt, space, name = "dqdt_%i" % (i + 1)) for i in range(layers)]
+rel    = [TimeFunction(levels,      space, name = "rel_%i" % (i + 1)) for i in range(layers)]
+psi    = [TimeFunction(levels,      space, name = "psi_%i" % (i + 1)) for i in range(layers)]
+zeta_i = [TimeFunction(levels_nc,   space, name = "zeta_i_%i" % (i + 1)) for i in range(layers)]
+zeta_m = [TimeFunction(levels_nc,   space, name = "zeta_m_%i" % (i + 1)) for i in range(layers)]
+psi_m  = [TimeFunction(levels_nc,   space, name = "psi_m_%i" % (i + 1)) for i in range(layers)]
+psi0   = [TimeFunction(levels_nc,   space, name = "psi0_%i" % (i + 1)) for i in range(layers)]
 psi1   = []
-for i in xrange(layers):
+for i in range(layers):
   if i == blayer:
     psi1.append(None)
   else:
     psi1.append(StaticFunction(space, name = "psi1_%i" % (i + 1)))
-c      = [TimeFunction(levels_nc,   cspace, name = "c_%i" % (i + 1)) for i in xrange(layers)]
+c      = [TimeFunction(levels_nc,   cspace, name = "c_%i" % (i + 1)) for i in range(layers)]
 beta_y = StaticFunction(space, name = "beta_y")
 q_wind = StaticFunction(space, name = "q_wind")
 
@@ -152,7 +152,7 @@ bc_one  = DirichletBC(space, 1.0, "on_boundary")
 beta_y.interpolate(Expression("beta * x[1]", beta = float(beta)))
 q_wind.interpolate(Wind(element = space.ufl_element()))
 q_wind.vector()[:] /= float(H[0])
-for i in xrange(layers):
+for i in range(layers):
   if i == blayer:
 #    a = inner(grad(test), grad(trial)) * dx - (test * dot(grad(trial), nm)) * ds
     pass
@@ -165,9 +165,9 @@ for i in xrange(layers):
 system = TimeSystem()
 
 def add_pv_inversion(n):
-  for i in xrange(layers):
+  for i in range(layers):
     system.add_solve(LinearCombination((1.0, q_i[i][n]), (-1.0, beta_y)), zeta_i[i][n])
-    system.add_solve(LinearCombination(*[(z_to_modes[i][j], zeta_i[j][n]) for j in xrange(layers)]), zeta_m[i][n])
+    system.add_solve(LinearCombination(*[(z_to_modes[i][j], zeta_i[j][n]) for j in range(layers)]), zeta_m[i][n])
     if i == blayer:
       system.add_solve(inner(grad(test), grad(trial)) * dx - (test * dot(grad(trial), nm)) * ds == -inner(test, zeta_m[i][n]) * dx, \
         psi_m[i][n], bc_zero, solver_parameters = lu_solver)
@@ -177,12 +177,12 @@ def add_pv_inversion(n):
       system.add_solve(inner(ctest, psi1[i]) * dx == -inner(ctest, psi0[i][n]) * dx,
         c[i][n])
       system.add_solve(psi0[i][n] + c[i][n] * psi1[i], psi_m[i][n])
-    system.add_solve(LinearCombination(*[(modes_to_z[i][j], psi_m[j][n]) for j in xrange(layers)]), psi[i][n])
+    system.add_solve(LinearCombination(*[(modes_to_z[i][j], psi_m[j][n]) for j in range(layers)]), psi[i][n])
 
   return
 
 def add_rel_solve(n):
-  for i in xrange(layers):
+  for i in range(layers):
     system.add_solve(inner(test, trial) * dx + alpha * test * trial * ds == -inner(grad(test), grad(psi[i][n])) * dx,
       rel[i][n], solver_parameters = lu_solver)
 
@@ -192,7 +192,7 @@ def add_pv_update(n):
   if layers == 1:
     system.add_solve(LinearCombination((1.0, rel[0][n]), (1.0, beta_y)), q[0][n])
   else:
-    for i in xrange(layers):
+    for i in range(layers):
       if i > 0:
         if i < layers - 1:
           system.add_solve(LinearCombination((1.0, rel[i][n]), (1.0, beta_y), (s[i][0], psi[i - 1][n]), (-s[i][0] - s[i][1], psi[i][n]), (s[i][1], psi[i + 1][n])), q[i][n])
@@ -204,7 +204,7 @@ def add_pv_update(n):
   return
 
 def add_dqdt_solve(n):
-  for i in xrange(layers):
+  for i in range(layers):
     gradPsi = grad(psi[i][n])
     rhs = inner(grad(test), as_vector([-gradPsi[1], gradPsi[0]]) * q[i][n]) * dx \
         - nu * inner(grad(test), grad(rel[i][n])) * dx
@@ -217,14 +217,14 @@ def add_dqdt_solve(n):
   return
 
 # Set up the model
-for i in xrange(layers):
+for i in range(layers):
   system.add_solve(beta_y, q_i[i][-2])
 add_pv_inversion(-2)
 add_rel_solve(-2)
 add_pv_update(-2)
 add_dqdt_solve(-2)
 
-for i in xrange(layers):
+for i in range(layers):
   system.add_solve(LinearCombination((dt, dqdt[i][-2]),
                                      (1.0, q[i][-2])), q_i[i][-1])
 add_pv_inversion(-1)
@@ -232,7 +232,7 @@ add_rel_solve(-1)
 add_pv_update(-1)
 add_dqdt_solve(-1)
 
-for i in xrange(layers):
+for i in range(layers):
   system.add_solve(LinearCombination((1.5 * dt, dqdt[i][-1]),
                                      (-0.5 * dt, dqdt[i][-2]),
                                      (1.0, q[i][-1])), q_i[i][0])
@@ -241,7 +241,7 @@ add_rel_solve(0)
 add_pv_update(0)
 
 add_dqdt_solve(n)
-for i in xrange(layers):
+for i in range(layers):
   system.add_solve(LinearCombination(((23.0 / 12.0) * dt, dqdt[i][n]),
                                      ((-4.0 / 3.0) * dt, dqdt[i][n - 1]),
                                      ((5.0 / 12.0) * dt, dqdt[i][n - 2]),
