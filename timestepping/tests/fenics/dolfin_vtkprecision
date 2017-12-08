@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2016 University of Edinburgh
+# Copyright (C) 2014-2017 University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -36,9 +36,9 @@ vtu = reader.GetOutput()
 n = vtu.GetNumberOfPoints()
 data = vtu.GetPointData()
 coords = vtu.GetPoints().GetData()
-coords = numpy.array([coords.GetTuple3(i) for i in xrange(n)])
+coords = numpy.array([coords.GetTuple3(i) for i in range(n)])
 arr = data.GetArray(F.name())
-arr = numpy.array([arr.GetValue(i) for i in xrange(n)])
+arr = numpy.array([arr.GetValue(i) for i in range(n)])
 print("%.16e, %.16e, %.16e" % (coords[2, 0], arr.min(), arr.max()))
 
 comp = coords[2, 0]
