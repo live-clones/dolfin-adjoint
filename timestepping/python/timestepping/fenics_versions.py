@@ -33,7 +33,7 @@ __all__ = \
     "ufl_version"
   ]
 
-class Version(object):
+class Version:
     """
     Defines and enables comparisons between version numbers. Is supplied with
     rich comparison methods.
@@ -128,14 +128,6 @@ class Version(object):
 
     def __le__(self, other):
         return not self > other
-
-    def __cmp__(self, other):
-        if self > other:
-            return 1
-        elif self < other:
-            return -1
-        else:
-            return 0
 
 def dolfin_version():
     """

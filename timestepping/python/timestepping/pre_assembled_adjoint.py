@@ -39,7 +39,7 @@ __all__ = \
     "TimeFunctional"
   ]
 
-class AdjointVariableMap(object):
+class AdjointVariableMap:
     """
     A map between forward and adjoint variables. Indexing into the
     AdjointVariableMap with a forward Function yields an associated adjoint
@@ -115,7 +115,7 @@ class AdjointVariableMap(object):
 
         return
 
-class TimeFunctional(object):
+class TimeFunctional:
     """
     A template for a functional with an explicit time dependence.
     """
@@ -161,7 +161,7 @@ class TimeFunctional(object):
 
         raise AbstractMethodException("derivative method not overridden")
 
-class PAAdjointSolvers(object):
+class PAAdjointSolvers:
     """
     Defines a set of solves for adjoint equations, applying pre-assembly and
     linear solver caching optimisations. Expects as input a list of earlier

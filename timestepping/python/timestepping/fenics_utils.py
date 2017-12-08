@@ -121,7 +121,7 @@ def is_r0_function_space(space):
     Return whether the supplied FunctionSpace is R0 (i.e. a Real over the mesh).
     """
 
-    if not isinstance(space, dolfin.FunctionSpaceBase):
+    if not isinstance(space, dolfin.cpp.function.FunctionSpace):
         raise InvalidArgumentException("space must be a FunctionSpace")
 
     e = space.ufl_element()
@@ -295,7 +295,7 @@ def lumped_mass(space):
     Return a linear form which can be assembled to yield a lumped mass matrix.
     """
 
-    if not isinstance(space, dolfin.FunctionSpaceBase):
+    if not isinstance(space, dolfin.cpp.function.FunctionSpace):
         raise InvalidArgumentException("space must be a FunctionSpace")
 
     return dolfin.TestFunction(space) * dolfin.dx

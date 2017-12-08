@@ -31,7 +31,7 @@ __all__ = \
     "n"
   ]
 
-class TimeLevel(object):
+class TimeLevel:
     """
     A single model time level, with a specified logical offset. Is supplied with
     rich comparison methods, which compares the offsets of two TimeLevel s.
@@ -99,14 +99,6 @@ class TimeLevel(object):
     def __ge__(self, other):
         return not self < other
 
-    def __cmp__(self, other):
-        if self > other:
-            return 1
-        elif self < other:
-            return -1
-        else:
-            return 0
-
     def __hash__(self):
         return hash((0, self.__offset))
 
@@ -125,7 +117,7 @@ class TimeLevel(object):
 
         return self.__offset
 
-class FinalTimeLevel(object):
+class FinalTimeLevel:
     """
     A single final model time level, with a specified logical offset. Is supplied
     with rich comparison methods, which compares the offsets of two
@@ -193,14 +185,6 @@ class FinalTimeLevel(object):
     def __ge__(self, other):
         return self < other
 
-    def __cmp__(self, other):
-        if self > other:
-            return 1
-        elif self < other:
-            return -1
-        else:
-            return 0
-
     def __hash__(self):
         return hash((1, self.__offset))
 
@@ -224,7 +208,7 @@ class FinalTimeLevel(object):
 n = TimeLevel()
 N = FinalTimeLevel()
 
-class TimeLevels(object):
+class TimeLevels:
     """
     A unique set of time levels and a timestep variable cycle map. The cycle map
     defines the cycling of data at the end of a model time step.

@@ -56,7 +56,7 @@ class WrappedFunction(dolfin.Function):
         if not isinstance(label, str):
             raise InvalidArgumentException("label must be a string")
         self.__fn = None
-        if isinstance(arg, dolfin.FunctionSpaceBase):
+        if isinstance(arg, dolfin.cpp.function.FunctionSpace):
             self.__space = arg
                                                                                    # Work around DOLFIN id issues
             ufl.coefficient.Coefficient.__init__(self, self.__space.ufl_element(), count = dolfin.Constant(0).id())
@@ -186,7 +186,7 @@ class TimeFunction(TimeLevels):
     def __init__(self, tlevels, space, name = "u"):
         if not isinstance(tlevels, TimeLevels):
             raise InvalidArgumentException("tlevels must be a TimeLevels")
-        if not isinstance(space, dolfin.FunctionSpaceBase):
+        if not isinstance(space, dolfin.cpp.function.FunctionSpace):
             raise InvalidArgumentException("space must be a FunctionSpace")
         if not isinstance(name, str):
             raise InvalidArgumentException("name must be a string")
@@ -225,11 +225,35 @@ class TimeFunction(TimeLevels):
         else:
             raise InvalidArgumentException("key must be an integer, Fraction, TimeLevel, or FinalTimeLevel")
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if not isinstance(other, TimeFunction):
             raise InvalidArgumentException("other must be a TimeFunction")
+        return self.__id == other.__id
 
-        return self.__id - other.__id
+    def __gt__(self, other):
+        if not isinstance(other, TimeFunction):
+            raise InvalidArgumentException("other must be a TimeFunction")
+        return self.__id > other.__id
+
+    def __lt__(self, other):
+        if not isinstance(other, TimeFunction):
+            raise InvalidArgumentException("other must be a TimeFunction")
+        return self.__id < other.__id
+
+    def __ne__(self, other):
+        if not isinstance(other, TimeFunction):
+            raise InvalidArgumentException("other must be a TimeFunction")
+        return not self == other
+
+    def __ge__(self, other):
+        if not isinstance(other, TimeFunction):
+            raise InvalidArgumentException("other must be a TimeFunction")
+        return not self < other
+
+    def __le__(self, other):
+        if not isinstance(other, TimeFunction):
+            raise InvalidArgumentException("other must be a TimeFunction")
+        return not self > other
 
     def __hash__(self):
         return hash(self.__id)

@@ -46,7 +46,7 @@ __all__ = \
     "TimeSystem"
   ]
 
-class TimeSystem(object):
+class TimeSystem:
     """
     Used to register timestep equations.
     """
@@ -79,48 +79,78 @@ class TimeSystem(object):
                     raise DependencyException("Future dependency")
                 proc_deps.add(dep)
         proc_deps = list(proc_deps)
-        def cmp(x, y):
-            if hasattr(x, "_time_level_data"):
-                if hasattr(y, "_time_level_data"):
-                    x_tfn, x_level = x._time_level_data
-                    y_tfn, y_level = y._time_level_data
-                    if x_tfn > y_tfn:
-                        return 1
-                    elif x_tfn < y_tfn:
-                        return -1
-                    elif isinstance(x_level, (int, Fraction)):
-                        if isinstance(y_level, (int, Fraction)):
-                            if x_level > y_level:
-                                return 1
-                            elif x_level < y_level:
-                                return -1
+        class DependencyComparison:
+            def __eq__(self, other):
+                return self.cmp(other) == 0
+
+            def __gt__(self, other):
+                return self.cmp(other) > 0
+
+            def __lt__(self, other):
+                return self.cmp(other) < 0
+
+            def __ne__(self, other):
+                return not self == other
+
+            def __ge__(self, other):
+                return not self < other
+
+            def __le__(self, other):
+                return not self > other
+        
+            def cmp(self, y):
+                x = self
+                if hasattr(x, "_time_level_data"):
+                    if hasattr(y, "_time_level_data"):
+                        x_tfn, x_level = x._time_level_data
+                        y_tfn, y_level = y._time_level_data
+                        if x_tfn > y_tfn:
+                            return 1
+                        elif x_tfn < y_tfn:
+                            return -1
+                        elif isinstance(x_level, (int, Fraction)):
+                            if isinstance(y_level, (int, Fraction)):
+                                if x_level > y_level:
+                                    return 1
+                                elif x_level < y_level:
+                                    return -1
+                                else:
+                                    return 0
                             else:
-                                return 0
+                                assert(isinstance(y_level, (TimeLevel, FinalTimeLevel)))
+                                return -1
+                        elif isinstance(x_level, TimeLevel):
+                            if isinstance(y_level, (int, Fraction)):
+                                return 1
+                            elif isinstance(y_level, TimeLevel):
+                                if x_level > y_level:
+                                    return 1
+                                elif x_level < y_level:
+                                    return -1
+                                else:
+                                    return 0
+                            else:
+                                assert(isinstance(y_level, FinalTimeLevel))
+                                return -1
                         else:
-                            assert(isinstance(y_level, (TimeLevel, FinalTimeLevel)))
-                            return -1
-                    elif isinstance(x_level, TimeLevel):
-                        if isinstance(y_level, (int, Fraction)):
-                            return 1
-                        elif isinstance(y_level, TimeLevel):
-                            return x_level.__cmp__(y_level)
-                        else:
-                            assert(isinstance(y_level, FinalTimeLevel))
-                            return -1
+                            assert(isinstance(x_level, FinalTimeLevel))
+                            if isinstance(y_level, (int, Fraction, TimeLevel)):
+                                return 1
+                            else:
+                                assert(isinstance(y_level, FinalTimeLevel))
+                                if x_level > y_level:
+                                    return 1
+                                elif x_level < y_level:
+                                    return -1
+                                else:
+                                    return 0
                     else:
-                        assert(isinstance(x_level, FinalTimeLevel))
-                        if isinstance(y_level, (int, Fraction, TimeLevel)):
-                            return 1
-                        else:
-                            assert(isinstance(y_level, FinalTimeLevel))
-                            return x_level.__cmp__(y_level)
+                        return 1
+                elif hasattr(y, "_time_level_data"):
+                    return -1
                 else:
-                    return 1
-            elif hasattr(y, "_time_level_data"):
-                return -1
-            else:
-                return x.id() - y.id()
-        proc_deps.sort(cmp = cmp)
+                    return x.id() - y.id()
+        proc_deps.sort(key = DependencyComparison)
 
         return proc_deps
 
@@ -499,7 +529,7 @@ class TimeSystem(object):
 
 _assemble_classes.append(TimeSystem)
 
-class ForwardModel(object):
+class ForwardModel:
     """
     Used to solve timestep equations with timestep specific optimisations applied.
 
@@ -680,7 +710,7 @@ class ForwardModel(object):
 
         return
 
-class AdjointModel(object):
+class AdjointModel:
     """
     Used to solve adjoint timestep equations with timestep specific optimisations
     applied. This assumes that forward model data is updated externally.
@@ -946,7 +976,7 @@ class AdjointModel(object):
 
         return
 
-class ManagedModel(object):
+class ManagedModel:
     """
     Used to solve forward and adjoint timestep equations. This performs necessary
     storage and recovery management.
@@ -1837,7 +1867,7 @@ class ManagedModel(object):
 
         dolfin.info("Running functional minimisation")
 
-        class Packer(object):
+        class Packer:
             def __init__(self, parameters):
                 p = dolfin.MPI.rank(dolfin.mpi_comm_world())
 

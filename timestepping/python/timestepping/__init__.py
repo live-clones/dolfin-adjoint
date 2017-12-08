@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .fenics_patches import *
 from .parameters import *
 
 from . import caches
@@ -72,7 +71,6 @@ __all__ = \
   embedded_cpp.__all__ + \
   exceptions.__all__ + \
   fenics_overrides.__all__ + \
-  fenics_patches.__all__ + \
   fenics_utils.__all__ + \
   parameters.__all__ + \
   pre_assembled_adjoint.__all__ + \

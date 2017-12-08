@@ -45,7 +45,7 @@ def read_vtu(filename, space):
 
     if not isinstance(filename, str):
         raise InvalidArgumentException("filename must be a string")
-    if not isinstance(space, dolfin.FunctionSpaceBase):
+    if not isinstance(space, dolfin.cpp.function.FunctionSpace):
         raise InvalidArgumentException("space must be a FunctionSpace")
     if dolfin.MPI.size(dolfin.mpi_comm_world()) > 1:
         raise NotImplementedException("read_vtu cannot be used with more than one MPI process")

@@ -99,7 +99,7 @@ def matrix_optimisation(form):
     # Success
     return mat_form, fn
 
-class PAFilter(object):
+class PAFilter:
     """
     A pre-assembly filter. This processes input forms for pre-assembly.
 
@@ -528,7 +528,7 @@ class NonPAFilter(PAFilter):
                 tensor += self._assemble(self._form)
                 return tensor
 
-class PAForm(object):
+class PAForm:
     """
     A pre-assembled form. Given a form of arbitrary rank, this finds and
     pre-assembles static terms.

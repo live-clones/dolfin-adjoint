@@ -57,17 +57,7 @@ def find_tests(rel_path, exclude = []):
   for test in copy.copy(tests):
     if test[rel_path_len:] in exclude:
       tests.remove(test)
-
-  def cmp(a, b):
-    a_basename = os.path.basename(a)
-    b_basename = os.path.basename(b)
-    if a_basename < b_basename:
-      return -1
-    elif a_basename == b_basename:
-      return 0
-    else:
-      return 1
-  tests.sort(cmp = cmp)
+  tests.sort(key = lambda e : os.path.basename(e))
 
   ntests = []
   for test in tests:

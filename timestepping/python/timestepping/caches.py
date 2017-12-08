@@ -91,7 +91,7 @@ def parameters_key(parameters):
             fparameters.append((key, parameters[key]))
     return tuple(fparameters)
 
-class AssemblyCache(object):
+class AssemblyCache:
     """
     A cache of assembled Form s. The assemble method can be used to assemble a
     given Form. If an assembled version of the Form exists in the cache, then the
@@ -191,7 +191,7 @@ class AssemblyCache(object):
 
         return
 
-class SolverCache(object):
+class SolverCache:
     """
     A cache of LUSolver s and KrylovSolver s. The linear_solver method can be used
     to return an LUSolver or KrylovSolver suitable for solving an equation with

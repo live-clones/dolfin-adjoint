@@ -32,7 +32,7 @@ __all__ = \
     "MemoryCheckpointer"
   ]
 
-class Checkpointer(object):
+class Checkpointer:
     """
     A template for Constant and Function storage.
     """
@@ -84,9 +84,7 @@ class Checkpointer(object):
         if not isinstance(cs, set):
             cs = set(cs)
         cs = list(cs)
-        def cmp(x, y):
-            return x.id() - y.id()
-        cs.sort(cmp = cmp)
+        cs.sort(key = lambda e : e.id())
 
         return cs
 

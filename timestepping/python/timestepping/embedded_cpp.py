@@ -37,7 +37,7 @@ __all__ = \
 
 int_arr, long_arr, double_arr = 2, 3, 4
 
-class EmbeddedCpp(object):
+class EmbeddedCpp:
     """
     A wrapper for short sections of embedded C++ code.
 

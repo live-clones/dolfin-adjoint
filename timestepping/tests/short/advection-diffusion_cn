@@ -27,16 +27,9 @@ def Plot(T, index):
   from matplotlib.pylab import plot, ylim, savefig, clf
   import numpy
   x = interpolate(Expression("x[0]"), space).vector().array()
-  def cmp(a, b):
-    if a[0] < b[0]:
-      return -1
-    elif a[0] == b[0]:
-      return 0
-    else:
-      return 1
   T = T.vector().array()
   pack = [(x[i], T[i]) for i in range(T.shape[0])]
-  pack.sort(cmp = cmp)
+  pack.sort(key = lambda e : e[0])
   x = numpy.array([pack[i][0] for i in range(T.shape[0])])
   T = numpy.array([pack[i][1] for i in range(T.shape[0])])
 
