@@ -170,6 +170,12 @@ class WrappedFunction(dolfin.Function):
         self.__label = label
 
         return
+    
+    def ufl_domain(self):
+        return self.function_space().ufl_domain()
+    
+    def ufl_domains(self):
+        return self.function_space().ufl_domains()
 
 class TimeFunction(TimeLevels):
     """

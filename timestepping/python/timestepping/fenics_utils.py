@@ -26,6 +26,50 @@
 # ufl/algorithms/ad.py, bzr 1.1.x branch 1484
 # Code first added: 2013-01-18
 
+# Code derived from ffc/analysis.py in FFC 2016.1.0 added on 2016-10-07.
+# Copyright information from ffc/analysis.py:
+# 
+# Copyright (C) 2007-201r Anders Logg and Kristian B. Oelgaard
+#
+# This file is part of FFC.
+#
+# FFC is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# FFC is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with FFC. If not, see <http://www.gnu.org/licenses/>.
+#
+# Modified by Marie E. Rognes, 2010
+# Modified by Martin Alnaes, 2013-2014
+#
+# Code further checked against ffc/analysis.py in FFC 2017.1.0 on 2017-12-08.
+# Copyright information from ffc/analysis.py:
+#
+# Copyright (C) 2007-2016 Anders Logg, Martin Alnaes, Kristian B. Oelgaard,
+# and others
+#
+# This file is part of FFC.
+#
+# FFC is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# FFC is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with FFC. If not, see <http://www.gnu.org/licenses/>.
+
 import copy
 
 import dolfin
@@ -67,19 +111,38 @@ def form_quadrature_degree(form):
     if not isinstance(form, ufl.form.Form):
         raise InvalidArgumentException("form must be a Form")
 
-    if dolfin.parameters["form_compiler"]["quadrature_degree"] > 0:
+    if not dolfin.parameters["form_compiler"]["quadrature_degree"] is None \
+      and dolfin.parameters["form_compiler"]["quadrature_degree"] >= 0:
         quadrature_degree = dolfin.parameters["form_compiler"]["quadrature_degree"]
     else:
         # This is based upon code from _analyze_form and
         # _attach_integral_metadata in analysis.py, FFC bzr trunk revision 1761
+        #
+        # Updated on 2016-10-07 using code from ffc/analysis.py in FFC 2016.1.0
+        # Updated on 2017-12-08 after checking against code from ffc/analysis.py in FFC 2017.1.0
+        
+        parameters = {}
+        def copy_parameters(new, old):
+          for key, value in old.iteritems():
+            if isinstance(value, (dict, dolfin.Parameters)):
+              new[key] = {}
+              copy_parameters(new[key], value)
+            else:
+              new[key] = value
+        copy_parameters(parameters, dolfin.parameters["form_compiler"])
+        
         form = copy.copy(form)
-        form_data = ffc.analysis._analyze_form(form, dolfin.parameters["form_compiler"])
+        form_data = ffc.analysis._analyze_form(form, parameters)
         quadrature_degree = -1
-        for integral in form.integrals():
-            rep = dolfin.parameters["form_compiler"]["representation"]
-            if rep == "auto":
-                rep = ffc.analysis._auto_select_representation(integral, form_data.unique_sub_elements, form_data.function_replace_map)
-            quadrature_degree = max(quadrature_degree, ffc.analysis._auto_select_quadrature_degree(integral, rep, form_data.unique_sub_elements, form_data.element_replace_map))
+        for integral_data in form_data.integral_data:        
+            for integral in integral_data.integrals:
+                integral_metadata = copy.deepcopy(parameters)
+                if integral.metadata():
+                    integral_metadata.update(integral.metadata())
+                quadrature_degree = max(quadrature_degree, ffc.analysis._autoselect_quadrature_degree(integral_metadata, integral, form_data))
+        
+        # End of code from derived from FFC
+
     return quadrature_degree
 
 def form_rank(form):
@@ -200,12 +263,8 @@ def differentiate_expr(expr, u, expand = True):
         if expand:
             # Based on code from expand_derivatives1 in UFL file ad.py, (see e.g. bzr
             # 1.1.x branch revision 1484)
-            cell = der.cell()
-            if cell is None:
-                dim = 0
-            else:
-                dim = der.cell().geometric_dimension()
-            der = ufl.algorithms.expand_derivatives(der, dim = dim)
+            # Updated on 2017-12-08 (dim argument no longer needed)
+            der = ufl.algorithms.expand_derivatives(der)
 
     return der
 
@@ -300,7 +359,7 @@ def lumped_mass(space):
 
     return dolfin.TestFunction(space) * dolfin.dx
 
-def expand(form, dim = None):
+def expand(form):
     """
     Expand the supplied Expr or Form. This attempts to yield a canonical form.
     """
@@ -308,7 +367,7 @@ def expand(form, dim = None):
     if not isinstance(form, (ufl.core.expr.Expr, ufl.form.Form)):
         raise InvalidArgumentException("form must be an Expr or Form")
 
-    return ufl.algorithms.expand_indices(ufl.algorithms.expand_compounds(ufl.algorithms.expand_derivatives(form, dim = dim)))
+    return ufl.algorithms.expand_indices(ufl.algorithms.expand_compounds(ufl.algorithms.expand_derivatives(form)))
 
 def extract_test_and_trial(form):
     """
