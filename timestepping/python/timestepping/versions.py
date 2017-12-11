@@ -16,17 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import glob
-import os
-
-import dolfin
-import ffc
-import instant
-import numpy
-import scipy
-import ufl
-import vtk
-
 __all__ = \
   [
     "system_info"
@@ -41,8 +30,13 @@ def system_info():
     import socket
     import time
 
+    import dolfin
     import FIAT
+    import ffc
     import instant
+    import numpy
+    import scipy
+    import ufl
 
     dolfin.info("Date / time    : %s" % time.ctime())
     dolfin.info("Machine        : %s" % socket.gethostname())
@@ -57,36 +51,20 @@ def system_info():
     except ImportError:
         pass
     try:
-        import sympy
-        dolfin.info("SymPy version  : %s" % sympy.__version__)
-    except ImportError:
-        pass
-    dolfin.info("VTK version    : %s" % vtk.vtkVersion().GetVTKVersion())
-    dolfin.info("DOLFIN version : %s" % dolfin.__version__)
-    dolfin.info("FIAT version   : %s" % FIAT.__version__)
-    try:
-        import ferari
-        dolfin.info("FErari version : %s" % ferari.VERSION)
-    except ImportError:
-        pass
-    dolfin.info("FFC version    : %s" % ffc.__version__)
-    dolfin.info("Instant version: %s" % instant.__version__)
-    try:
-        import SyFi
-        dolfin.info("SyFi version   : %i.%i" % (SyFi.version_major, SyFi.version_minor))
-    except ImportError:
-        pass
-    dolfin.info("UFL version    : %s" % ufl.__version__)
-    try:
-        import viper
-        dolfin.info("Viper version  : %s" % viper.__version__)
-    except ImportError:
-        pass
-    try:
         import petsc4py.PETSc
         info = petsc4py.PETSc.Sys.getVersionInfo()
         dolfin.info("PETSc version  : %i.%i.%ip%i%s" % (info["major"], info["minor"], info["subminor"], info["patch"], "" if info["release"] else "dev"))
     except ImportError:
         pass
+    try:
+        import vtk
+        dolfin.info("VTK version    : %s" % vtk.vtkVersion().GetVTKVersion())
+    except ImportError:
+        pass
+    dolfin.info("DOLFIN version : %s" % dolfin.__version__)
+    dolfin.info("FIAT version   : %s" % FIAT.__version__)
+    dolfin.info("FFC version    : %s" % ffc.__version__)
+    dolfin.info("Instant version: %s" % instant.__version__)
+    dolfin.info("UFL version    : %s" % ufl.__version__)
 
     return

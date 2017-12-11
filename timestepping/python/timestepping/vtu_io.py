@@ -21,8 +21,6 @@ import copy
 
 import dolfin
 import numpy
-import ufl
-import vtk
 
 from .exceptions import *
 from .fenics_overrides import *
@@ -46,6 +44,8 @@ def write_vtu(filename, fns, index = None, t = None):
     with degree 0 to 3. In 2D and 3D all Function s must have Lagrange basis
     functions (continuous or discontinuous) with degree 0 to 2.
     """
+
+    import vtk
 
     if isinstance(fns, dolfin.Function):
         return write_vtu(filename, [fns], index = index, t = t)
