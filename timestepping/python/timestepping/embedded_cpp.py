@@ -80,7 +80,7 @@ class EmbeddedCpp:
                 raise InvalidArgumentException("Argument type must be int, float, int_arr, long_arr, double_arr, DirichletBC, Function, GenericMatrix, GenericVector or Mesh")
 
         args = copy.copy(kwargs)
-        for arg in list(args.keys()):
+        for arg in args.keys():
             if arg in list(self.__boost_classes.keys()):
                 cls = self.__boost_classes[arg]
                 while not isinstance(cls, str):
