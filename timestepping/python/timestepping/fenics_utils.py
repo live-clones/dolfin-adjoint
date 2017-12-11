@@ -119,11 +119,11 @@ def form_quadrature_degree(form):
         # _attach_integral_metadata in analysis.py, FFC bzr trunk revision 1761
         #
         # Updated on 2016-10-07 using code from ffc/analysis.py in FFC 2016.1.0
-        # Updated on 2017-12-08 after checking against code from ffc/analysis.py in FFC 2017.1.0
+        # Updated on 2017-12-08 and 2017-12-11 after checking against code from ffc/analysis.py in FFC 2017.1.0
         
         parameters = {}
         def copy_parameters(new, old):
-          for key, value in old.iteritems():
+          for key, value in old.items():
             if isinstance(value, (dict, dolfin.Parameters)):
               new[key] = {}
               copy_parameters(new[key], value)

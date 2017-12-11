@@ -283,7 +283,7 @@ class SolverCache:
                     static_parameters = linear_solver_parameters["lu_solver"]["reuse_factorization"] or \
                                         linear_solver_parameters["lu_solver"]["same_nonzero_pattern"]
                 else:
-                    static_parameters = False
+                    pass
                 if static_parameters:
                     raise ParameterException("Non-static solve supplied with static linear solver parameters")
 

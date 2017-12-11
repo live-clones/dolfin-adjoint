@@ -101,8 +101,12 @@ class TimeSystem:
             def __le__(self, other):
                 return not self > other
         
+            def x(self):
+                return self.__x
+        
             def cmp(self, y):
-                x = self.__x
+                x = self.x()
+                y = y.x()
                 if hasattr(x, "_time_level_data"):
                     if hasattr(y, "_time_level_data"):
                         x_tfn, x_level = x._time_level_data
@@ -440,8 +444,9 @@ class TimeSystem:
             tfns = self.__x_tfns[0]
         else:
             tfns = set()
-            for fn in list(self.__init_solves.keys()) + list(self.__solves.keys()) + list(self.__final_solves.keys()):
-                tfns.add(fn._time_level_data[0])
+            for solves in [self.__init_solves, self.__solves, self.__final_solves]:
+                for fn in solves:
+                    tfns.add(fn._time_level_data[0])
             tfns = sorted(list(tfns))
 
             self.__x_tfns[0], self.__x_tfns[1] = tfns, True

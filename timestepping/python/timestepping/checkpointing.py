@@ -17,9 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
-import six.moves.cPickle as pickle
 import copy
 import os
+import pickle
 
 import dolfin
 
@@ -180,7 +180,7 @@ class MemoryCheckpointer(Checkpointer):
 
         c_cs = self.__cache[key]
         if cs is None:
-            cs = list(c_cs.keys())
+            cs = c_cs.keys()
 
         for c in cs:
             self._Checkpointer__unpack(c, c_cs[c])
@@ -321,7 +321,7 @@ class DiskCheckpointer(Checkpointer):
         pickler = pickle.Unpickler(handle)
         c_cs = pickler.load()
         if cs is None:
-            cs = list(c_cs.keys())
+            cs = c_cs.keys()
 
         id_map = self.__id_map[key]
         for c_id in cs:

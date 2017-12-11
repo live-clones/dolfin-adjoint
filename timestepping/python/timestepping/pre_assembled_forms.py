@@ -29,7 +29,6 @@ from .fenics_utils import *
 from .statics import *
 from .versions import *
 from . import fenics_utils
-import six
 
 __all__ = \
   [
@@ -409,13 +408,14 @@ class PAMatrixFilter(PAFilter):
                 raise StateException("Cannot call assemble method when not pre-assembled")
 
         if tensor is None:
-            fn, mat = list(self.__pre_assembled.items())[0]
+            pre_assembled = list(self.__pre_assembled.items())
+            fn, mat = pre_assembled[0]
             L = mat * fn.vector()
-            for fn, mat in list(self.__pre_assembled.items())[1:]:
+            for fn, mat in pre_assembled[1:]:
                 L += mat * fn.vector()
             return L
         else:
-            for fn, mat in six.iteritems(self.__pre_assembled):
+            for fn, mat in self.__pre_assembled.items():
                 tensor += mat * fn.vector()
             return tensor
 
@@ -584,7 +584,7 @@ class PAForm:
                     if isinstance(e, ufl.algebra.Sum):
                         return e.ufl_operands
                     else:
-                        return e
+                        return [e]
 
             if self.pre_assembly_parameters["term_optimisation"]:
                 terms = []

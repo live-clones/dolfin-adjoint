@@ -176,11 +176,11 @@ def write_vtu(filename, fns, index = None, t = None):
             xnodes = nodes
         xnode_map = {node:i for i, node in enumerate(xnodes)}
 
-        x = dolfin.interpolate(dolfin.Expression("x[0]", degree = 1), xspace).vector().gather(xnodes)
+        x = dolfin.interpolate(dolfin.Expression("x[0]", element = xspace.ufl_element()), xspace).vector().gather(xnodes)
         if dim > 1:
-            y = dolfin.interpolate(dolfin.Expression("x[1]", degree = 1), xspace).vector().gather(xnodes)
+            y = dolfin.interpolate(dolfin.Expression("x[1]", element = xspace.ufl_element()), xspace).vector().gather(xnodes)
         if dim > 2:
-            z = dolfin.interpolate(dolfin.Expression("x[2]", degree = 1), xspace).vector().gather(xnodes)
+            z = dolfin.interpolate(dolfin.Expression("x[2]", element = xspace.ufl_element()), xspace).vector().gather(xnodes)
         n = x.shape[0]
 
         points = vtk.vtkPoints()

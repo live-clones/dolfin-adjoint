@@ -249,7 +249,7 @@ class TimeLevels:
             elif level > last_past_level:
                 raise InvalidArgumentException("Cannot map future to future levels")
 
-        if not len(set(cycle_map.values())) == len(list(cycle_map.values())):
+        if not len(set(cycle_map.values())) == len(cycle_map.values()):
             raise InvalidArgumentException("cycle_map must be one-to-one")
 
         cm_levels = sorted(cycle_map.keys())
@@ -273,7 +273,7 @@ class TimeLevels:
 
         self.__levels = levels
         self.__offsets = [level.offset() for level in levels]
-        self.__cycle_map = cycle_map
+        self.__cycle_map = copy.copy(cycle_map)
         self.__ext_cycle_map = ext_cycle_map
         self.__last_past_level = last_past_level
 

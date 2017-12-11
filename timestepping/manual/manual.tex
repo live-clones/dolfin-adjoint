@@ -328,8 +328,8 @@ timestep data corresponding to each key in \verb+cycle_map+ is replaced with
 data corresponding to the associated value in the \verb+cycle_map+. The
 replacement of data is performed in order, with earlier (lower offset) keys in
 \verb+cycle_map+ replaced before later keys. All keys in \verb+cycle_map+ must
-be earlier (have a lower offset) than their associated values. The elements in
-\verb+cycle_map.values()+ must be unique.
+be earlier (have a lower offset) than their associated values. The elements
+iterated over via \verb+cycle_map.values()+ must be unique.
 
 The optional \verb+last_past_level+ defines the ``present'' point associated
 with the \verb+TimeLevels+. Time levels before or equal to
