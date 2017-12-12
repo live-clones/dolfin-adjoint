@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# #NT 4
 
 # Copyright (C) 2009 Garth N. Wells
 # Copyright (C) 2013 University of Oxford
@@ -35,11 +34,9 @@ from timestepping import *
 
 from numpy import random
 
-# parameters["num_threads"] = 4
-
 # Class representing the intial conditions
 class InitialConditions(Expression):
-    def __init__(self):
+    def __init__(self, element):
         random.seed(2 + MPI.rank(mpi_comm_world()))
     def eval(self, values, x):
         values[0] = 0.63 + 0.02*(0.5 - random.random())
@@ -55,7 +52,7 @@ theta  = 0.5      # time stepping family, e.g. theta=1 -> backward Euler, theta=
 # Create mesh and define function spaces
 mesh = UnitSquareMesh(96, 96)
 V = FunctionSpace(mesh, "Lagrange", 1)
-ME = V*V
+ME = FunctionSpace(mesh, V.ufl_element() * V.ufl_element())
 
 # Define trial and test functions
 du    = TrialFunction(ME)
@@ -71,13 +68,13 @@ u  = U[n + 1]  # current solution
 u0 = U[n]      # solution from previous converged step
 
 # Split mixed functions
-dc, dmu = split(du)
-c,  mu  = split(u)
-c0, mu0 = split(u0)
+dc, dmu = du
+c,  mu  = u
+c0, mu0 = u0
 
 # Create initial conditions and interpolate
 u_ic = StaticFunction(ME)
-u_ic.interpolate(InitialConditions())
+u_ic.interpolate(InitialConditions(element = u_ic.function_space().ufl_element()))
 system.add_solve(u_ic, U[0])
 
 # Compute the chemical potential df/dc
@@ -100,10 +97,7 @@ system.add_solve(L == 0, u, J = a,
   initial_guess = u0,
   solver_parameters = {"newton_solver":{"convergence_criterion":"incremental", "absolute_tolerance":1.0e-16, "relative_tolerance":1.0e-8, "linear_solver":"lu"}})
 
-system = system.assemble(adjoint = True, disk_period = 10, functional = split(U[N])[0] * split(U[N])[0] * dx)
-
-# Output file
-#file = File("output.pvd", "compressed")
+system = system.assemble(adjoint = True, disk_period = 10, functional = U[N][0] * U[N][0] * dx)
 
 # Step in time
 t = 0.0
@@ -111,12 +105,11 @@ T = 20*dt
 while (t < T):
     t += dt
     system.timestep()
-#    file << (u.split()[0], t)
 
 system.finalise()
 
-comp = U[N].vector().norm("l2")
-ref = 5.64531728147374452e+02
+comp = assemble(inner(U[N], U[N]) * dx)
+ref = 3.3530444079116286e+01
 err = abs(ref - comp)
 print("%.16e" % comp)
 print("%.16e" % ref)
