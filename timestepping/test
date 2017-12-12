@@ -30,7 +30,6 @@ optionParser = optparse.OptionParser( \
   usage = "%prog [OPTIONS] DIR", \
   add_help_option = True, \
   description = "Run timestepping tests")
-optionParser.add_option("-c", "--custom-tests", action = "store_true", dest = "local", help = "Enable custom local tests", default = False)
 optionParser.add_option("-n", "--num-processors", type = int, dest = "N", help = "Run using N cores. A zero or negative value indicates that all cores should be used. Note that if an individual test uses > N cores then additional cores will be used.", default = 1)
 optionParser.add_option("-l", "--long-tests", action = "store_true", dest = "long", help = "Enable long tests", default = False)
 optionParser.add_option("-S", "--no-short-tests", action = "store_false", dest = "short", help = "Disable short tests", default = True)
@@ -40,24 +39,16 @@ if len(args) > 0:
   sys.exit(1)
 
 path = os.path.abspath(os.path.dirname(__file__))
-def find_tests(rel_path, exclude = []):
-  def lfind_tests(rel_path):
+def find_tests(rel_path):
+  def find_tests(rel_path):
     tests = glob.glob(os.path.join(path, rel_path, "*"))
     for test in copy.copy(tests):
-      if os.path.isdir(test):
-        tests.remove(test)
-        tests += lfind_tests(os.path.join(rel_path, test))
-    for test in copy.copy(tests):
-      if not os.access(test, os.X_OK):
+      if os.path.isdir(test) or not os.access(test, os.X_OK):
         tests.remove(test)
     return tests
 
-  tests = lfind_tests(rel_path)
-  rel_path_len = len(os.path.join(path, rel_path, ""))
-  for test in copy.copy(tests):
-    if test[rel_path_len:] in exclude:
-      tests.remove(test)
-  tests.sort(key = lambda e : os.path.basename(e))
+  tests = sorted(find_tests(rel_path),
+                 key = lambda e : os.path.basename(e))
 
   ntests = []
   for test in tests:
@@ -86,15 +77,12 @@ def find_tests(rel_path, exclude = []):
 
 if opts.short:
   tests = find_tests(os.path.join("manual", "examples")) \
-        + find_tests(os.path.join("tests", "fenics")) \
         + find_tests(os.path.join("tests", "unit")) \
         + find_tests(os.path.join("tests", "short"))
 else:
   tests = []
 if opts.long:
   tests += find_tests(os.path.join("tests", "long"))
-if opts.local:
-  tests += find_tests(os.path.join("tests", "local"))
 
 def run_test(i, np, test, test_success):
   sys.stdout.write("Running test: %s\n" % test)
