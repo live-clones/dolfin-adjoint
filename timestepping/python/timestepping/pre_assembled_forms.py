@@ -83,7 +83,7 @@ def matrix_optimisation(form):
       # Hack to work around an obscure FEniCS bug
       expand = dolfin.MPI.size(dolfin.mpi_comm_world()) == 1 or
         (not is_r0_function_space(args[0].function_space()) and not is_r0_function(fn)))
-    if n_non_static_coefficients(mat_form) > 0:
+    if not is_static_form(mat_form):
         # The form is non-linear
         return None
     try:

@@ -24,6 +24,7 @@ import ufl
 from .exceptions import *
 from .fenics_overrides import *
 from .fenics_utils import *
+from .statics import *
 
 __all__ = \
   [
@@ -162,8 +163,7 @@ class AssignmentSolver:
     """
 
     def __init__(self, y, x):
-        if not isinstance(y, (int, float, LinearCombination, ufl.core.expr.Expr)) \
-          and not is_general_constant(y):
+        if not isinstance(y, (int, float, LinearCombination, ufl.core.expr.Expr)):
             raise InvalidArgumentException("y must be an int, float, LinearCombination or Expr")
         if not isinstance(x, dolfin.Function):
             raise InvalidArgumentException("x must be a Function")
@@ -173,7 +173,7 @@ class AssignmentSolver:
         elif isinstance(y, dolfin.Function):
             if y is x:
                 raise DependencyException("Assignment is non-linear")
-        elif is_general_constant(y):
+        elif isinstance(y, dolfin.Constant):
             pass
         elif isinstance(y, LinearCombination):
             if x in y.dependencies():
@@ -220,7 +220,7 @@ class AssignmentSolver:
 
         if isinstance(self.__y, ufl.constantvalue.FloatValue):
             return set()
-        elif isinstance(self.__y, dolfin.Function) or is_general_constant(self.__y):
+        elif isinstance(self.__y, (dolfin.Constant, dolfin.Function)):
             return {self.__y}
         elif isinstance(self.__y, LinearCombination):
             return self.__y.dependencies(non_symbolic = non_symbolic)
@@ -233,7 +233,7 @@ class AssignmentSolver:
         Return all non-linear dependencies of the AssignmentSolver.
         """
 
-        if isinstance(self.__y, (ufl.constantvalue.FloatValue, dolfin.Function)) or is_general_constant(self.__y):
+        if isinstance(self.__y, (ufl.constantvalue.FloatValue, dolfin.Constant, dolfin.Function)):
             return set()
         elif isinstance(self.__y, LinearCombination):
             return self.__y.nonlinear_dependencies()
@@ -284,8 +284,6 @@ class AssignmentSolver:
             self.__x.assign(dolfin.Constant(self.__y))
         elif isinstance(self.__y, (dolfin.Constant, dolfin.Function)):
             self.__x.assign(self.__y)
-        elif is_general_constant(self.__y):
-            self.__x.assign(dolfin.Constant([y_c for y_c in self.__y]))
         elif isinstance(self.__y, LinearCombination):
             self.__y.solve(self.__x)
         else:
@@ -326,7 +324,7 @@ class EquationSolver:
             raise InvalidArgumentException("adjoint_solver_parameters must be a dictionary")
 
         x_deps = set(ufl.algorithms.extract_coefficients(eq.lhs))
-        if not is_zero_rhs(eq.rhs):
+        if eq.rhs != 0:
             x_deps.update(ufl.algorithms.extract_coefficients(eq.rhs))
 
         is_linear = not x in x_deps
@@ -454,7 +452,7 @@ class EquationSolver:
                 form = dolfin.action(self.__eq.lhs, self.__x)
             else:
                 form = self.__eq.lhs
-            if not is_zero_rhs(self.__eq.rhs):
+            if self.__eq.rhs != 0:
                 form -= self.__eq.rhs
             self.__J = derivative(form, self.__x)
 
@@ -467,7 +465,8 @@ class EquationSolver:
         """
 
         if self.__hbcs is None:
-            self.__hbcs = [homogenize(bc) for bc in self.__bcs]
+            self.__hbcs = [(StaticDirichletBC if is_static_bc(bc) else dolfin.DirichletBC)(bc) for bc in self.__bcs]
+            [bc.homogenize() for bc in self.__hbcs]
 
         return self.__hbcs
 
@@ -533,7 +532,7 @@ class EquationSolver:
                 if dep is x:
                     raise DependencyException("Invalid non-linear solve")
                 add_lhs_dep(lhs, dep, x)
-            if not is_zero_rhs(rhs):
+            if rhs != 0:
                 for dep in ufl.algorithms.extract_coefficients(rhs):
                     if dep is x:
                         raise DependencyException("Invalid non-linear solve")
@@ -541,7 +540,7 @@ class EquationSolver:
         else:
             for dep in ufl.algorithms.extract_coefficients(lhs):
                 add_rhs_dep(-lhs, dep, x)
-            if not is_zero_rhs(rhs):
+            if rhs != 0:
                 for dep in ufl.algorithms.extract_coefficients(rhs):
                     add_rhs_dep(rhs, dep, x)
 
@@ -589,7 +588,7 @@ class EquationSolver:
                 form = dolfin.action(self.__eq.lhs, self.__x)
         else:
             form = self.__eq.lhs
-        if not is_zero_rhs(self.__eq.rhs):
+        if self.__eq.rhs != 0:
             form -= self.__eq.rhs
 
         return derivative(form, parameter)

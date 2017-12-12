@@ -31,12 +31,9 @@ __all__ = \
     "_LUSolver",
     "_assemble",
     "_assemble_classes",
-    "DirichletBC",
     "LinearSolver",
-    "adjoint",
     "assemble",
-    "derivative",
-    "homogenize"
+    "derivative"
   ]
 
 # Assembly and linear solver functions and classes used in this module. These
@@ -45,48 +42,6 @@ _KrylovSolver = dolfin.KrylovSolver
 _LinearSolver = dolfin.LinearSolver
 _LUSolver = dolfin.LUSolver
 _assemble = dolfin.assemble
-
-class DirichletBC(dolfin.DirichletBC):
-    """
-    Wrapper for DOLFIN DirichletBC. Adds homogenized method.
-    """
-
-    def __init__(self, *args, **kwargs):
-        dolfin.DirichletBC.__init__(self, *args, **kwargs)
-
-        self.__hbc = None
-
-        return
-
-    def homogenized(self):
-        """
-        Return a homogenised version of this DirichletBC.
-        """
-
-        if self.__hbc is None:
-            self.__hbc = dolfin.DirichletBC(self.function_space(), self.value(), *self.domain_args, method = self.method())
-            self.__hbc.homogenize()
-            if hasattr(self, "_time_static"):
-                self.__hbc._time_static = self._time_static
-
-        return self.__hbc
-
-def homogenize(bc):
-    """
-    Return a homogenised version of the supplied DirichletBC.
-    """
-
-    if isinstance(bc, DirichletBC):
-        return bc.homogenized()
-    elif isinstance(bc, dolfin.cpp.DirichletBC):
-        hbc = DirichletBC(bc.function_space(), bc.value(), *bc.domain_args, method = bc.method())
-        hbc.homogenize()
-        if hasattr(bc, "_time_static"):
-            hbc._time_static = bc._time_static
-    else:
-        raise InvalidArgumentException("bc must be a DirichletBC")
-
-    return hbc
 
 def LinearSolver(*args, **kwargs):
     """
@@ -140,33 +95,6 @@ def LinearSolver(*args, **kwargs):
         linear_solver.parameters.update(kp)
 
     return linear_solver
-
-def adjoint(form, reordered_arguments = None, adjoint_arguments = None):
-    """
-    Wrapper for the DOLFIN adjoint function. Accepts the additional optional
-    adjoint_arguments, which if supplied should be a tuple of Argument s
-    corresponding to the adjoint test and trial functions.
-    """
-
-    if adjoint_arguments is None:
-        a_form = dolfin.adjoint(form, reordered_arguments = reordered_arguments)
-    elif not reordered_arguments is None:
-        raise InvalidArgumentException("Cannot supply both reordered_arguments and adjoint_arguments keyword arguments")
-    else:
-        if not len(adjoint_arguments) == 2 \
-          or not isinstance(adjoint_arguments[0], ufl.argument.Argument) \
-          or not isinstance(adjoint_arguments[1], ufl.argument.Argument):
-            raise InvalidArgumentException("adjoint_arguments must be a pair of Argument s")
-
-        a_test, a_trial = adjoint_arguments
-        a_form = dolfin.adjoint(form)
-        test, trial = extract_test_and_trial(a_form)
-
-        if not test.ufl_element() == a_test.ufl_element() or not trial.ufl_element() == a_trial.ufl_element():
-            raise InvalidArgumentException("Invalid adjoint_arguments")
-        a_form = dolfin.replace(a_form, {test:a_test, trial:a_trial})
-
-    return a_form
 
 def derivative(form, u, du = None, expand = True):
     """

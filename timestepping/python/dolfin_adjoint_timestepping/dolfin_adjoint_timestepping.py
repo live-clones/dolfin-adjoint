@@ -314,7 +314,7 @@ def da_annotate_equation_solve(solve):
 
     # Unwrap WrappedFunction s in the equation
     eq.lhs = unwrap_fns(eq.lhs)
-    if not is_zero_rhs(eq.rhs):
+    if eq.rhs != 0:
         eq.rhs = unwrap_fns(eq.rhs)
     if solve.is_linear() and form_rank(eq.lhs) == 1:
         raise NotImplementedException("Annotation for linear variational problem with rank 1 LHS not implemented")
@@ -348,10 +348,11 @@ def da_annotate_equation_solve(solve):
 
                 # Boundary conditions
                 if var.type in ["ADJ_ADJOINT", "ADJ_SOA", "ADJ_TLM"]:
-                    bcs = [homogenize(bc) for bc in self.__bcs]
+                    bcs = [(StaticDirichletBC if is_static_bc(bc) else dolfin.DirichletBC)(bc) for bc in self.__bcs]
+                    [bc.homogenize() for bc in bcs]
                 else:
                     bcs = self.__bcs
-                static_bcs = n_non_static_bcs(bcs) == 0
+                static_bcs = is_static_bcs(bcs)
 
                 if ("pa_a", var.type) in cache:
                     # We have cached data for this matrix
@@ -369,7 +370,7 @@ def da_annotate_equation_solve(solve):
                 else:
                     if form_rank(self.__eq.lhs) == 2:
                         assert(not self.__x_fn in ufl.algorithms.extract_coefficients(self.__eq.lhs))
-                        if not is_zero_rhs(self.__eq.rhs):
+                        if self.__eq.rhs != 0:
                             assert(not self.__x_fn in ufl.algorithms.extract_coefficients(self.__eq.rhs))
                         # The forward equation is a linear variational problem. Is the
                         # forward LHS matrix static?

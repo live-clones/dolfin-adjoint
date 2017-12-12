@@ -224,7 +224,7 @@ class PAAdjointSolvers:
                 f_a_rank = form_rank(f_a)
                 if f_a_rank == 2:
                     a_test, a_trial = dolfin.TestFunction(a_space), dolfin.TrialFunction(a_space)
-                    a_a = adjoint(f_a, adjoint_arguments = (a_test, a_trial))
+                    a_a = dolfin.adjoint(f_a)
                     la_a_forms.append(a_a)
                     la_bcs.append(f_solve.hbcs())
                     la_solver_parameters.append(copy.deepcopy(f_solve.adjoint_solver_parameters()))
@@ -271,7 +271,7 @@ class PAAdjointSolvers:
                     if a_x in la_keys:
                         a_test = dolfin.TestFunction(a_x.function_space())
                         a_key = la_keys[a_x]
-                        a_form = -dolfin.action(adjoint(f_a_od[f_dep], adjoint_arguments = (a_test, a_trial)), a_dep)
+                        a_form = -dolfin.action(dolfin.adjoint(f_a_od[f_dep]), a_dep)
                         if la_L_forms[a_key] is None:
                             la_L_forms[a_key] = a_form
                         else:
@@ -309,7 +309,7 @@ class PAAdjointSolvers:
             else:
                 a_a_rank = form_rank(self.__a_a_forms[i])
                 if a_a_rank == 2:
-                    static_bcs = n_non_static_bcs(self.__a_bcs[i]) == 0
+                    static_bcs = is_static_bcs(self.__a_bcs[i])
                     static_form = is_static_form(self.__a_a_forms[i])
                     if len(self.__a_bcs[i]) > 0 and static_bcs and static_form:
                         a_a = assembly_cache.assemble(self.__a_a_forms[i],

@@ -224,7 +224,7 @@ class TimeSystem:
         """
 
         if len(args) == 2 and len(kwargs) == 0 and \
-          (isinstance(args[0], (int, float, LinearCombination, ufl.core.expr.Expr)) or is_general_constant(args[0])) \
+          isinstance(args[0], (int, float, LinearCombination, ufl.core.expr.Expr)) \
           and isinstance(args[1], dolfin.Function):
             self.add_assignment(args[0], args[1])
             return
@@ -266,7 +266,7 @@ class TimeSystem:
             eq = eargs[0]
             solve = copy.copy(args), copy.copy(kwargs)
             x_deps = set(ufl.algorithms.extract_coefficients(eq.lhs))
-            if not is_zero_rhs(eq.rhs):
+            if eq.rhs != 0:
                 x_deps.update(ufl.algorithms.extract_coefficients(eq.rhs))
             eq_lhs = eq.lhs
 
@@ -1475,8 +1475,7 @@ class ManagedModel:
                                 f_der = PAForm(f_der)
                             else:
                                 assert(rank == 2)
-                                f_der = PAForm(adjoint(f_der, \
-                                  adjoint_arguments = (dolfin.TestFunction(parameter.function_space()), dolfin.TrialFunction(f_x.function_space()))))
+                                f_der = PAForm(dolfin.adjoint(f_der))
                             dFdm[j][i][f_x] = f_der
 
         cp_cs = copy.copy(self.__nl_cp_cs)

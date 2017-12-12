@@ -24,64 +24,47 @@ from .fenics_overrides import *
 
 __all__ = \
   [
+    "Static",
     "StaticConstant",
     "StaticDirichletBC",
     "StaticFunction",
     "extract_non_static_coefficients",
     "is_static_coefficient",
     "is_static_bc",
-    "is_static_form",
-    "n_non_static_bcs",
-    "n_non_static_coefficients"
+    "is_static_bcs",
+    "is_static_form"
   ]
 
-def StaticConstant(*args, **kwargs):
+class Static:
     """
-    Return a Constant which is marked as "static". Arguments are identical to the
-    Constant function.
+    Used to mark objects as "static".
     """
+    pass
 
-    c = dolfin.Constant(*args, **kwargs)
-    if isinstance(c, ufl.tensors.ListTensor):
-        for c_c in c:
-            assert(isinstance(c_c, dolfin.Constant))
-            c_c._time_static = True
-    else:
-        assert(isinstance(c, dolfin.Constant))
-        c._time_static = True
-
-    return c
-
-def StaticFunction(*args, **kwargs):
+class StaticConstant(dolfin.Constant, Static):
     """
-    Return a Function which is marked as "static". Arguments are identical to the
-    Function function.
+    A Constant which is marked as "static".
     """
+    pass
 
-    fn = dolfin.Function(*args, **kwargs)
-    fn._time_static = True
-
-    return fn
-
-class StaticDirichletBC(DirichletBC):
+class StaticFunction(dolfin.Function, Static):
     """
-    A DirichletBC which is marked as "static". Constructor arguments are identical
-    to the DOLFIN DirichletBC constructor.
+    A Function which is marked as "static".
     """
+    pass
 
-    def __init__(self, *args, **kwargs):
-        DirichletBC.__init__(self, *args, **kwargs)
-
-        self._time_static = True
-
-        return
+class StaticDirichletBC(dolfin.DirichletBC, Static):
+    """
+    A DirichletBC which is marked as "static".
+    """
+    pass
 
 def is_static_coefficient(c):
     """
     Return whether the supplied argument is a static Coefficient.
     """
 
-    return isinstance(c, ufl.constantvalue.ConstantValue) or (hasattr(c, "_time_static") and c._time_static)
+    return isinstance(c, (ufl.constantvalue.ConstantValue, Static))
 
 def extract_non_static_coefficients(form):
     """
@@ -92,18 +75,6 @@ def extract_non_static_coefficients(form):
     for c in ufl.algorithms.extract_coefficients(form):
         if not is_static_coefficient(c):
             non_static.append(c)
-    return non_static
-
-def n_non_static_coefficients(form):
-    """
-    Return the number of non-static Coefficient s associated with the supplied
-    form.
-    """
-
-    non_static = 0
-    for c in ufl.algorithms.extract_coefficients(form):
-        if not is_static_coefficient(c):
-            non_static += 1
     return non_static
 
 def is_static_form(form):
@@ -121,25 +92,24 @@ def is_static_form(form):
 
 def is_static_bc(bc):
     """
-    Return whether the supplied DirichletBC is "static".
+    Return whether the supplied argument is a static DirichletBC.
     """
+    
+    return isinstance(bc, StaticDirichletBC)
 
-    if not isinstance(bc, dolfin.cpp.DirichletBC):
-        raise InvalidArgumentException("bc must be a DirichletBC")
-
-    return hasattr(bc, "_time_static") and bc._time_static
-
-def n_non_static_bcs(bcs):
+def is_static_bcs(bcs):
     """
-    Given a list of DirichletBC s, return the number of static DirichletBC s.
+    Return whether the supplied list of DirichletBC s contains only
+    StaticDirichletBC s.
     """
 
     if not isinstance(bcs, list):
         raise InvalidArgumentException("bcs must be a list of DirichletBC s")
+    for bc in bcs:
+        if not isinstance(bc, dolfin.cpp.DirichletBC):
+            raise InvalidArgumentException("bcs must be a list of DirichletBC s")
 
-    n = 0
     for bc in bcs:
         if not is_static_bc(bc):
-            n += 1
-
-    return n
+            return False
+    return True

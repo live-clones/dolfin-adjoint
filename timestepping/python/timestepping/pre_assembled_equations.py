@@ -81,7 +81,7 @@ class PAEquationSolver(EquationSolver):
         eq_lhs_rank = form_rank(eq.lhs)
         if eq_lhs_rank == 1:
             form = eq.lhs
-            if not is_zero_rhs(eq.rhs):
+            if eq.rhs != 0:
                 form -= eq.rhs
             if x in ufl.algorithms.extract_coefficients(form):
                 if J is None:
@@ -102,7 +102,7 @@ class PAEquationSolver(EquationSolver):
                 is_linear = True
         elif eq_lhs_rank == 2:
             form = eq.lhs
-            if not is_zero_rhs(eq.rhs):
+            if eq.rhs != 0:
                 form -= eq.rhs
             if not x in ufl.algorithms.extract_coefficients(form):
                 # Linear solve, rank 2 LHS
@@ -185,7 +185,7 @@ class PAEquationSolver(EquationSolver):
             def assemble_lhs():
                 eq_lhs_rank = form_rank(eq.lhs)
                 if eq_lhs_rank == 2:
-                    static_bcs = n_non_static_bcs(bcs) == 0
+                    static_bcs = is_static_bcs(bcs)
                     static_form = is_static_form(eq.lhs)
                     if not pre_assembly_parameters["equations"]["symmetric_boundary_conditions"] and len(bcs) > 0 and static_bcs and static_form:
                         a = assembly_cache.assemble(eq.lhs,
@@ -256,7 +256,7 @@ class PAEquationSolver(EquationSolver):
                 return a, linear_solver
             def assemble_rhs():
                 L = -eq.lhs
-                if not is_zero_rhs(eq.rhs):
+                if eq.rhs != 0:
                     L += eq.rhs
                 L = PAForm(L, pre_assembly_parameters = pre_assembly_parameters["linear_forms"])
                 cache_info("Pre-assembled RHS terms in solve for %s    : %i" % (x.name(), L.n_pre_assembled()))
@@ -271,7 +271,7 @@ class PAEquationSolver(EquationSolver):
                 L = self.__L
                 lhs_cs = set(ufl.algorithms.extract_coefficients(J))
                 rhs_cs = set(ufl.algorithms.extract_coefficients(eq.lhs))
-                if not is_zero_rhs(eq.rhs):
+                if eq.rhs != 0:
                     rhs_cs.update(ufl.algorithms.extract_coefficients(eq.rhs))
                 for dep in args:
                     if dep in lhs_cs:

@@ -92,11 +92,9 @@ __all__ = \
     "form_quadrature_degree",
     "form_rank",
     "is_empty_form",
-    "is_general_constant",
     "is_r0_function",
     "is_r0_function_space",
     "is_self_adjoint_form",
-    "is_zero_rhs",
     "lumped_mass"
   ]
 
@@ -154,20 +152,6 @@ def form_rank(form):
         raise InvalidArgumentException("form must be a Form")
 
     return len(ufl.algorithms.extract_arguments(form))
-
-def is_general_constant(c):
-    """
-    Return whether the supplied object is a Constant or a ListTensor containing
-    Constant s.
-    """
-
-    if isinstance(c, ufl.tensors.ListTensor):
-        for c_c in c:
-            if not isinstance(c_c, dolfin.Constant):
-                return False
-        return True
-    else:
-        return isinstance(c, dolfin.Constant)
 
 def is_r0_function(fn):
     """
@@ -404,10 +388,8 @@ def is_self_adjoint_form(form):
         return False
     elif not trial.ufl_element() == a_test.ufl_element():
         return False
-
-    a_form = dolfin.replace(a_form, {a_test:trial, a_trial:test})
-
-    return expand(form) == expand(a_form)
+    else:
+        return bool(expand(form) == expand(a_form))
 
 def apply_bcs(a, bcs, L = None, symmetric_bcs = False):
     """
@@ -464,16 +446,6 @@ def enforce_bcs(x, bcs):
         bc.apply(x)
 
     return
-
-def is_zero_rhs(rhs):
-    """
-    Return whether the input can be used to indicate a zero RHS.
-    """
-
-    if rhs in [0, 0.0]:
-        return True
-    else:
-        return False
 
 def apply_default_parameters(parameters, default):
     """
