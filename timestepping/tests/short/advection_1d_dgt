@@ -97,7 +97,7 @@ for i in range(6):
   asystem.finalise()
   errs[i] = sqrt(assemble((T[N][1] - T_ref[1]) * (T[N][1] - T_ref[1]) * dx))
   
-orders = numpy.array([-numpy.log(errs[i + 1] / errs[i]) / numpy.log(2.0) for i in range(len(errs) - 1)])
+orders = numpy.array([-numpy.log(errs[i + 1] / errs[i]) / numpy.log(2.0) for i in range(len(errs) - 1)], dtype = numpy.float64)
 print(errs)
 print(orders)
 assert((orders > 2.86).all())

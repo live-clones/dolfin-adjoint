@@ -1897,7 +1897,7 @@ class ManagedModel:
                 if n_p > 1:
                     import mpi4py.MPI as MPI
 
-                    p_N = numpy.array(MPI.COMM_WORLD.allgather(l_N), dtype = numpy.uint64)
+                    p_N = numpy.array(MPI.COMM_WORLD.allgather(l_N), dtype = numpy.int64)
                     g_N = p_N.sum()
 
                     l_arr = numpy.empty(l_N, dtype = numpy.float_)

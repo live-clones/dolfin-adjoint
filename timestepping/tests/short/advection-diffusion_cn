@@ -27,8 +27,8 @@ def Plot(T, index):
   T = T.vector().array()
   pack = [(x[i], T[i]) for i in range(T.shape[0])]
   pack.sort(key = lambda e : e[0])
-  x = numpy.array([pack[i][0] for i in range(T.shape[0])])
-  T = numpy.array([pack[i][1] for i in range(T.shape[0])])
+  x = numpy.array([pack[i][0] for i in range(T.shape[0])], dtype = numpy.float64)
+  T = numpy.array([pack[i][1] for i in range(T.shape[0])], dtype = numpy.float64)
 
   plot(x, T, color = "k")
   ylim(-0.2, 1.1)

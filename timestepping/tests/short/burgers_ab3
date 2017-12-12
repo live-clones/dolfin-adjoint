@@ -86,7 +86,7 @@ dolfin_adjoint_solution = numpy.array(list(map(float, """0.00000000e+00   9.1880
   -1.24116799e+00  -1.14487754e+00  -1.03651828e+00  -9.23868598e-01
   -8.12622547e-01  -7.06191185e-01  -6.05496476e-01  -5.09503200e-01
   -4.16284339e-01  -3.24146124e-01  -2.31986652e-01  -1.39469334e-01
-  -4.67068636e-02""".split())))
+  -4.67068636e-02""".split())), dtype = numpy.float64)
 err = abs(u[N].vector().array() - dolfin_adjoint_solution).max()
 print(u[N].vector().array(), err)
 assert(err < 5.0e-9)
@@ -111,7 +111,7 @@ dolfin_adjoint_grad = numpy.array(list(map(float, """2.44696584e-06   4.62778231
   -1.44298399e-02  -2.14641812e-02  -2.99112918e-02  -3.85439249e-02
   -4.32491199e-02  -4.42398961e-02  -4.33570780e-02  -4.05111102e-02
   -3.58869851e-02  -2.96857954e-02  -2.21833195e-02  -1.37101889e-02
-  -4.63770479e-03""".split())))
+  -4.63770479e-03""".split())), dtype = numpy.float64)
 err = abs(grad[0].array() - dolfin_adjoint_grad).max()
 print(grad[0].array(), err)
 assert(err < 5.0e-11)
