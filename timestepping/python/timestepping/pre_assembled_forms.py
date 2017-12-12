@@ -478,8 +478,9 @@ class NonPAFilter(PAFilter):
         for c in ufl.algorithms.extract_coefficients(self._form):
             shape = c.ufl_element().value_shape()
             if len(shape) == 0:
-                shape = (1,)
-            replace_map[c] = dolfin.Constant(numpy.ones(shape, dtype = numpy.float64))
+                replace_map[c] = dolfin.Constant(1.0)
+            else:
+                replace_map[c] = dolfin.Constant(numpy.ones(shape, dtype = numpy.float64))
         form = dolfin.replace(self._form, replace_map)
         del(replace_map)
 
