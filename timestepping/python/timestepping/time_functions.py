@@ -31,6 +31,7 @@ __all__ = \
   [
     "AdjointTimeFunction",
     "TimeFunction",
+    "TimeLevelFunction",
     "WrappedFunction"
   ]
 
@@ -42,15 +43,17 @@ class WrappedFunction(dolfin.Function):
     Constructor arguments:
       arg: One of:
           1. A FunctionSpace. The WrappedFunction is assigned the given function
-             space, but is not associated with any DOLFIN Function.
+             space. If allocate is False the WrappedFunction is not associated
+             with any DOLFIN Function.
         or:
           2. A Function. The WrappedFunction is assigned the function space of
              the given Function, and wraps the Function.
       name: A string defining the name of the function.
       label: A string defining the label of the function.
+      allocate: If True, then call the allocate method during instantiation.
     """
 
-    def __init__(self, arg, name = "u", label = "a WrappedFunction"):
+    def __init__(self, arg, name = "u", label = "a WrappedFunction", allocate = False):
         if not isinstance(name, str):
             raise InvalidArgumentException("name must be a string")
         if not isinstance(label, str):
@@ -69,6 +72,8 @@ class WrappedFunction(dolfin.Function):
             raise InvalidArgumentException("Require FunctionSpace or Function as first argument")
         self.__name = name
         self.__label = label
+        if allocate:
+            self.allocate()
 
         return
 
@@ -170,6 +175,51 @@ class WrappedFunction(dolfin.Function):
         self.__label = label
 
         return
+        
+class TimeLevelFunction(WrappedFunction):
+    """
+    A WrappedFunction with a specified TimeLevel.
+
+    Constructor arguments:
+      arg: One of:
+          1. A FunctionSpace. The TimeLevelFunction is assigned the given
+             function space. If allocate is False the TimeLevelFunction is not
+             associated with any DOLFIN Function.
+        or:
+          2. A Function. The TimeLevelFunction is assigned the function space
+             of the given Function, and wraps the Function.
+      tfn: The TimeFunction or AdjointTimeFunction for which this is a
+          function on a specified time level.
+      level: The TimeLevel associated with the function.
+      name: A string defining the name of the function.
+      label: A string defining the label of the function.
+      allocate: If True, then call the allocate method during instantiation.
+    """
+
+    def __init__(self, arg, tfn, level, name = "u", label = "a TimeLevelFunction", allocate = False):
+        if not isinstance(tfn, (TimeFunction, AdjointTimeFunction)):
+            raise InvalidArgumentException("tfn must be a TimeFunction or AdjointTimeFunction")
+        if not isinstance(level, (int, Fraction, TimeLevel, FinalTimeLevel)):
+            raise InvalidArgumentException("level must be an integer, Fraction, TimeLevel, or FinalTimeLevel")
+        
+        WrappedFunction.__init__(self, arg, name = name, label = label, allocate = allocate)
+        self.__tfn = tfn
+        self.__level = level
+    
+    def tfn(self):
+        """
+        Return the TimeFunction or AdjointTimeFunction for which this is a
+        function on a specified time level.
+        """
+    
+        return self.__tfn
+    
+    def level(self):
+        """
+        Return the TimeLevel associated with the function.
+        """
+        
+        return self.__level
 
 class TimeFunction(TimeLevels):
     """
@@ -194,12 +244,10 @@ class TimeFunction(TimeLevels):
         fns = {}
         lfns = {}
         for level in tlevels.levels():
-            fns[level] = WrappedFunction(dolfin.Function(space, name = "%s_%s" % (name, level)), name = "%s_%s" % (name, level))
-            fns[level]._time_level_data = (self, level)
+            fns[level] = TimeLevelFunction(space, self, level, name = "%s_%s" % (name, level), allocate = True)
 
             nlevel = N + level.offset()
-            lfns[nlevel] = WrappedFunction(space, name = "%s_%s" % (name, nlevel))
-            lfns[nlevel]._time_level_data = (self, nlevel)
+            lfns[nlevel] = TimeLevelFunction(space, self, nlevel, name = "%s_%s" % (name, nlevel))
 
         self._TimeLevels__copy_time_levels(tlevels)
         self.__name = name
@@ -215,8 +263,7 @@ class TimeFunction(TimeLevels):
             if not key in self._TimeLevels__offsets:
                 raise InvalidArgumentException("key out of range")
             if not key in self.__lfns:
-                self.__lfns[key] = WrappedFunction(self.__fns[n + key], name = "%s_%s" % (self.__name, key))
-                self.__lfns[key]._time_level_data = (self, key)
+                self.__lfns[key] = TimeLevelFunction(self.__fns[n + key], self, key, name = "%s_%s" % (self.__name, key))
             return self.__lfns[key]
         elif isinstance(key, TimeLevel):
             return self.__fns[key]
@@ -422,17 +469,11 @@ class AdjointTimeFunction(TimeLevels):
 
         fns = {}
         for level in tfn.levels():
-            fns[level] = dolfin.Function(name = "%s_%s_adjoint" % (name, level), *[tfn.function_space()])
-            fns[level]._time_level_data = (self, level)
-            fns[level]._adjoint_data = [tfn[level]]
+            fns[level] = TimeLevelFunction(tfn.function_space(), self, level, name = "%s_%s_adjoint" % (name, level), allocate = True)
         for level in tfn.initial_levels():
-            fns[level] = WrappedFunction(fns[n + level], name = "%s_%s_adjoint" % (name, level))
-            fns[level]._time_level_data = (self, level)
-            fns[level]._adjoint_data = [tfn[level]]
+            fns[level] = TimeLevelFunction(fns[n + level], self, level, name = "%s_%s_adjoint" % (name, level))
         for level in tfn.final_levels():
-            fns[level] = WrappedFunction(fns[n + level.offset()], name = "%s_%s_adjoint" % (name, level))
-            fns[level]._time_level_data = (self, level)
-            fns[level]._adjoint_data = [tfn[level]]
+            fns[level] = TimeLevelFunction(fns[n + level.offset()], self, level, name = "%s_%s_adjoint" % (name, level))
 
         self._TimeLevels__copy_time_levels(tfn)
         self.__name = name

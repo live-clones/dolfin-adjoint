@@ -41,11 +41,11 @@ __all__ = \
 
 class AdjointVariableMap:
     """
-    A map between forward and adjoint variables. Indexing into the
-    AdjointVariableMap with a forward Function yields an associated adjoint
-    Function, and similarly indexing into the AdjointVariableMap with an adjoint
-    Function yields an associated forward Function. Allocates adjoint Function s
-    as required.
+    A map between forward and adjoint variables. e.g. indexing into the
+    AdjointVariableMap with a forward TimeLevelFunction yields an associated
+    adjoint TimeLevelFunction, and similarly indexing into the
+    AdjointVariableMap with an adjoint TimeLevelFunction yields an associated
+    forward TimeLevelFunction.
     """
 
     def __init__(self):
@@ -80,36 +80,18 @@ class AdjointVariableMap:
                     self.__a_fns[f_tfn[level]] = a_tfn[level]
                     self.__f_fns[a_tfn[level]] = f_tfn[level]
             return self.__f_tfns[var]
-        elif isinstance(var, dolfin.Function):
-            if is_static_coefficient(var):
-                return var
-            elif hasattr(var, "_time_level_data"):
-                return self.__add(var._time_level_data[0])[var._time_level_data[1]]
-            elif hasattr(var, "_adjoint_data"):
-                if not var in self.__f_fns:
-                    self.__a_fns[var._adjoint_data[0]] = var
-                    self.__f_fns[var] = var._adjoint_data[0]
-                return var._adjoint_data[0]
-            else:
-                if not var in self.__a_fns:
-                    a_fn = dolfin.Function(name = "%s_adjoint" % var.name(), *[var.function_space()])
-                    a_fn._adjoint_data = [var]
-                    self.__a_fns[var] = a_fn
-                    self.__f_fns[a_fn] = var
-                return self.__a_fns[var]
-        elif isinstance(var, dolfin.Constant):
+        elif isinstance(var, TimeLevelFunction):
+            return self.__add(var.tfn())[var.level()]
+        elif isinstance(var, (dolfin.Constant, dolfin.Function)):
             return var
         else:
-            raise InvalidArgumentException("Argument must be an AdjointTimeFunction, TimeFunction, Function, or Constant")
+            raise InvalidArgumentException("Argument must be an AdjointTimeFunction, TimeFunction, TimeLevelFunction, Constant, or Function")
 
     def zero_adjoint(self):
         """
         Zero all adjoint Function s,
         """
 
-        for a_fn in self.__f_fns:
-            if not hasattr(a_fn, "_time_level_data"):
-                a_fn.vector().zero()
         for a_tfn in self.__f_tfns:
             a_tfn.zero()
 

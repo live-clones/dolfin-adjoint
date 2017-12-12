@@ -36,6 +36,7 @@ from .pre_assembled_adjoint import *
 from .pre_assembled_equations import *
 from .pre_assembled_forms import *
 from .statics import *
+from .time_functions import *
 from .time_levels import *
 
 __all__ = \
@@ -68,8 +69,8 @@ class TimeSystem:
     def __process_deps(self, deps, level):
         proc_deps = set()
         for dep in deps:
-            if isinstance(dep, dolfin.Function) and hasattr(dep, "_time_level_data"):
-                dep_level = dep._time_level_data[1]
+            if isinstance(dep, TimeLevelFunction):
+                dep_level = dep.level()
                 if isinstance(level, (int, Fraction)):
                     if not isinstance(dep_level, (int, Fraction)):
                         raise DependencyException("Inconsistent dependency type")
@@ -107,10 +108,10 @@ class TimeSystem:
             def cmp(self, y):
                 x = self.x()
                 y = y.x()
-                if hasattr(x, "_time_level_data"):
-                    if hasattr(y, "_time_level_data"):
-                        x_tfn, x_level = x._time_level_data
-                        y_tfn, y_level = y._time_level_data
+                if isinstance(x, TimeLevelFunction):
+                    if isinstance(y, TimeLevelFunction):
+                        x_tfn, x_level = x.tfn(), x.level()
+                        y_tfn, y_level = y.tfn(), y.level()
                         if x_tfn > y_tfn:
                             return 1
                         elif x_tfn < y_tfn:
@@ -153,7 +154,7 @@ class TimeSystem:
                                     return 0
                     else:
                         return 1
-                elif hasattr(y, "_time_level_data"):
+                elif isinstance(y, TimeLevelFunction):
                     return -1
                 else:
                     return x.id() - y.id()
@@ -173,10 +174,10 @@ class TimeSystem:
         solve = AssignmentSolver(y, x)
         x_deps = solve.dependencies(non_symbolic = True)
 
-        if not hasattr(x, "_time_level_data"):
-            raise InvalidArgumentException("Missing time level data")
-        last_past_level = x._time_level_data[0].last_past_level()
-        level = x._time_level_data[1]
+        if not isinstance(x, TimeLevelFunction):
+            raise InvalidArgumentException("x must be a TimeLevelFunction")
+        last_past_level = x.tfn().last_past_level()
+        level = x.level()
 
         for dep in x_deps:
             if dep is x:
@@ -232,7 +233,9 @@ class TimeSystem:
         if len(args) == 1 and len(kwargs) == 0 and isinstance(args[0], (AssignmentSolver, EquationSolver)):
             solve = args[0]
             x = solve.x()
-            if self.has_solve(x):
+            if not isinstance(x, TimeLevelFunction):
+                raise InvalidArgumentException("Solve not for TimeLevelFunction")
+            elif self.has_solve(x):
                 raise StateException("Solve for %s already registered" % x.name())
             x_deps = solve.dependencies(non_symbolic = True)
             if isinstance(args[0], AssignmentSolver):
@@ -261,7 +264,9 @@ class TimeSystem:
 
             eargs = dolfin.fem.solving._extract_args(*args, **s_kwargs)
             x = eargs[1]
-            if self.has_solve(x):
+            if not isinstance(x, TimeLevelFunction):
+                raise InvalidArgumentException("Solve not for TimeLevelFunction")
+            elif self.has_solve(x):
                 raise StateException("Solve for %s already registered" % x.name())
             eq = eargs[0]
             solve = copy.copy(args), copy.copy(kwargs)
@@ -277,10 +282,8 @@ class TimeSystem:
             if not initial_guess is None:
                 x_deps.add(initial_guess)
 
-        if not hasattr(x, "_time_level_data"):
-            raise InvalidArgumentException("Missing time level data")
-        last_past_level = x._time_level_data[0].last_past_level()
-        level = x._time_level_data[1]
+        last_past_level = x.tfn().last_past_level()
+        level = x.level()
 
         if isinstance(level, (int, Fraction)):
             if level > last_past_level.offset():
@@ -314,12 +317,10 @@ class TimeSystem:
         Return whether a solve for the given Function is registered.
         """
 
-        if not isinstance(x, dolfin.Function):
-            raise InvalidArgumentException("x must be a Function")
-        elif not hasattr(x, "_time_level_data"):
-            raise InvalidArgumentException("x is missing time level data")
+        if not isinstance(x, TimeLevelFunction):
+            raise InvalidArgumentException("x must be a TimeLevelFunction")
 
-        level = x._time_level_data[1]
+        level = x.level()
         if isinstance(level, (int, Fraction)):
             return x in self.__init_solves
         elif isinstance(level, TimeLevel):
@@ -334,13 +335,11 @@ class TimeSystem:
         """
 
         for x in args:
-            if not isinstance(x, dolfin.Function):
-                raise InvalidArgumentException("Require Function s as arguments")
-            elif not hasattr(x, "_time_level_data"):
-                raise InvalidArgumentException("x is missing time level data")
+            if not isinstance(x, TimeLevelFunction):
+                raise InvalidArgumentException("Require TimeLevelFunction s as arguments")
 
         for x in args:
-            level = x._time_level_data[1]
+            level = x.level()
             if isinstance(level, (int, Fraction)):
                 if x in self.__init_solves:
                     del(self.__init_solves[x])
@@ -370,12 +369,12 @@ class TimeSystem:
         checked = set()
         def check(fn, deps, solves, against = []):
             if fn in solves and not fn in checked:
-                assert(hasattr(fn, "_time_level_data"))
-                level = fn._time_level_data[1]
+                assert(isinstance(fn, TimeLevelFunction))
+                level = fn.level()
                 for dep in deps[fn]:
                     if dep is fn or not dep in solves:
                         continue
-                    dep_level = dep._time_level_data[1]
+                    dep_level = dep.level()
                     if isinstance(level, (int, Fraction)):
                         if not isinstance(dep_level, (int, Fraction)):
                             raise DependencyException("Inconsistent dependency type")
@@ -446,7 +445,7 @@ class TimeSystem:
             tfns = set()
             for solves in [self.__init_solves, self.__solves, self.__final_solves]:
                 for fn in solves:
-                    tfns.add(fn._time_level_data[0])
+                    tfns.add(fn.tfn())
             tfns = sorted(list(tfns))
 
             self.__x_tfns[0], self.__x_tfns[1] = tfns, True
@@ -463,9 +462,9 @@ class TimeSystem:
         else:
             tfns = set()
             for x in self.__deps:
-                tfns.add(x._time_level_data[0])
+                tfns.add(x.tfn())
                 for dep in self.__deps[x]:
-                    tfns.add(dep._time_level_data[0])
+                    tfns.add(dep.tfn())
             tfns = sorted(list(tfns))
 
             self.__tfns[0], self.__tfns[1] = tfns, True
@@ -911,9 +910,9 @@ class AdjointModel:
 
             for f_dep in ufl.algorithms.extract_coefficients(functional):
                 if isinstance(f_dep, dolfin.Function) and not is_static_coefficient(f_dep):
-                    if not hasattr(f_dep, "_time_level_data"):
-                        raise DependencyException("Missing time level data")
-                    f_ftn, level = f_dep._time_level_data
+                    if not isinstance(f_dep, TimeLevelFunction):
+                        raise DependencyException("Not a TimeLevelFunction")
+                    f_ftn, level = f_dep.tfn(), f_dep.level()
                     if not isinstance(level, FinalTimeLevel):
                         raise DependencyException("Functional must depend only upon final time levels or static coefficients")
 
@@ -1018,23 +1017,23 @@ class ManagedModel:
         for solve in forward._ForwardModel__init_solves:
             init_cp_cs1.add(solve.x())
             for dep in solve.dependencies(non_symbolic = True):
-                if isinstance(dep, dolfin.Function) and hasattr(dep, "_time_level_data"):
+                if isinstance(dep, TimeLevelFunction):
                     init_cp_cs1.add(dep)
         cp_cs = set()
         cp_f_tfn = set()
         for solve in forward._ForwardModel__solves:
             f_x = solve.x()
             cp_cs.add(f_x)
-            cp_f_tfn.add(f_x._time_level_data[0])
+            cp_f_tfn.add(f_x.tfn())
             for dep in solve.dependencies(non_symbolic = True):
-                if isinstance(dep, dolfin.Function) and hasattr(dep, "_time_level_data"):
+                if isinstance(dep, TimeLevelFunction):
                     cp_cs.add(dep)
-                    cp_f_tfn.add(dep._time_level_data[0])
+                    cp_f_tfn.add(dep.tfn())
         nl_cp_cs = set()
         update_cs = set()
         for solve in forward._ForwardModel__solves:
             for c in solve.nonlinear_dependencies():
-                if isinstance(c, dolfin.Function) and hasattr(c, "_time_level_data"):
+                if isinstance(c, TimeLevelFunction):
                     nl_cp_cs.add(c)
                 elif isinstance(c, (dolfin.Constant, dolfin.Function, dolfin.Expression)) and not is_static_coefficient(c):
                     update_cs.add(c)
@@ -1484,19 +1483,19 @@ class ManagedModel:
             for f_der in dFdm[0][i].values():
                 if isinstance(f_der, PAForm):
                     for c in f_der.dependencies(non_symbolic = True):
-                        if isinstance(c, dolfin.Function) and hasattr(c, "_time_level_data"):
+                        if isinstance(c, TimeLevelFunction):
                             cp_cs.add(c)
                         elif isinstance(c, (dolfin.Constant, dolfin.Function, dolfin.Expression)) and not is_static_coefficient(c):
                             update_cs.add(c)
                 elif isinstance(f_der, ufl.core.expr.Expr):
                     for c in ufl.algorithms.extract_coefficients(f_der):
-                        if isinstance(c, dolfin.Function) and hasattr(c, "_time_level_data"):
+                        if isinstance(c, TimeLevelFunction):
                             cp_cs.add(c)
                         elif isinstance(c, (dolfin.Constant, dolfin.Function, dolfin.Expression)) and not is_static_coefficient(c):
                             update_cs.add(c)
                 else:
                     for c in f_der:
-                        if isinstance(c, dolfin.Function) and hasattr(c, "_time_level_data"):
+                        if isinstance(c, TimeLevelFunction):
                             cp_cs.add(c)
                         elif isinstance(c, (dolfin.Constant, dolfin.Function, dolfin.Expression)) and not is_static_coefficient(c):
                             update_cs.add(c)
@@ -1506,15 +1505,15 @@ class ManagedModel:
             def cp_cs(s):
                 cp_cs = copy.copy(s_cp_cs)
                 for c in self.__functional.dependencies(s, non_symbolic = True):
-                    if isinstance(c, dolfin.Function) and hasattr(c, "_time_level_data"):
-                        if not isinstance(c._time_level_data[1], (int, Fraction, TimeLevel)):
+                    if isinstance(c, TimeLevelFunction):
+                        if not isinstance(c.level(), (int, Fraction, TimeLevel)):
                             raise DependencyException("Unexpected final time level functional dependency")
                         cp_cs.add(c)
                 return cp_cs
             def update_cs(s):
                 update_cs = copy.copy(s_update_cs)
                 for c in self.__functional.dependencies(s, non_symbolic = True):
-                    if isinstance(c, dolfin.Function) and hasattr(c, "_time_level_data"):
+                    if isinstance(c, TimeLevelFunction):
                         pass
                     elif isinstance(c, (dolfin.Constant, dolfin.Function, dolfin.Expression)) and not is_static_coefficient(c):
                         update_cs.add(c)
