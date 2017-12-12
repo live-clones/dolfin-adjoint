@@ -73,17 +73,17 @@ def laplace(T):
 
 # Generate a smoothed top hat initial condition
 T_ic_unsmoothed = StaticFunction(space, name = "T_ic_unsmoothed")
-T_ic_unsmoothed.interpolate(Expression("x[0] > 0.2 && x[0] < 0.4 && x[1] > -0.1 && x[1] < 0.1 ? 1.0 : 0.0", element = space.ufl_element()))
+T_ic_unsmoothed.interpolate(Expression("x[0] > 0.2 && x[0] < 0.4 && x[1] > -0.1 && x[1] < 0.1 ? 1.0 : 0.0", element = T_ic_unsmoothed.function_space().ufl_element()))
 T_ic = StaticFunction(space, name = "T_ic")
 pa_solve(alpha_s * alpha_s * laplace(T_ic) + inner(test, T_ic_unsmoothed - T_ic) * dx == 0,
   T_ic, solver_parameters = {"linear_solver":"lu"})
-T_ic.vector()[:] += interpolate(Expression("exp(-((x[0] + 0.3) * (x[0] + 0.3) + x[1] * x[1]) / (2.0 * 0.05 * 0.05))", element = space.ufl_element()), space).vector()
+T_ic.vector()[:] += interpolate(Expression("exp(-((x[0] + 0.3) * (x[0] + 0.3) + x[1] * x[1]) / (2.0 * 0.05 * 0.05))", element = T_ic.function_space().ufl_element()), space).vector()
 
 # Solid body rotation
 u = StaticFunction(space_p1, name = "u")
-u.interpolate(Expression("-x[1]"))
+u.interpolate(Expression("-x[1]", element = u.function_space().ufl_element()))
 v = StaticFunction(space_p1, name = "v")
-v.interpolate(Expression("x[0]"))
+v.interpolate(Expression("x[0]", element = v.function_space().ufl_element()))
 
 # Model time levels and fields
 levels = TimeLevels(levels = [n, n + f1, n + f2, n + 1], cycle_map = {n:n + 1})
@@ -99,6 +99,7 @@ system.add_solve(T_ic, T[0])
 # Add a solve for a T increment
 U = as_vector([u, v])
 # DG advection upwinding based on dolfin-adjoint upwind test
+# (tests/upwind/upwind.py)
 Un = 0.5 * (dot(U, nm) + abs(dot(U, nm)))
 def add_dT_solve(n):
   system.add_solve(inner(test, dT[n]) * dx == dt * inner(grad(test), U * T[n]) * dx - avg(dt) * inner(jump(test), jump(Un * T[n])) * dS,

@@ -73,17 +73,17 @@ def laplace(T):
 
 # Generate a smoothed top hat initial condition
 T_ic_unsmoothed = StaticFunction(space, name = "T_ic_unsmoothed")
-T_ic_unsmoothed.interpolate(Expression("x[0] > 0.2 && x[0] < 0.4 && x[1] > -0.1 && x[1] < 0.1 ? 1.0 : 0.0", element = space.ufl_element()))
+T_ic_unsmoothed.interpolate(Expression("x[0] > 0.2 && x[0] < 0.4 && x[1] > -0.1 && x[1] < 0.1 ? 1.0 : 0.0", element = T_ic_unsmoothed.function_space().ufl_element()))
 T_ic = StaticFunction(space, name = "T_ic")
 pa_solve(alpha_s * alpha_s * laplace(T_ic) + inner(test, T_ic_unsmoothed - T_ic) * dx == 0,
   T_ic, solver_parameters = {"linear_solver":"lu"})
-T_ic.vector()[:] += interpolate(Expression("exp(-((x[0] + 0.3) * (x[0] + 0.3) + x[1] * x[1]) / (2.0 * 0.05 * 0.05))", element = space.ufl_element()), space).vector()
+T_ic.vector()[:] += interpolate(Expression("exp(-((x[0] + 0.3) * (x[0] + 0.3) + x[1] * x[1]) / (2.0 * 0.05 * 0.05))", element = T_ic.function_space().ufl_element()), space).vector()
 
 # Solid body rotation
 u = StaticFunction(space_p1, name = "u")
-u.interpolate(Expression("-x[1]"))
+u.interpolate(Expression("-x[1]", element = u.function_space().ufl_element()))
 v = StaticFunction(space_p1, name = "v")
-v.interpolate(Expression("x[0]"))
+v.interpolate(Expression("x[0]", element = v.function_space().ufl_element()))
 
 # Model time levels and fields
 levels = TimeLevels(levels = [n, n + f1, n + f2, n + 1], cycle_map = {n:n + 1})
@@ -101,6 +101,7 @@ system.add_solve(T_ic, T[0])
 # Add a solve for a T increment
 U = as_vector([u, v])
 # DG advection upwinding based on dolfin-adjoint upwind test
+# (tests/upwind/upwind.py)
 Un = 0.5 * (dot(U, nm) + abs(dot(U, nm)))
 def add_dT_solve(dT, T):
   system.add_solve(inner(test, dT) * dx == dt * inner(grad(test), U * T) * dx - avg(dt) * inner(jump(test), jump(Un * T)) * dS,
@@ -161,15 +162,17 @@ class LimiterSolver(AssignmentSolver):
         shared_ptr<const GenericDofMap> dofmap_0 = space_0->dofmap();
         shared_ptr<const FunctionSpace> space = T_i->function_space();
         shared_ptr<const GenericDofMap> dofmap = space->dofmap();
+        std::vector<double> T_0_values;  T_0_vec->get_local(T_0_values);
+        std::vector<double> T_i_values;  T_i_vec->get_local(T_i_values);
         """,
       kernel_code = \
         """
-        double lT_0 = T_0_vec->getitem(dofmap_0->cell_dofs(cell)[0]);
-        double T_min = T_0_vec->getitem(dofmap_0->cell_dofs(ele_list[cell * ele_list_n])[0]);
+        double lT_0 = T_0_values[dofmap_0->cell_dofs(cell)[0]];
+        double T_min = T_0_values[dofmap_0->cell_dofs(ele_list[cell * ele_list_n])[0]];
         double T_max = T_min;
         size_t i = 1;
         while(i < ele_list_n && ele_list[cell * ele_list_n + i] >= 0){
-          double T_val = T_0_vec->getitem(dofmap_0->cell_dofs(ele_list[cell * ele_list_n + i])[0]);
+          double T_val = T_0_values[dofmap_0->cell_dofs(ele_list[cell * ele_list_n + i])[0]];
           T_min = std::min(T_min, T_val);
           T_max = std::max(T_max, T_val);
           i++;
@@ -177,9 +180,9 @@ class LimiterSolver(AssignmentSolver):
 
         double alpha = 1.0;
         double T_vals[3];
-        %s cell_dofs = dofmap->cell_dofs(cell);
+        const dolfin::ArrayView<const la_index> cell_dofs = dofmap->cell_dofs(cell);
         for(size_t i = 0; i < 3;i++){
-          double T_val = T_vals[i] = T_i_vec->getitem(cell_dofs[i]) - lT_0;
+          double T_val = T_vals[i] = T_i_values[cell_dofs[i]] - lT_0;
           if(T_val > DOLFIN_EPS){
             alpha = std::min(alpha, (T_max - lT_0) / T_val);
           }else if(T_val < -DOLFIN_EPS){
@@ -189,7 +192,7 @@ class LimiterSolver(AssignmentSolver):
         for(size_t i = 0;i < 3;i++){
           T_vec->setitem(cell_dofs[i], lT_0 + alpha * T_vals[i]);
         }
-        """ % ("std::vector<la_index>" if dolfin_version() < (1, 6, 0) else "const dolfin::ArrayView<const la_index>"),
+        """,
       finalisation_code = \
         """
         T_vec->apply("insert");
@@ -276,7 +279,7 @@ assert(T_max < 1.0)
 #clf()
 #
 #axes([0.2, 0.1, 0.75, 0.85])
-#plot(T_range[0], numpy.array(T_range[2]) - 1.0, color = "k")
+#plot(T_range[0], numpy.array(T_range[2], dtype = numpy.float64) - 1.0, color = "k")
 #xlabel("Time", fontsize = "x-large")
 #ylabel("$\\max{(T)} - 1$", fontsize = "x-large")
 #savefig("advection_2d_limiter_rk3_T_max.png", dpi = 288)
