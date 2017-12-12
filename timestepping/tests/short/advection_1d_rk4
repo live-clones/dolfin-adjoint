@@ -63,6 +63,7 @@ bcs.set_all(0)
 DirichletBCBoundary().mark(bcs, 1)
 
 # DG advection upwinding based on dolfin-adjoint upwind test
+# (tests/upwind/upwind.py)
 def add_dT_solve(n, u):
   U = as_vector([u])
   Un = 0.5 * (dot(U, nm) + abs(dot(U, nm)))

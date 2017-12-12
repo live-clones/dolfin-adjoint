@@ -46,6 +46,7 @@ U = as_vector([u])
 
 nm = FacetNormal(mesh)
 # DG advection upwinding based on dolfin-adjoint upwind test
+# (tests/upwind/upwind.py)
 Un = 0.5 * (dot(U, nm) + abs(dot(U, nm)))
 Un2 = 0.5 * (dot(U, nm) - abs(dot(U, nm)))
 
@@ -57,6 +58,7 @@ bcs.set_all(0)
 DirichletBCBoundary().mark(bcs, 1)
 
 # DG advection upwinding based on dolfin-adjoint upwind test
+# (tests/upwind/upwind.py)
 def F(test, T):
   return inner(grad(test), U * T) * dx \
     - jump(test) * jump(Un * T) * dS \

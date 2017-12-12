@@ -50,6 +50,7 @@ system.add_solve(T_ic, T[0])
 
 nm = FacetNormal(mesh)
 # DG advection upwinding based on dolfin-adjoint upwind test
+# (tests/upwind/upwind.py)
 Un = 0.5 * (dot(U, nm) + abs(dot(U, nm)))
 Un2 = 0.5 * (dot(U, nm) - abs(dot(U, nm)))
 Th = 0.5 * (T[n] + T[n + 1])
@@ -62,6 +63,7 @@ bcs.set_all(0)
 DirichletBCBoundary().mark(bcs, 1)
 
 # DG advection upwinding based on dolfin-adjoint upwind test
+# (tests/upwind/upwind.py)
 system.add_solve(inner(test, (T[n + 1] - T[n]) / dt) * dx - inner(grad(test), U * Th) * dx
   + jump(test) * jump(Un * Th) * dS
   + test * (Un * Th + Un2 * T_bc) * ds(subdomain_data = bcs)(1)
