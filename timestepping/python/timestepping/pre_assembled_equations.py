@@ -347,8 +347,11 @@ class PAEquationSolver(EquationSolver):
         elif self.solver_parameters().get("nonlinear_solver", "newton") == "newton":
             # Newton solver, intended to have near identical behaviour to the Newton
             # solver supplied with DOLFIN. See
-            # http://fenicsproject.org/documentation/tutorial/nonlinear.html for
-            # further details.
+            # https://fenicsproject.org/pub/tutorial/html/._ftut1007.html for
+            # further details [accessed 2017-12-12].
+            #
+            # This comment previously referenced (the now inaccessible)
+            # http://fenicsproject.org/documentation/tutorial/nonlinear.html.
 
             default_parameters = dolfin.NewtonSolver.default_parameters()
             solver_parameters = self.solver_parameters()
