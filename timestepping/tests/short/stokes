@@ -99,7 +99,7 @@ system.add_solve(ic, T[0])
 
 # Flow variable(s)
 w = TimeFunction(TimeLevels(levels = [n], cycle_map = {}, last_past_level = n - 1), W, name = "w")
-(u, p) = w[n]
+(u, p) = split(w[n])
 
 # Some parameters
 Ra = StaticConstant(1.e4)
