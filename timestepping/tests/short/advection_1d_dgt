@@ -38,7 +38,7 @@ space = FunctionSpace(mesh, "DG", 1)
 spaces = FunctionSpace(mesh, space.ufl_element() * space.ufl_element())
 test = TestFunction(space)
 tests = TestFunction(spaces)
-test1, test2 = split(tests)
+test1, test2 = tests
 
 u = StaticFunction(space, name = "u")
 u.assign(Constant(u_mag))
