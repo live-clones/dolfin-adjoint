@@ -114,7 +114,7 @@ err = abs(ref - comp)
 print("%.16e" % comp)
 print("%.16e" % ref)
 print("%.16e" % err)
-assert(err < 8.0e-11)
+assert(err < 3.0e-13)
 
 system.verify_checkpoints()
 

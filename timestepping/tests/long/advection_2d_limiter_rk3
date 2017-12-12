@@ -266,7 +266,7 @@ T_int_err = abs(T_int - T_int_0)
 T_min = T[n].vector().min()
 T_max = T[n].vector().max()
 print("T_int, T_int_err, T_min, T_max = %.16e, %.16e, %.16e, %.16e" % (T_int, T_int_err, T_min, T_max))
-assert(T_int_err < 7.0e-16)
+assert(T_int_err < 4.0e-15)
 assert(T_min > -1.3e-14)
 assert(T_max < 1.0)
 
