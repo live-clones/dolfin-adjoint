@@ -246,7 +246,7 @@ check("RK2", system, T[N], tol = 5.0e-16)
 
 spaces = FunctionSpace(mesh, space.ufl_element() * space.ufl_element())
 tests = TestFunction(spaces)
-test1, test2 = split(tests)
+test1, test2 = tests
 
 levels = TimeLevels(levels = [n, n + 1], cycle_map = {n:n + 1})
 T = TimeFunction(levels, spaces, name = "T")
@@ -265,4 +265,4 @@ system.add_solve(
       m_21 * F(test2, T[n + 1][0]) + m_22 * F(test2, T[n + 1][1])),
   T[n + 1], solver_parameters = solver_parameters)
   
-check("P1_DG", system, split(T[n])[1], tol = 1.0e-14)
+check("P1_DG", system, T[n][1], tol = 1.0e-14)

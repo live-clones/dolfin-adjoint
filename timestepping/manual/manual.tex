@@ -1734,7 +1734,7 @@ This discretisation can be implemented via:
 \begin{lstlisting}
 spaces = FunctionSpace(mesh, space.ufl_element() * space.ufl_element())
 tests = TestFunction(spaces)
-test1, test2 = split(tests)
+test1, test2 = tests
 
 levels = TimeLevels(levels = [n, n + 1], cycle_map = {n:n + 1})
 T = TimeFunction(levels, spaces, name = "T")
