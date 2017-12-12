@@ -20,6 +20,7 @@ from collections import OrderedDict
 import copy
 
 import dolfin
+import numpy
 import ufl
 
 from .caches import *
@@ -113,7 +114,7 @@ class PAFilter:
         if not isinstance(pre_assembly_parameters, dolfin.Parameters):
             raise InvalidArgumentException("default_pre_assembly_parameters must be a Parameters")
 
-                                                                # No real need to copy here
+                                                              # No real need to copy here
         self.pre_assembly_parameters = pre_assembly_parameters#.copy()
         self._quadrature_degree = quadrature_degree
         self._form = ufl.form.Form([])
@@ -473,20 +474,22 @@ class NonPAFilter(PAFilter):
         if not tensor is None and not isinstance(tensor, dolfin.GenericMatrix):
             raise InvalidArgumentException("tensor must be a GenericMatrix")
 
-        one = dolfin.Constant(1.0)
-        form = dolfin.replace(self._form, {c:one for c in ufl.algorithms.extract_coefficients(self._form)})
-        if self._rank == 1:
-            tensor = self._assemble(form)
-        elif self._rank == 2:
-            if self.__tensor is None:
-                self.__tensor = self._assemble(form)
-            if tensor is None:
-                tensor = self.__tensor.copy()
-            else:
-                self.__tensor.axpy(0.0, tensor, False)
-                tensor.axpy(0.0, self.__tensor, False)
+        replace_map = {}
+        for c in ufl.algorithms.extract_coefficients(self._form):
+            shape = c.ufl_element().value_shape()
+            if len(shape) == 0:
+                shape = (1,)
+            replace_map[c] = dolfin.Constant(numpy.ones(shape, dtype = numpy.float64))
+        form = dolfin.replace(self._form, replace_map)
+        del(replace_map)
+
+        if self.__tensor is None:
+            self.__tensor = self._assemble(form)
+        if tensor is None:
+            tensor = self.__tensor.copy()
         else:
-            raise StateException("Unexpected form rank: %i" % self._rank)
+            self.__tensor.axpy(0.0, tensor, False)
+            tensor.axpy(0.0, self.__tensor, False)
 
         return tensor
 
