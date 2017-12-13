@@ -412,18 +412,18 @@ def apply_bcs(a, bcs, L = None, symmetric_bcs = False):
     if not L is None and not isinstance(L, dolfin.GenericVector):
         raise InvalidArgumentException("L must be a GenericVector")
 
-    if L is None:
-        for bc in bcs:
-            bc.apply(a)
-        if symmetric_bcs:
-            L = a.factory().create_vector()
+    if len(bcs) == 0:
+        return
+    
+    [bc.apply(*([a] if L is None else [a, L])) for bc in bcs]
+    
+    if symmetric_bcs:
+        if L is None:
+            L = a.factory().create_vector(a.mpi_comm())
             a.init_vector(L, 0)
             for bc in bcs:
                 bc.zero_columns(a, L, 1.0)
-    else:
-        for bc in bcs:
-            bc.apply(a, L)
-        if symmetric_bcs:
+        else:
             for bc in bcs:
                 bc.zero_columns(a, L, 1.0)
 
