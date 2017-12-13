@@ -115,6 +115,7 @@ bc_ids = [0, 1, 2]
 def add_dTdt_solve(T, dTdt, u, v, kappa, s = None, bc = {}, initial_guess = None, nhbcs = False):
   U = as_vector([u, v])
 #  # DG advection upwinding based on dolfin-adjoint upwind test
+#  # (tests/upwind/upwind.py)
 #  Un = 0.5 * (dot(U, nm) + abs(dot(U, nm)))
   L = (
       # Advection term
@@ -141,21 +142,21 @@ def add_dTdt_solve(T, dTdt, u, v, kappa, s = None, bc = {}, initial_guess = None
   if nhbcs:
     for id in bc:
       L += (
-           kappa * inner(test_u * nm, grad(T)) * ds[bcs](id)
-        + (kappa * inner(grad(test_u), T * nm) - kappa * bc[id] * inner(grad(test_u), nm)) * ds[bcs](id)
-        - (kappa * (alpha / h) * inner(test_u, T) - kappa * (alpha / h) * inner(test_u, bc[id])) * ds[bcs](id)
+           kappa * inner(test_u * nm, grad(T)) * ds(subdomain_data = bcs)(id)
+        + (kappa * inner(grad(test_u), T * nm) - kappa * bc[id] * inner(grad(test_u), nm)) * ds(subdomain_data = bcs)(id)
+        - (kappa * (alpha / h) * inner(test_u, T) - kappa * (alpha / h) * inner(test_u, bc[id])) * ds(subdomain_data = bcs)(id)
            )
   else:
     for id in bc_ids:
       L += (
-          kappa * inner(grad(test_u), T * nm) * ds[bcs](id)
-        + kappa * inner(test_u * nm, grad(T)) * ds[bcs](id)
-        - kappa * (alpha / h) * inner(test_u, T) * ds[bcs](id)
+          kappa * inner(grad(test_u), T * nm) * ds(subdomain_data = bcs)(id)
+        + kappa * inner(test_u * nm, grad(T)) * ds(subdomain_data = bcs)(id)
+        - kappa * (alpha / h) * inner(test_u, T) * ds(subdomain_data = bcs)(id)
           )
     for id in bc:
       L += (
-        - kappa * bc[id] * inner(grad(test_u), nm) * ds[bcs](id)
-        + kappa * (alpha / h) * inner(test_u, bc[id]) * ds[bcs](id)
+        - kappa * bc[id] * inner(grad(test_u), nm) * ds(subdomain_data = bcs)(id)
+        + kappa * (alpha / h) * inner(test_u, bc[id]) * ds(subdomain_data = bcs)(id)
            )
 
   if not s is None:
@@ -217,7 +218,7 @@ system.add_solve(inner(grad(test_p), grad(p[0])) * dx ==
   inner(grad(test_p), as_vector([dudt_s[0], dvdt_s[0]])) * dx,
   p[0], ref_bc, solver_parameters = lu_solver)
 # Temperature initial condition
-system.add_solve(interpolate(Expression("1.0 - x[0]"), space_u), T[0])
+system.add_solve(interpolate(Expression("1.0 - x[0]", element = space_u.ufl_element()), space_u), T[0])
 
 # Timestep iteration 1
 # In Ford et al, MWR, 2004, pp. 2816 - 2831 it is proposed that one consider the
@@ -276,12 +277,8 @@ def diagnostics(t):
   psi_mid = numpy.empty(1)
   psi.eval(psi_mid, numpy.array([0.5, 0.5], dtype = numpy.float_))
   psi_mid = abs(float(psi_mid[0]))
-  Nu = assemble(dot(grad(T[n]), nm) * ds[bcs](1))
-  if div_U_norm > 2.0e-8:
-    linfo = info_red
-  else:
-    linfo = info
-  linfo("Time, ||u||_inf, ||v||_inf, min(T), max(T), eps, Courant, ||div U||_inf, psi_mid, Nu = %.2f, %.16e, %.16e, %.16e, %.16e, %.7e, %.16e, %.16e, %.16e, %.16e"
+  Nu = assemble(dot(grad(T[n]), nm) * ds(subdomain_data = bcs)(1))
+  info("Time, ||u||_inf, ||v||_inf, min(T), max(T), eps, Courant, ||div U||_inf, psi_mid, Nu = %.2f, %.16e, %.16e, %.16e, %.16e, %.7e, %.16e, %.16e, %.16e, %.16e"
     % (t, u_norm[0], u_norm[1], T_range[0], T_range[1], eps, c_norm, div_U_norm, psi_mid, Nu))
   return
 def update(s, cs = None):
@@ -334,7 +331,7 @@ del(system_orig, dt_orig)
 clear_caches(dt)
 
 # Assemble and run the forward model
-system = system.assemble(adjoint = True, disk_period = 10, functional = dot(grad(T[N]), nm) * ds[bcs](1), reassemble = True)
+system = system.assemble(adjoint = True, disk_period = 10, functional = dot(grad(T[N]), nm) * ds(subdomain_data = bcs)(1), reassemble = True)
 
 t = 0.0
 diagnostics(t)
@@ -355,7 +352,7 @@ system.finalise()
 # Verify incompressibility
 err = div_U.vector().norm("linf")
 print("%.16e" % err)
-assert(err < 2.0e-8)
+assert(err < 3.0e-8)
 
 # Verify pressure zero point
 p0 = numpy.empty(1);  p0[:] = numpy.NAN

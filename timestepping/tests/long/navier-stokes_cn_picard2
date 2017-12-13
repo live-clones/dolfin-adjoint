@@ -111,6 +111,7 @@ bc_ids = [0, 1]
 def add_dTdt_solve(T, dTdt, u, v, kappa, s = None, bc = {}, initial_guess = None):
   U = as_vector([u, v])
 #  # DG advection upwinding based on dolfin-adjoint upwind test
+#  # (tests/upwind/upwind.py)
 #  Un = 0.5 * (dot(U, nm) + abs(dot(U, nm)))
   L = (
       # Advection term
@@ -137,17 +138,17 @@ def add_dTdt_solve(T, dTdt, u, v, kappa, s = None, bc = {}, initial_guess = None
     L += (
          # Viscous term
 
-         kappa      * inner(grad(test_u), T * nm) * ds[bcs](id)
-       + kappa      * inner(test_u * nm, grad(T)) * ds[bcs](id)
-       - kappa      * (alpha / h) * inner(test_u, T) * ds[bcs](id)
+         kappa      * inner(grad(test_u), T * nm) * ds(subdomain_data = bcs)(id)
+       + kappa      * inner(test_u * nm, grad(T)) * ds(subdomain_data = bcs)(id)
+       - kappa      * (alpha / h) * inner(test_u, T) * ds(subdomain_data = bcs)(id)
          )
 
   for id in bc:
     L += (
          # Viscous term weak Dirichlet boundary conditions
     
-       - kappa * bc[id] * inner(grad(test_u), nm) * ds[bcs](id)
-       + kappa * (alpha / h) * inner(test_u, bc[id]) * ds[bcs](id)
+       - kappa * bc[id] * inner(grad(test_u), nm) * ds(subdomain_data = bcs)(id)
+       + kappa * (alpha / h) * inner(test_u, bc[id]) * ds(subdomain_data = bcs)(id)
          )
 
   if not s is None:
@@ -250,11 +251,7 @@ def diagnostics(t):
     eps = max(dudt_norm[0] / u_norm[0], dudt_norm[1] / u_norm[1])
   div_U_norm = div_U.vector().norm("linf")
   psi_range = psi.vector().array().min(), psi.vector().array().max()
-  if div_U_norm > 7.0e-11:
-    linfo = info_red
-  else:
-    linfo = info
-  linfo("Time, ||u||_inf, ||v||_inf, eps, ||div U||_inf, min(psi), max(psi) = %.2f, %.16e, %.16e, %.7e, %.16e, %.16e, %.16e"
+  info("Time, ||u||_inf, ||v||_inf, eps, ||div U||_inf, min(psi), max(psi) = %.2f, %.16e, %.16e, %.7e, %.16e, %.16e, %.16e"
     % (t, u_norm[0], u_norm[1], eps, div_U_norm, psi_range[0], psi_range[1]))
   return
 def update(s, cs = None):
@@ -286,7 +283,7 @@ system.finalise()
 # Verify incompressibility
 err = div_U.vector().norm("linf")
 print("%.16e" % err)
-assert(err < 7.0e-11)
+assert(err < 3.0e-10)
 
 # Verify pressure zero point
 p0 = numpy.empty(1);  p0[:] = numpy.NAN
@@ -294,67 +291,11 @@ p[N].eval(p0, numpy.array([0.0, 0.0], dtype = numpy.float_))
 print("%.16e" % abs(p0))
 assert(abs(p0) < 1.0e-16)
 
-## Verify the solution. Reference value from Botella and Peyret, Computers &
-## Fluids, 1998, 421 - 433, table 6.
-#ref = 0.1189366
-#comp = psi.vector().max()
-#err = abs(ref - comp)
-#print("%.16e" % comp)
-#print("%.16e" % ref)
-#print("%.16e" % err)
-
-## Verify the solution. Reference value from Botella and Peyret, Computers &
-## Fluids, 1998, 421 - 433, table 12.
-#ref = -1.729717e-3
-#comp = psi.vector().min()
-#err = abs(ref - comp)
-#print("%.16e" % comp)
-#print("%.16e" % ref)
-#print("%.16e" % err)
-
 # Verify the checkpoints
 system.verify_checkpoints()
 
 # Run the adjoint model
 g = system.compute_gradient(u_bc)
-
-## Output the derivative
-#p0_space = FunctionSpace(mesh, "DG", 0)
-#p0_field = Function(p0_space)
-#arr = numpy.array([float(i) for i in range(*p0_field.vector().local_range(0))])
-#p0_field.vector().set_local(arr)
-#p0_field.vector().apply("insert")
-#cell_field = Function(space_u)
-#pa_solve(inner(test_u, cell_field) * dx == inner(test_u, p0_field) * dx,
-#  cell_field, solver_parameters = lu_solver)
-#cells = cell_field.vector().array()
-#x_coords = interpolate(Expression("x[0]"), space_u).vector().array()
-#y_coords = interpolate(Expression("x[1]"), space_u).vector().array()
-#vals = g.array()
-#p = [[[], []] for i in range(len(cells))]
-#for i in range(len(x_coords)):
-#  if abs(y_coords[i] - 1.0) < 1.0e-6:
-#    c = p[int(cells[i] * (1.0 + 1.0e-6))]
-#    c[0].append(x_coords[i])
-#    c[1].append(vals[i])
-#from matplotlib.pylab import plot, savefig
-#handle = open("g.dat", "w")
-#for c in p:
-#  if len(c[0]) > 1:
-#    assert(len(c[0]) == 2 and len(c[1]) == 2)
-#    if c[0][0] > c[0][1]:
-#      c[0] = c[0][1], c[0][0]
-#      c[1] = c[1][1], c[1][0]    
-#    mesh_1 = IntervalMesh(1, c[0][0], c[0][1])
-#    space_u_1 = FunctionSpace(mesh_1, "DG", 1)
-#    x_1 = interpolate(Expression("x[0]"), space_u_1).vector().array()
-#    assert(x_1[0] == c[0][0] and x_1[1] == c[0][1])
-#    mass_1 = assemble(inner(TestFunction(space_u_1), TrialFunction(space_u_1)) * dx).array()
-#    c[1] = numpy.linalg.solve(mass_1, c[1])
-#    handle.write("%.16e %.16e %.16e %.16e\n" % (c[0][0], c[1][0], c[0][1], c[1][1]))
-#    plot(c[0], c[1], color = "k")
-#handle.close()
-#savefig("g.png")
 
 # Verify the derivative
 J = system.compute_functional()
