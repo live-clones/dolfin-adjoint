@@ -66,7 +66,7 @@ class Wind(Expression):
   def value_shape(self):
     return tuple()
 F = StaticFunction(space, name = "F")
-F.interpolate(Wind(y_0 = y_0, element = space.ufl_element()))
+F.interpolate(Wind(y_0 = y_0, element = F.function_space().ufl_element()))
 #write_vtu("F", F)
 
 system = TimeSystem()
