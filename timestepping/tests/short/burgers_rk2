@@ -107,6 +107,7 @@ dolfin_adjoint_grad = numpy.array(list(map(float, """2.45185565e-06   4.62834966
   -3.58854011e-02  -2.96860750e-02  -2.21846959e-02  -1.37116134e-02
   -4.63829372e-03""".split())), dtype = numpy.float64)
 err = abs(grad[0].array() - dolfin_adjoint_grad).max()
+print(grad[0].array(), err)
 assert(err < 5.0e-11)
 
 orders = system.taylor_test(ic, J = J, grad = grad[0])
