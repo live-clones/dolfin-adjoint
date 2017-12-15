@@ -4,7 +4,7 @@
 # Copyright (C) 2008-2013 Martin Sandve Alnes
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2017 University of Edinburgh
+# Copyright (C) 2014-2017 The University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
