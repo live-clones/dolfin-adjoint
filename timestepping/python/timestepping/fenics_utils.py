@@ -31,21 +31,6 @@
 # 
 # Copyright (C) 2007-201r Anders Logg and Kristian B. Oelgaard
 #
-# This file is part of FFC.
-#
-# FFC is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# FFC is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with FFC. If not, see <http://www.gnu.org/licenses/>.
-#
 # Modified by Marie E. Rognes, 2010
 # Modified by Martin Alnaes, 2013-2014
 #
@@ -54,21 +39,6 @@
 #
 # Copyright (C) 2007-2016 Anders Logg, Martin Alnaes, Kristian B. Oelgaard,
 # and others
-#
-# This file is part of FFC.
-#
-# FFC is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# FFC is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with FFC. If not, see <http://www.gnu.org/licenses/>.
 
 import copy
 
