@@ -47,7 +47,7 @@ __all__ = \
     "TimeSystem"
   ]
 
-class TimeSystem:
+class TimeSystem(Assemble):
     """
     Used to register timestep equations.
     """
@@ -533,8 +533,6 @@ class TimeSystem:
             return ManagedModel(self, *args, **kwargs)
         else:
             return ForwardModel(self, *args, **kwargs)
-
-_assemble_classes.append(TimeSystem)
 
 class ForwardModel:
     """

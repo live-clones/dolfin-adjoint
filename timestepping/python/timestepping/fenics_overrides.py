@@ -30,7 +30,7 @@ __all__ = \
     "_LinearSolver",
     "_LUSolver",
     "_assemble",
-    "_assemble_classes",
+    "Assemble",
     "LinearSolver",
     "assemble",
     "derivative"
@@ -70,8 +70,6 @@ def LinearSolver(*args, **kwargs):
             kp = linear_solver_parameters[key]
         elif key == "lu_solver":
             lp = linear_solver_parameters[key]
-        elif key in ["print_matrix", "print_rhs", "reset_jacobian", "symmetric"]:
-            raise NotImplementedException("Unsupported linear solver parameter: %s" % key)
         else:
             raise InvalidArgumentException("Unexpected linear solver parameter: %s" % key)
 
@@ -120,13 +118,20 @@ def derivative(form, u, du = None, expand = True):
 
     return der
 
-_assemble_classes = []
+class Assemble:
+  """
+  Used to mark objects which have a custom assemble method.
+  """
+  
+  def assemble(self, *args, **kwargs):
+    raise AbstractMethodException("assemble method not overridden")
+
 def assemble(*args, **kwargs):
     """
     Wrapper for the DOLFIN assemble function.
     """
 
-    if isinstance(args[0], tuple(_assemble_classes)):
+    if isinstance(args[0], Assemble):
         return args[0].assemble(*args[1:], **kwargs)
     else:
         return _assemble(*args, **kwargs)

@@ -106,15 +106,27 @@ class PAFilter:
     Constructor arguments:
       quadrature_degree: Quadrature degree used for form assembly.
       pre_assembly_parameters: Parameters defining detailed optimisation options.
+      hbcs: Homogeneous boundary conditions to be applied. Can only be used
+        in the pre-assembly of rank two forms.
+      symmetric_bcs: Whether boundary conditions should be applied so as to
+        yield a symmetric matrix.
     """
 
-    def __init__(self, quadrature_degree, pre_assembly_parameters):
+    def __init__(self, quadrature_degree, pre_assembly_parameters, hbcs = [], symmetric_bcs = True):
         if not isinstance(quadrature_degree, int) or quadrature_degree < 0:
             raise InvalidArgumentException("quadrature_degree must be a non-negative integer")
         if not isinstance(pre_assembly_parameters, dolfin.Parameters):
             raise InvalidArgumentException("default_pre_assembly_parameters must be a Parameters")
 
-                                                              # No real need to copy here
+        #if not isinstance(hbcs, list):
+        #    raise InvalidArgumentException("hbcs must be a list of DirichletBC s")
+        #for hbc in hbcs:
+        #    if not isinstance(hbcs, dolfin.cpp.DirichletBC):
+        #        raise InvalidArgumentException("hbcs must be a list of DirichletBC s")
+
+        # No real need to copy here
+        self._hbcs = hbcs#copy.copy(hbcs)
+        self._symmetric_bcs = symmetric_bcs
         self.pre_assembly_parameters = pre_assembly_parameters#.copy()
         self._quadrature_degree = quadrature_degree
         self._form = ufl.form.Form([])
@@ -150,12 +162,28 @@ class PAFilter:
         return
 
     def _cache_assemble(self, form):
+        if len(self._hbcs) > 0 and self._rank != 2:
+            raise StateException("form must be a rank 2 Form when assembling with boundary conditions")
+        
         return assembly_cache.assemble(form,
-          form_compiler_parameters = {"quadrature_degree":self._quadrature_degree})
+          form_compiler_parameters = {"quadrature_degree":self._quadrature_degree},
+          bcs = self._hbcs, symmetric_bcs = self._symmetric_bcs, zero_columns = False)
 
     def _assemble(self, form, tensor = None):
-        return assemble(form, tensor = tensor,
-          form_compiler_parameters = {"quadrature_degree":self._quadrature_degree})
+        if len(self._hbcs) > 0 and self._rank != 2:
+            raise StateException("form must be a rank 2 Form when assembling with boundary conditions")
+        
+        if len(self._hbcs) == 0:
+            tensor = assemble(form, tensor = tensor,
+              form_compiler_parameters = {"quadrature_degree":self._quadrature_degree})
+        elif self._symmetric_bcs:
+            tensor = assemble_symmetric_bcs(form, self._hbcs, tensor = tensor,
+              form_compiler_parameters = {"quadrature_degree":self._quadrature_degree})
+        else:
+            tensor = assemble(form, tensor = tensor,
+              form_compiler_parameters = {"quadrature_degree":self._quadrature_degree})
+            apply_bcs(tensor, self._hbcs, symmetric_bcs = False)
+        return tensor
 
     def add(self, form):
         """
@@ -229,10 +257,14 @@ class PAStaticFilter(PAFilter):
     Constructor arguments:
       quadrature_degree: Quadrature degree used for form assembly.
       pre_assembly_parameters: Parameters defining detailed optimisation options.
+      hbcs: Homogeneous boundary conditions to be applied. Can only be used
+        in the pre-assembly of rank two forms.
+      symmetric_bcs: Whether boundary conditions should be applied so as to
+        yield a symmetric matrix.
     """
 
-    def __init__(self, quadrature_degree, pre_assembly_parameters):
-        PAFilter.__init__(self, quadrature_degree, pre_assembly_parameters)
+    def __init__(self, quadrature_degree, pre_assembly_parameters, hbcs = [], symmetric_bcs = True):
+        PAFilter.__init__(self, quadrature_degree, pre_assembly_parameters, hbcs = hbcs, symmetric_bcs = symmetric_bcs)
         self.__pre_assembled = None
 
         return
@@ -340,10 +372,14 @@ class PAMatrixFilter(PAFilter):
     Constructor arguments:
       quadrature_degree: Quadrature degree used for form assembly.
       pre_assembly_parameters: Parameters defining detailed optimisation options.
+      hbcs: Homogeneous boundary conditions to be applied. Can only be used
+        in the pre-assembly of rank two forms.
+      symmetric_bcs: Whether boundary conditions should be applied so as to
+        yield a symmetric matrix.
     """
 
-    def __init__(self, quadrature_degree, pre_assembly_parameters):
-        PAFilter.__init__(self, quadrature_degree, pre_assembly_parameters)
+    def __init__(self, quadrature_degree, pre_assembly_parameters, hbcs = [], symmetric_bcs = True):
+        PAFilter.__init__(self, quadrature_degree, pre_assembly_parameters, hbcs = hbcs, symmetric_bcs = symmetric_bcs)
         self.__L = OrderedDict()
         self.__pre_assembled = None
 
@@ -428,10 +464,14 @@ class NonPAFilter(PAFilter):
     Constructor arguments:
       quadrature_degree: Quadrature degree used for form assembly.
       pre_assembly_parameters: Parameters defining detailed optimisation options.
+      hbcs: Homogeneous boundary conditions to be applied. Can only be used
+        in the pre-assembly of rank two forms.
+      symmetric_bcs: Whether boundary conditions should be applied so as to
+        yield a symmetric matrix.
     """
 
-    def __init__(self, quadrature_degree, pre_assembly_parameters):
-        PAFilter.__init__(self, quadrature_degree, pre_assembly_parameters)
+    def __init__(self, quadrature_degree, pre_assembly_parameters, hbcs = [], symmetric_bcs = True):
+        PAFilter.__init__(self, quadrature_degree, pre_assembly_parameters, hbcs = hbcs, symmetric_bcs = symmetric_bcs)
         self.__tensor = None
 
         return
@@ -532,7 +572,7 @@ class NonPAFilter(PAFilter):
                 tensor += self._assemble(self._form)
                 return tensor
 
-class PAForm:
+class PAForm(Assemble):
     """
     A pre-assembled form. Given a form of arbitrary rank, this finds and
     pre-assembles static terms.
@@ -540,11 +580,20 @@ class PAForm:
     Constructor arguments:
       form: The Form to be pre-assembled.
       pre_assembly_parameters: Parameters defining detailed optimisation options.
+      hbcs: Homogeneous boundary conditions to be applied. Can only be used
+        in the pre-assembly of rank two forms.
+      symmetric_bcs: Whether boundary conditions should be applied so as to
+        yield a symmetric matrix.
     """
 
-    def __init__(self, form, pre_assembly_parameters = {}):
+    def __init__(self, form, pre_assembly_parameters = {}, hbcs = [], symmetric_bcs = True):
         if not isinstance(form, ufl.form.Form) or is_empty_form(form):
             raise InvalidArgumentException("form must be a non-empty Form")
+        if not isinstance(hbcs, list):
+            raise InvalidArgumentException("hbcs must be a list of DirichletBC s")
+        for hbc in hbcs:
+            if not isinstance(hbcs, dolfin.cpp.DirichletBC):
+                raise InvalidArgumentException("hbcs must be a list of DirichletBC s")
 
         rank = form_rank(form)
         if rank == 0:
@@ -565,6 +614,8 @@ class PAForm:
 
         self.__form = form
         self.__rank = rank
+        self.__hbcs = copy.copy(hbcs)
+        self.__symmetric_bcs = symmetric_bcs
         self.__quadrature_degree = form_quadrature_degree(form)
         self.__deps = set(ufl.algorithms.extract_coefficients(form))
         self.__is_static = is_static_form(form)
@@ -574,8 +625,8 @@ class PAForm:
         return
 
     def __set_optimise(self, form, pa_filters):
-        pa_filters = [filter(self.__quadrature_degree, self.pre_assembly_parameters) for filter in pa_filters]
-        non_pa_filter = NonPAFilter(self.__quadrature_degree, self.pre_assembly_parameters)
+        pa_filters = [filter(self.__quadrature_degree, self.pre_assembly_parameters, hbcs = self.__hbcs, symmetric_bcs = self.__symmetric_bcs) for filter in pa_filters]
+        non_pa_filter = NonPAFilter(self.__quadrature_degree, self.pre_assembly_parameters, hbcs = self.__hbcs, symmetric_bcs = self.__symmetric_bcs)
 
         for filter in pa_filters:
             form, n_added = filter.add(form)
@@ -705,5 +756,3 @@ class PAForm:
         """
 
         return self.__deps
-
-_assemble_classes.append(PAForm)

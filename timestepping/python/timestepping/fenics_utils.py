@@ -74,6 +74,7 @@ import copy
 
 import dolfin
 import ffc
+import numpy
 import ufl
 
 from .exceptions import *
@@ -82,6 +83,7 @@ from .versions import *
 __all__ = \
   [
     "apply_bcs",
+    "assemble_symmetric_bcs",
     "differentiate_expr",
     "enforce_bcs",
     "extract_test_and_trial",
@@ -507,3 +509,15 @@ def is_empty_form(form):
         if not isinstance(integral.integrand(), ufl.constantvalue.Zero):
             return False
     return True
+        
+def assemble_symmetric_bcs(form, hbcs, tensor = None, form_compiler_parameters = {}):
+    """
+    Assemble the supplied rank 2 form, applying homogeneous boundary conditions
+    so as to yield a symmetric matrix.
+    """
+
+    test, _ = extract_test_and_trial(form)
+    shape = test.ufl_element().value_shape()
+    dummy_rhs = dolfin.inner(test, dolfin.Constant(0.0 if len(shape) == 0 else numpy.zeros(shape, dtype = numpy.float64))) * dolfin.dx
+    a, _ = dolfin.assemble_system(form, dummy_rhs, hbcs, A_tensor = tensor, form_compiler_parameters = form_compiler_parameters)
+    return a

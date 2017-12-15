@@ -59,7 +59,7 @@ def form_key(form, static = True):
     else:
         return extract_test_and_trial(form)
 
-def bc_key(bcs, symmetric_bcs):
+def bc_key(bcs, symmetric_bcs, zero_columns = True):
     """
     Generate a hashable key from a list of DirichletBC s.
     """
@@ -73,7 +73,7 @@ def bc_key(bcs, symmetric_bcs):
     if len(bcs) == 0:
         return None
     else:
-        return tuple(bcs), symmetric_bcs
+        return tuple(bcs), symmetric_bcs, zero_columns
 
 def parameters_key(parameters):
     """
@@ -106,7 +106,7 @@ class AssemblyCache:
         return
 
     def assemble(self, form, form_compiler_parameters = {}, bcs = [],
-      symmetric_bcs = False):
+      symmetric_bcs = False, zero_columns = True):
         """
         Return the result of assembling the supplied Form.
 
@@ -116,6 +116,9 @@ class AssemblyCache:
           bcs: Dirichlet BCs applied to a matrix.
           symmetric_bcs: Whether Dirichlet BCs should be applied so as to yield a
             symmetric matrix.
+          zero_columns: Whether the zero_columns method should be used to
+            apply boundary conditions. If False then the boundary conditions
+            should be homogeneous.
         """
 
         if not isinstance(form, ufl.form.Form):
@@ -133,8 +136,8 @@ class AssemblyCache:
         form_compiler_parameters = nform_compiler_parameters;  del(nform_compiler_parameters)
 
         rank = form_rank(form)
+        key = (form_key(form), parameters_key(form_compiler_parameters), bc_key(bcs, symmetric_bcs, zero_columns = zero_columns))
         if len(bcs) == 0:
-            key = (form_key(form), parameters_key(form_compiler_parameters), bc_key(bcs, symmetric_bcs))
             if not key in self.__cache:
                 cache_info("Assembling form with rank %i" % rank, dolfin.info)
                 self.__cache[key] = assemble(form, form_compiler_parameters = form_compiler_parameters)
@@ -144,11 +147,13 @@ class AssemblyCache:
             if not rank == 2:
                 raise InvalidArgumentException("form must be rank 2 when applying boundary conditions")
 
-            key = (form_key(form), parameters_key(form_compiler_parameters), bc_key(bcs, symmetric_bcs))
             if not key in self.__cache:
                 cache_info("Assembling form with rank 2, with boundary conditions", dolfin.info)
-                mat = assemble(form, form_compiler_parameters = form_compiler_parameters)
-                apply_bcs(mat, bcs, symmetric_bcs = symmetric_bcs)
+                if symmetric_bcs and not zero_columns:
+                    mat = assemble_symmetric_bcs(form, bcs, form_compiler_parameters = form_compiler_parameters)
+                else:
+                    mat = assemble(form, form_compiler_parameters = form_compiler_parameters)
+                    apply_bcs(mat, bcs, symmetric_bcs = symmetric_bcs)
                 self.__cache[key] = mat
             else:
                 cache_info("Using cached assembled form with rank 2, with boundary conditions", dolfin.info_green)
