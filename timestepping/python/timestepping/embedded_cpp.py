@@ -188,13 +188,13 @@ class EmbeddedCpp:
         for name in args.keys():
             arg = args[name]
             if isinstance(arg, numpy.ndarray):
-                if arg.dtype == "int32":
+                if arg.dtype == ctypes.c_int:
                     if not self.__args[name] == int_arr:
                         raise InvalidArgumentException("Argument %s is of invalid type" % name)
-                elif arg.dtype == "int64":
+                elif arg.dtype == ctypes.c_long:
                     if not self.__args[name] == long_arr:
                         raise InvalidArgumentException("Argument %s is of invalid type" % name)
-                elif arg.dtype == "float64":
+                elif arg.dtype == ctypes.c_double:
                     if not self.__args[name] == double_arr:
                         raise InvalidArgumentException("Argument %s is of invalid type" % name)
                 else:
@@ -213,7 +213,7 @@ class EmbeddedCpp:
             elif isinstance(arg, float):
                 largs.append(ctypes.c_double(arg))
             elif isinstance(arg, numpy.ndarray):
-                assert(arg.dtype in ["int32", "int64", "float64"])
+                assert(arg.dtype in [ctypes.c_int, ctypes.c_long, ctypes.c_double])
                 largs.append(arg)
             else:
                 assert(isinstance(arg, tuple(self.__boost_classes.keys())))
