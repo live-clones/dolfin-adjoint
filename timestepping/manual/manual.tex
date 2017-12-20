@@ -1753,6 +1753,33 @@ The \verb+timestepping+ library includes code derived from dolfin-adjoint
 in the relevant source files.
 
 ~\newline
+For details regarding the interior penalty Laplace operator used in
+\verb+tests/long/advection_2d_rk3+, \linebreak
+\verb+tests/long/advection_2d_limiter_rk3+,
+\verb+tests/long/boussinesq-navier-stokes_cn_picard2+, and \linebreak
+\verb+tests/long/navier-stokes_cn_picard2+ see \citet{olgaard2008}
+\citep[see also][]{arnold2002}.
+
+~\newline
+The timestepping scheme used in
+\verb+tests/long/boussinesq-navier-stokes_cn_picard2+ and \linebreak
+\verb+tests/long/navier-stokes_cn_picard2+ is based upon that used by the
+Fluidity model (\url{https://github.com/fluidityproject}, see \citet{ford2004}).
+
+~\newline
+The SSP RK scheme used in
+\verb+tests/long/advection_2d_rk3+ and
+\verb+tests/long/advection_2d_limiter_rk3+ follows \citet{kuzmin2010} equations
+(7)--(9). The vertex-based limiter used in \linebreak
+\verb+tests/long/advection_2d_limiter_rk3+ follows \citet{kuzmin2010}.
+
+~\newline
+The multi-layer quasi-geostrophic model in \verb+tests/short/qg_ab3+ is
+similar to, and uses stratification parameters from, the PEQUOD finite
+difference code \citep[e.g.][]{karabasov2009,marshall2012}. The configuration is
+similar to \citet{marshall2012}.
+
+~\newline
 Dr. James R. Maddison acknowledges funding from the Natural Environment Research
 Council (references NE/H020454/1, NE/L005166/1, NE/R000999/1) and the
 Engineering and Physical Sciences Research Council (reference EP/G036136/1).

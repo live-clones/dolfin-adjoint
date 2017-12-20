@@ -348,7 +348,9 @@ class PAEquationSolver(EquationSolver):
             # Newton solver, intended to have near identical behaviour to the Newton
             # solver supplied with DOLFIN. See
             # https://fenicsproject.org/pub/tutorial/html/._ftut1007.html for
-            # further details [accessed 2017-12-12].
+            # further details [accessed 2017-12-12] and
+            # http://home.simula.no/~hpl/homepage/fenics-tutorial/release-1.0-nonabla/webm/nonlinear.html
+            # [accessed 2017-12-20].
             #
             # This comment previously referenced (the now inaccessible)
             # http://fenicsproject.org/documentation/tutorial/nonlinear.html.
