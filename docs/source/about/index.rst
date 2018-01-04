@@ -31,6 +31,9 @@ where the model is implemented in the Python interface to DOLFIN.
 
 News
 ====
+**04.01.2018**: dolfin-adjoint/libadjoint 2017.2 released (compatible with FEniCS 2017.2) `ChangeLog`_.
+                **Note**: dolfin-adjoint/libadjoint is deprecated and will be replaced by `dolfin-adjoint/pyadjoint`_.
+
 **31.05.2017**: dolfin-adjoint 2017.1 released (compatible with FEniCS 2017.1) `ChangeLog`_.
 
 **21.02.2017**: dolfin-adjoint 2016.2 is now available as Conda package.
@@ -46,6 +49,7 @@ News
 **11.6.2015**: P. E. Farrell, S. W. Funke, D. A. Ham and M. E. Rognes were awarded the 2015 `Wilkinson prize for numerical software`_ for dolfin-adjoint.
 
 .. _Changelog: https://bitbucket.org/dolfin-adjoint/dolfin-adjoint/raw/master/ChangeLog
+.. _dolfin-adjoint/pyadjoint: http://www.dolfin-adjoint.org
 .. _Wilkinson prize for numerical software: http://www.nag.co.uk/other/WilkinsonPrize.html
 
 Features

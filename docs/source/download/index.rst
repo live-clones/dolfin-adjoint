@@ -61,34 +61,6 @@ For more details and tips on how to work with FEniCS and Docker, see
 our `FEniCS Docker page
 <http://fenics-containers.readthedocs.org/en/latest/>`_.
 
-Conda package (Mac/Linux)
-=============================
-
-For people who have an `Anaconda distribution <https://www.continuum.io/downloads>`_ installed,
-you can install dolfin-adjoint and all its dependencies with:
-
-.. code-block:: bash
-
-    conda install -c conda-forge dolfin-adjoint=2017.1.0
-
-
-Binary packages (Ubuntu)
-========================
-
-Binary packages are currently available for Ubuntu users through the
-`launchpad PPA`_.  To install dolfin-adjoint, do
-
-.. code-block:: bash
-
-   sudo apt-add-repository ppa:libadjoint/ppa
-   sudo apt-get update
-   sudo apt-get install python-dolfin-adjoint
-
-which should install the latest stable version on your system.
-Once that's done, why not try out the :doc:`tutorial <../documentation/tutorial>`?
-
-.. _launchpad PPA: https://launchpad.net/~libadjoint/+archive/ppa
-
 
 From source
 ===========
@@ -99,13 +71,13 @@ The latest stable release of dolfin-adjoint and libadjoint is **version 2017.1**
 
 .. code-block:: bash
 
-   git clone -b libadjoint-2017.1.0 https://bitbucket.org/dolfin-adjoint/libadjoint
+   git clone -b libadjoint-2017.2.0 https://bitbucket.org/dolfin-adjoint/libadjoint
 
 * dolfin-adjoint:
 
 .. code-block:: bash
 
-   git clone -b dolfin-adjoint-2017.1.0 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
+   git clone -b dolfin-adjoint-2017.2.0 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
 
 The **development version** is available with the following
 command:
@@ -164,23 +136,6 @@ Optional dependencies:
 .. _Harwell Subroutine Library: http://www.hsl.rl.ac.uk/ipopt/
 .. _their installation instructions: http://fenicsproject.org/download
 
-Virtual machine (outdated)
-==========================
-
-If you'd like to try dolfin-adjoint out without any installation headaches,
-try out `the FENICS VirtualBox virtual machine with FEniCS and dolfin-adjoint pre-installed
-<http://fenicsproject.org/pub/virtual/fenics-latest.ova>`_. Here are
-the instructions:
-
-* Download and install VirtualBox from https://www.virtualbox.org, or from your operating system.
-* Download the `virtual machine <http://fenicsproject.org/pub/virtual/fenics-latest.ova>`_.
-* Start VirtualBox, click on "File -> Import Appliance", select the virtual machine image and click on "Import".
-* Select the "dolfin-adjoint VM" and click on "Start" to boot the machine.
-* For installing new software you need the login credentials:
-
-  * Username: fenics
-  * Password: fenics
-
 Older versions
 ==============
 
@@ -188,5 +143,5 @@ An older version compatible with FEniCS 1.6 can be downloaded with:
 
 .. code-block:: bash
 
-   git clone -b dolfin-adjoint-1.6 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
-   git clone -b libadjoint-1.6 https://bitbucket.org/dolfin-adjoint/libadjoint
+   git clone -b dolfin-adjoint-2017.1.0 https://bitbucket.org/dolfin-adjoint/dolfin-adjoint
+   git clone -b libadjoint-2017.1.0 https://bitbucket.org/dolfin-adjoint/libadjoint
