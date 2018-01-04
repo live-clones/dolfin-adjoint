@@ -8,7 +8,7 @@ class CustomDolfinAdjointFunction(object):
 
         # Perform the forward operation 
         out = Function(infunc.function_space())
-        out.vector()[:] = out.vector().array()**2
+        out.vector()[:] = out.vector().get_local()**2
 
         # Annotate the operation on the dolfin-adjoint tape
         if utils.to_annotate(annotate):

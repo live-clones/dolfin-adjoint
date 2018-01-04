@@ -1,3 +1,8 @@
+dolfin-adjoint/libadjoint 2017.2.0 [04-01-2018]
+- Support for FEniCS 2017.2.0
+- This version is depracted and will be replaced by dolfin-adjoint/pyadjoint 
+  (see https://bitbucket.org/dolfin-adjoint/pyadjoint)
+
 dolfin-adjoint 2017.1.0 [31-05-2017]
 - Support for FEniCS 2017.1.0
 
