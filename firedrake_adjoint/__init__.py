@@ -13,7 +13,7 @@ importing the :py:mod:`firedrake` module. firedrake-adjoint relies on *overloadi
 the key functions of firedrake to achieve its degree of automation.
 """
 
-__version__ = '2016.1.0'
+__version__ = '2017.2.0'
 __author__  = 'Simon Funke and Patrick Farrell'
 __credits__ = ['Patrick Farrell', 'Simon Funke', 'David Ham', 'Marie Rognes']
 __license__ = 'LGPL-3'
