@@ -61,6 +61,17 @@ For more details and tips on how to work with FEniCS and Docker, see
 our `FEniCS Docker page
 <http://fenics-containers.readthedocs.org/en/latest/>`_.
 
+Conda package (Mac/Linux)
+=============================
+
+For people who have an `Anaconda distribution <https://www.continuum.io/downloads>`_ installed,
+you can install dolfin-adjoint and all its dependencies with:
+
+.. code-block:: bash
+
+    conda install -c conda-forge dolfin-adjoint=2017.2.0
+
+
 
 From source
 ===========
