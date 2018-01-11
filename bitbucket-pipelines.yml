@@ -14,5 +14,5 @@ pipelines:
           - update_libadjoint
           - cd $BITBUCKET_CLONE_DIR
           - pip2 install --no-cache-dir --upgrade --prefix=$FENICS_PREFIX .
-          - export PYTHONPATH=/usr/local/lib/python3/dist-packages/:$PYTHONPATH
+          - export PYTHONPATH=/usr/local/lib/python2/dist-packages/:$PYTHONPATH
           - python -m pytest -v tests_dolfin/
