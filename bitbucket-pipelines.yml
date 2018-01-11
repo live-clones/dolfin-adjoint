@@ -9,6 +9,8 @@ pipelines:
           - export PATH=$HOME/bin:$HOME/.local/bin:$PATH
           - source $HOME/fenics.env.conf
           - source $HOME/dolfin-adjoint.conf
+          - export FENICS_PYTHON_MAJOR_VERSION=3
+          - export FENICS_PYTHON_MINOR_VERSION=5
           - update_libadjoint
           - cd $BITBUCKET_CLONE_DIR
           - pip3 install --no-cache-dir --upgrade --prefix=$FENICS_PREFIX .
