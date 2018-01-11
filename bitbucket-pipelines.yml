@@ -1,4 +1,4 @@
-image: quay.io/dolfinadjoint/dev-dolfin-adjoint
+image: quay.io/dolfinadjoint/dolfin-adjoint
 
 pipelines:
   default:
