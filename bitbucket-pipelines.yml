@@ -4,15 +4,15 @@ pipelines:
   default:
     - step:
         script:
-          - pip3 install --no-cache-dir --upgrade pytest
+          - pip2 install --no-cache-dir --upgrade pytest
           - export HOME=/home/fenics
           - export PATH=$HOME/bin:$HOME/.local/bin:$PATH
           - source $HOME/fenics.env.conf
           - source $HOME/dolfin-adjoint.conf
-          - export FENICS_PYTHON_MAJOR_VERSION=3
-          - export FENICS_PYTHON_MINOR_VERSION=5
+          - export FENICS_PYTHON_MAJOR_VERSION=2
+          - export FENICS_PYTHON_MINOR_VERSION=7
           - update_libadjoint
           - cd $BITBUCKET_CLONE_DIR
-          - pip3 install --no-cache-dir --upgrade --prefix=$FENICS_PREFIX .
+          - pip2 install --no-cache-dir --upgrade --prefix=$FENICS_PREFIX .
           - export PYTHONPATH=/usr/local/lib/python3/dist-packages/:$PYTHONPATH
-          - python3 -m pytest -v tests_dolfin/
+          - python -m pytest -v tests_dolfin/
