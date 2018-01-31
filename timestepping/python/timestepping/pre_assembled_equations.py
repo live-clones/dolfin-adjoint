@@ -2,7 +2,7 @@
 
 # Copyright (C) 2011-2012 by Imperial College London
 # Copyright (C) 2013 University of Oxford
-# Copyright (C) 2014-2017 The University of Edinburgh
+# Copyright (C) 2014-2018 The University of Edinburgh
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -347,10 +347,8 @@ class PAEquationSolver(EquationSolver):
         elif self.solver_parameters().get("nonlinear_solver", "newton") == "newton":
             # Newton solver, intended to have near identical behaviour to the Newton
             # solver supplied with DOLFIN. See
-            # https://fenicsproject.org/pub/tutorial/html/._ftut1007.html for
-            # further details [accessed 2017-12-12] and
             # http://home.simula.no/~hpl/homepage/fenics-tutorial/release-1.0-nonabla/webm/nonlinear.html
-            # [accessed 2017-12-20].
+            # [accessed 2017-12-20] for further details.
             #
             # This comment previously referenced (the now inaccessible)
             # http://fenicsproject.org/documentation/tutorial/nonlinear.html.
