@@ -48,7 +48,7 @@ def main(u, V, annotate=False):
 @pytest.fixture(params=["L-BFGS-B",
                         "SLSQP",
                         "BFGS",
-                        pytest.param("COBYLA", marks=pytest.mark.xfail(reason="Scipy bug #8118", strict=True)),
+                        "COBYLA",
                         "TNC",
                         "Newton-CG",
                         "Nelder-Mead",
