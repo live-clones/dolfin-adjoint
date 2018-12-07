@@ -58,12 +58,15 @@ class PointIntegralRHS(libadjoint.RHS):
         self.coeffs = [coeff for coeff in ufl.algorithms.extract_coefficients(self.form) if hasattr(coeff, "function_space")]
         self.deps   = [adjglobals.adj_variables[coeff] for coeff in self.coeffs]
 
-        solving.register_initial_conditions(zip(self.coeffs, self.deps), linear=True)
-
         self.ic_var = ic_var
         if scheme.solution() not in self.coeffs:
-            self.coeffs.append(scheme.solution())
+            self.coeffs.append(scheme.solution().copy(deepcopy=True))
             self.deps.append(ic_var)
+        else:
+            index = self.deps.index(ic_var)
+            self.coeffs[index] = self.coeffs[index].copy(deepcopy=True)
+
+        solving.register_initial_conditions(zip(self.coeffs, self.deps), linear=True)
 
         self.frozen_expressions = frozen_expressions
         self.frozen_constants = frozen_constants
