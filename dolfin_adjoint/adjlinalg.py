@@ -120,7 +120,7 @@ class Vector(libadjoint.Vector):
                     assert xargs[i].function_space() == sargs[i].function_space()
 
                 # Now that we are happy, let's replace the xargs with the sargs ones.
-                x_form = backend.replace(x.data, dict(zip(xargs, sargs)))
+                x_form = ufl.replace(x.data, dict(zip(xargs, sargs)))
             else:
                 x_form = x.data
 
@@ -351,8 +351,8 @@ class Matrix(libadjoint.Matrix):
             else:
                 if hasattr(b, 'nonlinear_form'): # was a nonlinear solve
                     x = compatibility.assign_function_to_vector(x, b.nonlinear_u, function_space = test.function_space())
-                    F = backend.replace(b.nonlinear_form, {b.nonlinear_u: x.data})
-                    J = backend.replace(b.nonlinear_J, {b.nonlinear_u: x.data})
+                    F = ufl.replace(b.nonlinear_form, {b.nonlinear_u: x.data})
+                    J = ufl.replace(b.nonlinear_J, {b.nonlinear_u: x.data})
                     try:
                         compatibility.solve(F == 0, x.data, b.nonlinear_bcs, J=J, solver_parameters=self.solver_parameters)
                     except RuntimeError as rte:
@@ -451,7 +451,7 @@ class Matrix(libadjoint.Matrix):
                 assert xargs[i].function_space() == sargs[i].function_space()
 
             # Now that we are happy, let's replace the xargs with the sargs ones.
-            x_form = backend.replace(x.data, dict(zip(xargs, sargs)))
+            x_form = ufl.replace(x.data, dict(zip(xargs, sargs)))
         else:
             x_form = x.data
 

@@ -259,7 +259,7 @@ class AdjointKrylovMatrix(backend.PETScKrylovMatrix):
 
     def set_dependencies(self, dependencies, values):
         replace_dict = dict(zip(self.dependencies(), values))
-        self.current_form = backend.replace(self.original_form, replace_dict)
+        self.current_form = ufl.replace(self.original_form, replace_dict)
 
     def hermitian(self):
         adjoint_bcs = [utils.homogenize(bc) for bc in self.bcs if isinstance(bc, backend.cpp.DirichletBC)] + [bc for bc in self.bcs if not isinstance(bc, backend.DirichletBC)]
@@ -268,7 +268,7 @@ class AdjointKrylovMatrix(backend.PETScKrylovMatrix):
     def derivative_action(self, variable, contraction_vector, hermitian, input, coefficient):
         deriv = backend.derivative(self.current_form, variable)
         args = ufl.algorithms.extract_arguments(deriv)
-        deriv = backend.replace(deriv, {args[1]: contraction_vector})
+        deriv = ufl.replace(deriv, {args[1]: contraction_vector})
 
         if hermitian:
             deriv = backend.adjoint(deriv)

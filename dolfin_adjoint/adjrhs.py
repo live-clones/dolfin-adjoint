@@ -49,7 +49,7 @@ class RHS(libadjoint.RHS):
 
             dolfin_values=[val.data for val in values]
 
-            return adjlinalg.Vector(backend.replace(self.form, dict(zip(dolfin_dependencies, dolfin_values))))
+            return adjlinalg.Vector(ufl.replace(self.form, dict(zip(dolfin_dependencies, dolfin_values))))
 
         else:
             # RHS is a adjlinalg.Vector.
@@ -70,7 +70,7 @@ class RHS(libadjoint.RHS):
 
             dolfin_values = [val.data for val in values]
 
-            current_form = backend.replace(self.form, dict(zip(dolfin_dependencies, dolfin_values)))
+            current_form = ufl.replace(self.form, dict(zip(dolfin_dependencies, dolfin_values)))
             trial = backend.TrialFunction(dolfin_variable.function_space())
 
             d_rhs = backend.derivative(current_form, dolfin_variable, trial)
@@ -96,7 +96,7 @@ class RHS(libadjoint.RHS):
 
             dolfin_values = [val.data for val in values]
 
-            current_form = backend.replace(self.form, dict(zip(dolfin_dependencies, dolfin_values)))
+            current_form = ufl.replace(self.form, dict(zip(dolfin_dependencies, dolfin_values)))
             trial = backend.TrialFunction(dolfin_outer_variable.function_space())
 
             d_rhs = backend.derivative(current_form, dolfin_inner_variable, inner_contraction_vector.data)
@@ -194,11 +194,11 @@ class NonlinearRHS(RHS):
                 else:
                     replace_map[self.coeffs[i]] = values[j].data
 
-        current_F    = backend.replace(self.F, replace_map)
-        current_J    = backend.replace(self.J, replace_map)
+        current_F    = ufl.replace(self.F, replace_map)
+        current_J    = ufl.replace(self.J, replace_map)
         u = ic.copy(deepcopy=True)
-        current_F    = backend.replace(current_F, {self.u: u})
-        current_J    = backend.replace(current_J, {self.u: u})
+        current_F    = ufl.replace(current_F, {self.u: u})
+        current_J    = ufl.replace(current_J, {self.u: u})
 
         vec = adjlinalg.Vector(None)
         vec.nonlinear_form = current_F
@@ -244,7 +244,7 @@ class NonlinearRHS(RHS):
 
         diff_var = values[dependencies.index(variable)].data
 
-        current_form = backend.replace(self.form, replace_map)
+        current_form = ufl.replace(self.form, replace_map)
         deriv = backend.derivative(current_form, diff_var)
 
         if hermitian:
