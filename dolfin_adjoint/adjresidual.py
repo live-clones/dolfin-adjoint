@@ -7,7 +7,6 @@ import ufl.algorithms
 
 import libadjoint
 
-
 from ufl.log import info_red, info_blue
 
 def get_residual(i):
@@ -32,6 +31,6 @@ def get_residual(i):
         info_red("Warning: recomputing forward solution; please report this script on launchpad")
         y = adjglobals.adjointer.get_forward_solution(i)[1].data
 
-    form = backend.replace(form, {x: y})
+    form = ufl.replace(form, {x: y})
 
     return form
