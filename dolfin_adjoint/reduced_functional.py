@@ -3,7 +3,10 @@ import six.moves.cPickle as pickle
 import hashlib
 import libadjoint
 from . import utils
-from backend import Function, Constant, info_red, info_green, File
+
+from ufl.log import info_red, info_green
+
+from backend import Function, Constant, File
 from dolfin_adjoint import drivers, compatibility
 from dolfin_adjoint.adjglobals import adjointer, mem_checkpoints, disk_checkpoints, adj_reset_cache
 from .functional import Functional

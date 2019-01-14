@@ -1,6 +1,7 @@
 import libadjoint
 from .controls import *
-from backend import info_red, info_blue, info, info_green, parameters
+from backend import parameters
+from ufl.log import info_red, info_blue, info, info_green
 import backend
 from . import adjglobals
 import backend

@@ -43,7 +43,8 @@ if backend.__name__ == "dolfin":
     from .newton_solver import NewtonSolver
     from .krylov_solver import KrylovSolver
     from .petsc_krylov_solver import PETScKrylovSolver
-    from .linear_solver import LinearSolver
+    # NOTE: not exposed in 2018.1.0
+    # from .linear_solver import LinearSolver
     from .lusolver import LUSolver
     from .localsolver import LocalSolver
     from .pointwise_functional import PointwiseFunctional

@@ -9,6 +9,9 @@ import copy
 
 expression_attrs = collections.defaultdict(set)
 
+from ufl.core.compute_expr_hash import compute_expr_hash
+
+
 if backend.__name__ == "dolfin":
     # A rant:
     # This had to be one of the most ridiculously difficult things in the whole
@@ -22,7 +25,7 @@ if backend.__name__ == "dolfin":
     expression_init = backend.Expression.__init__
     def __init__(self, *args, **kwargs):
         expression_init(self, *args, **kwargs)
-        attr_list = expression_attrs[self]
+        attr_list = expression_attrs[compute_expr_hash(self)]
         attr_list.union(list(kwargs.keys()))
 
     backend.Expression.__init__ = __init__
@@ -31,8 +34,9 @@ if backend.__name__ == "dolfin":
     def __setattr__(self, k, v):
         expression_setattr(self, k, v)
         if k not in ["_ufl_element", "_ufl_shape", "_ufl_function_space", "_count", "_countedclass", "_repr", 
-                     "_element", "this", "_value_shape", "user_parameters", "_hash"]: # <-- you may need to add more here as dolfin changes
-            attr_list = expression_attrs[self]
+                     "_element", "this", "_value_shape", "user_parameters", "_hash", "_cpp_object", "_parameters",
+                     "_user_parameters", "_cppcode"]: # <-- you may need to add more here as dolfin changes
+            attr_list = expression_attrs[compute_expr_hash(self)]
             attr_list.add(k)
     backend.Expression.__setattr__ = __setattr__
 

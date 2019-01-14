@@ -186,7 +186,7 @@ def annotate(*args, **kwargs):
         value_coeffs=[v.data for v in values]
         expressions.update_expressions(frozen_expressions)
         constant.update_constants(frozen_constants)
-        eq_l = backend.replace(eq_lhs, dict(zip(diag_coeffs, value_coeffs)))
+        eq_l = ufl.replace(eq_lhs, dict(zip(diag_coeffs, value_coeffs)))
 
         kwargs = {"cache": eq_l in caching.assembled_fwd_forms} # should we cache our matrices on the way backwards?
 
@@ -229,7 +229,7 @@ def annotate(*args, **kwargs):
         value_coeffs = [v.data for v in values]
         expressions.update_expressions(frozen_expressions)
         constant.update_constants(frozen_constants)
-        eq_l = backend.replace(eq_lhs, dict(zip(diag_coeffs, value_coeffs)))
+        eq_l = ufl.replace(eq_lhs, dict(zip(diag_coeffs, value_coeffs)))
 
         if hermitian:
             eq_l = backend.adjoint(eq_l)
@@ -251,11 +251,11 @@ def annotate(*args, **kwargs):
             expressions.update_expressions(frozen_expressions)
             constant.update_constants(frozen_constants)
 
-            current_form = backend.replace(eq_lhs, dict(zip(diag_coeffs, dolfin_values)))
+            current_form = ufl.replace(eq_lhs, dict(zip(diag_coeffs, dolfin_values)))
 
             deriv = backend.derivative(current_form, dolfin_variable)
             args = ufl.algorithms.extract_arguments(deriv)
-            deriv = backend.replace(deriv, {args[1]: contraction_vector.data}) # contract over the middle index
+            deriv = ufl.replace(deriv, {args[1]: contraction_vector.data}) # contract over the middle index
 
             # Assemble the G-matrix now, so that we can apply the Dirichlet BCs to it
             if len(ufl.algorithms.extract_arguments(ufl.algorithms.expand_derivatives(coefficient*deriv))) == 0:
@@ -277,11 +277,11 @@ def annotate(*args, **kwargs):
             expressions.update_expressions(frozen_expressions)
             constant.update_constants(frozen_constants)
 
-            current_form = backend.replace(eq_lhs, dict(zip(diag_coeffs, dolfin_values)))
+            current_form = ufl.replace(eq_lhs, dict(zip(diag_coeffs, dolfin_values)))
 
             deriv = backend.derivative(current_form, dolfin_variable)
             args = ufl.algorithms.extract_arguments(deriv)
-            deriv = backend.replace(deriv, {args[2]: contraction_vector.data}) # contract over the outer index
+            deriv = ufl.replace(deriv, {args[2]: contraction_vector.data}) # contract over the outer index
 
             # Assemble the G-matrix now, so that we can apply the Dirichlet BCs to it
             if len(ufl.algorithms.extract_arguments(ufl.algorithms.expand_derivatives(coefficient*deriv))) == 0:
@@ -304,15 +304,15 @@ def annotate(*args, **kwargs):
             expressions.update_expressions(frozen_expressions)
             constant.update_constants(frozen_constants)
 
-            current_form = backend.replace(eq_lhs, dict(zip(diag_coeffs, dolfin_values)))
+            current_form = ufl.replace(eq_lhs, dict(zip(diag_coeffs, dolfin_values)))
 
-            deriv = backend.derivative(current_form, dolfin_inner_variable)
+            deriv = ufl.derivative(current_form, dolfin_inner_variable)
             args = ufl.algorithms.extract_arguments(deriv)
-            deriv = backend.replace(deriv, {args[1]: inner_contraction_vector.data}) # contract over the middle index
+            deriv = ufl.replace(deriv, {args[1]: inner_contraction_vector.data}) # contract over the middle index
 
-            deriv = backend.derivative(deriv, dolfin_outer_variable)
+            deriv = ufl.derivative(deriv, dolfin_outer_variable)
             args = ufl.algorithms.extract_arguments(deriv)
-            deriv = backend.replace(deriv, {args[1]: outer_contraction_vector.data}) # contract over the middle index
+            deriv = ufl.replace(deriv, {args[1]: outer_contraction_vector.data}) # contract over the middle index
 
             # Assemble the G-matrix now, so that we can apply the Dirichlet BCs to it
             if len(ufl.algorithms.extract_arguments(ufl.algorithms.expand_derivatives(coefficient*deriv))) == 0:

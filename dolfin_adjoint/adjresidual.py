@@ -7,7 +7,8 @@ import ufl.algorithms
 
 import libadjoint
 
-from backend import info_red, info_blue
+
+from ufl.log import info_red, info_blue
 
 def get_residual(i):
     from .adjrhs import adj_get_forward_equation

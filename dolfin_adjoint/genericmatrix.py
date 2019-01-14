@@ -1,7 +1,7 @@
 import dolfin
 from . import solving
 
-dolfin_genericmatrix_add = dolfin.GenericMatrix.__add__
+dolfin_genericmatrix_add = dolfin.cpp.la.GenericMatrix.__add__
 
 def adjoint_genericmatrix_add(self, other):
     out = dolfin_genericmatrix_add(self, other)
@@ -10,9 +10,9 @@ def adjoint_genericmatrix_add(self, other):
 
     return out
 
-dolfin.GenericMatrix.__add__ = adjoint_genericmatrix_add
+dolfin.cpp.la.GenericMatrix.__add__ = adjoint_genericmatrix_add
 
-dolfin_genericmatrix_mul = dolfin.GenericMatrix.__mul__
+dolfin_genericmatrix_mul = dolfin.cpp.la.GenericMatrix.__mul__
 
 def adjoint_genericmatrix_mul(self, other):
     out = dolfin_genericmatrix_mul(self, other)
@@ -27,9 +27,9 @@ def adjoint_genericmatrix_mul(self, other):
 
     return out
 
-dolfin.GenericMatrix.__mul__ = adjoint_genericmatrix_mul
+dolfin.cpp.la.GenericMatrix.__mul__ = adjoint_genericmatrix_mul
 
-dolfin_genericmatrix_copy = dolfin.GenericMatrix.copy
+dolfin_genericmatrix_copy = dolfin.cpp.la.GenericMatrix.copy
 
 def adjoint_genericmatrix_copy(self):
     out = dolfin_genericmatrix_copy(self)
@@ -40,4 +40,4 @@ def adjoint_genericmatrix_copy(self):
 
     return out
 
-dolfin.GenericMatrix.copy = adjoint_genericmatrix_copy
+dolfin.cpp.la.GenericMatrix.copy = adjoint_genericmatrix_copy
