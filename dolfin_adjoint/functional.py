@@ -221,7 +221,7 @@ class Functional(libadjoint.Functional):
                         # Trapezoidal rule over given interval.
                         quad_weight = 0.5*(this_interval.stop-this_interval.start)
 
-                        return backend.replace(quad_weight*term.form, replace)
+                        return ufl.replace(quad_weight*term.form, replace)
 
                 # Calculate the integral contribution from the previous time level.
                 functional_value = _add(functional_value, trapezoidal(integral_interval, 0))
@@ -247,7 +247,7 @@ class Functional(libadjoint.Functional):
                         theta = float(1.0 - (term.time - point_interval.start)/(point_interval.stop - point_interval.start))
                         replace[term_dep] = theta*deps[str(start)] + (1-theta)*deps[str(end)]
 
-                    functional_value = _add(functional_value, backend.replace(term.form, replace))
+                    functional_value = _add(functional_value, ufl.replace(term.form, replace))
 
                 # Special case for evaluation at the end of time: we can't pass over to the
                 # right-hand timestep, so have to do it here.
@@ -261,7 +261,7 @@ class Functional(libadjoint.Functional):
                         end = self.get_vars(adjointer, timestep, term_var)[1]
                         replace[term_dep] = deps[str(end)]
 
-                    functional_value = _add(functional_value, backend.replace(term.form, replace))
+                    functional_value = _add(functional_value, ufl.replace(term.form, replace))
 
                 # Another special case for the start of a timestep.
                 elif (isinstance(term.time, StartTimeConstant) and timestep == 0) or point_interval.start == term.time:
@@ -274,7 +274,7 @@ class Functional(libadjoint.Functional):
                         end = self.get_vars(adjointer, timestep, term_var)[0]
                         replace[term_dep] = deps[str(end)]
 
-                    functional_value = _add(functional_value, backend.replace(term.form, replace))
+                    functional_value = _add(functional_value, ufl.replace(term.form, replace))
 
         return functional_value
 

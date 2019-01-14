@@ -1,4 +1,5 @@
-from dolfin import info_green, refine
+from dolfin import refine
+from ufl.log import info_green
 from .optimization import minimize, maximize
 
 

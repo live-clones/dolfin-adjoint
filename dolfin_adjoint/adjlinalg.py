@@ -86,8 +86,8 @@ class Vector(libadjoint.Vector):
 
         elif x.data is None:
             pass
-        elif isinstance(self.data, backend.Coefficient):
-            if isinstance(x.data, backend.Coefficient):
+        elif isinstance(self.data, ufl.coefficient.Coefficient):
+            if isinstance(x.data, ufl.coefficient.Coefficient):
                 try:
                     self.data.vector().axpy(alpha, x.data.vector())
                 except:
@@ -497,20 +497,20 @@ def wrap_solve(A, x, b, solver_parameters):
         x = x.vector()
         if method in lu_solvers or method == "default":
             if method == "lu": method = "default"
-            solver = backend.LUSolver(method)
+            solver = backend.LUSolver(A, method)
 
             if "lu_solver" in solver_parameters:
                 solver.parameters.update(solver_parameters["lu_solver"])
 
-            solver.solve(A, x, b)
+            solver.solve(x, b)
             return
         else:
             solver = backend.KrylovSolver(method, pc)
-
+            solver.set_operator(A)
             if "krylov_solver" in solver_parameters:
                 solver.parameters.update(solver_parameters["krylov_solver"])
 
-            solver.solve(A, x, b)
+            solver.solve(x, b)
             return
     else:
         backend.solve(A, x, b, solver_parameters=solver_parameters)

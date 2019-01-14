@@ -7,10 +7,10 @@ import ufl.algorithms
 import backend
 import numpy as np
 
-import dolfin_adjoint.functional as functional
+from dolfin_adjoint import functional
 from dolfin_adjoint.functional import _time_levels, _add, _coeffs, _vars
 from dolfin_adjoint.timeforms import dt
-import dolfin_adjoint.adjlinalg as adjlinalg
+from dolfin_adjoint import adjlinalg
 
 class PointwiseFunctional(functional.Functional):
     '''The Functional class is overloaded to handle specific functionals,

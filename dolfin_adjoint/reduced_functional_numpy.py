@@ -1,6 +1,7 @@
 from __future__ import print_function
 import numpy as np
-from backend import info, info_red, Constant, Function, TestFunction, TrialFunction, assemble, inner, dx, info_red
+from backend import info, Constant, Function, TestFunction, TrialFunction, assemble, inner, dx
+from ufl.log import info_red
 from dolfin_adjoint import constant, utils
 from dolfin_adjoint.adjglobals import adjointer, adj_reset_cache
 from .reduced_functional import ReducedFunctional

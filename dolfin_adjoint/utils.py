@@ -3,7 +3,10 @@ import math
 import numpy
 
 import libadjoint
-from backend import info_red, info_blue, info, warning
+from backend import info
+
+from ufl.log import info_red, info_blue, warning
+
 import backend
 from . import adjglobals
 from . import compatibility

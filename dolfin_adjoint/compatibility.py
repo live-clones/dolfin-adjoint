@@ -98,11 +98,11 @@ def assign_function_to_vector(x, b, function_space):
 
 if backend.__name__ == "dolfin":
     solve = backend.fem.solving.solve
-    matrix_types = lambda: (backend.cpp.Matrix, backend.GenericMatrix)
+    matrix_types = lambda: (backend.cpp.la.Matrix, backend.cpp.la.GenericMatrix)
     _extract_args = backend.fem.solving._extract_args
-    function_type = backend.cpp.Function
-    function_space_type = backend.cpp.FunctionSpace
-    multi_mesh_function_space_type = backend.cpp.MultiMeshFunctionSpace
+    function_type = backend.cpp.function.Function
+    function_space_type = backend.cpp.function.FunctionSpace
+    multi_mesh_function_space_type = backend.cpp.function.MultiMeshFunctionSpace
 else:
     solve = backend.solving.solve
     matrix_types = lambda: backend.matrix.MatrixBase
@@ -123,11 +123,12 @@ else:
 def gather(vec):
     """Parallel gather of distributed data (for optimisation algorithms, usually)"""
     if backend.__name__ == "dolfin":
-        if isinstance(vec, cpp.Function):
+        if isinstance(vec, cpp.function.Function):
             vec = vec.vector()
 
-        if isinstance(vec, cpp.GenericVector):
+        if isinstance(vec, cpp.la.GenericVector):
             try:
+                # FIXME
                 arr = cpp.DoubleArray(vec.size())
                 vec.gather(arr, numpy.arange(vec.size(), dtype='I'))
                 arr = arr.array().tolist()
