@@ -15,6 +15,7 @@ RUN apt-get -qq update && \
     apt-get -y install python-scipy emacs-nox nano gdb libjsoncpp-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN pip3 install pytest user --upgrade
 
 USER fenics
 ENV DOLFIN_ADJOINT_VERSION 2017.2.0
