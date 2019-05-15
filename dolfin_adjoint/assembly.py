@@ -76,9 +76,10 @@ def assemble_system(*args, **kwargs):
     if not isinstance(bcs, list):
         bcs = [bcs]
 
+    to_annotate = utils.to_annotate(kwargs.pop("annotate", None))
+
     (lhs_out, rhs_out) = backend.assemble_system(*args, **kwargs)
 
-    to_annotate = utils.to_annotate(kwargs.pop("annotate", None))
     if to_annotate:
         lhs_out.form = lhs
         lhs_out.bcs = bcs
